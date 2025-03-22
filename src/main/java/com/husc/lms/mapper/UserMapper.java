@@ -12,6 +12,7 @@ import com.husc.lms.entity.User;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper{
+	
 	public User toUser(UserCreationRequest request);
 
 	

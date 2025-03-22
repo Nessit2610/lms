@@ -1,5 +1,6 @@
 package com.husc.lms.service;
 
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -60,23 +61,28 @@ public class UserService {
 
 	public UserResponse createUser(UserCreationRequest request) {
 		
-		if(userRepository.existsByUsername(request.getUSERNAME())) {
+		if(userRepository.existsByUsername(request.getUsername())) {
 			throw new AppException(ErrorCode.USER_EXISTED);
 		}
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
 		
 		User user = new User();
-		user.setEmail(request.getEMAIL());
+		user.setUsername(request.getUsername());
+		user.setEmail(request.getEmail());
 		user.setActive(true);
-        user.setPassword(passwordEncoder.encode(request.getPASSWORD()));
-
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setCreatedDate(new Date());
+        user.setCreatedBy(name);
         HashSet<Role> roles = new HashSet<>();
         roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(roles::add);
-
+        user.setRoles(roles);
+        user.setVersion(1);
 
         try {
             user = userRepository.save(user);
         } catch (DataIntegrityViolationException exception) {
-            throw new AppException(ErrorCode.USER_EXISTED);
+            throw new AppException(ErrorCode.USER_NOTFOUND);
         }
 
         return userMapper.toUserResponse(user);
