@@ -63,5 +63,50 @@ public class Teacher {
     private String deletedBy;
 
     private Date deletedDate;
+    
+    @Column(name="FOREIGN_LANGUAGE_PROFICIENCY")
+    private String foreignLanguageProficiency;
+    
+    @Column(name="STATE_MANAGEMENT_LEVEL")
+    private String stateManagementLevel;
+    
+    private String background;
+    
+    private Date dateOfBirth;
+    
+    private String educationEntryDate;
+    
+    private String educationalLevel;
+    
+    private String educationalManagementLevel;
+    
+    private String ethnicity;
+    
+    private String fieldOfWork;
+    
+    private boolean getMarried;
+    
+    private String	itProficiencyLevel;
+    
+    private String nationality;
+    
+    private String organizationEntryDate;
+    
+    private Date partyEntryDate;
+    
+    private String permanentResidence;
+    
+    private String placeOfBirth;
+    
+    private String placeOfPartyAdmission;
+    
+    private String politicalTheoryLevel;
+    
+    private String professionalQualification;
+    
+    private String staffClassification;
+    
+    private Date unionEntryDate;
+    
 
 }

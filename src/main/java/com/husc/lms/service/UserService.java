@@ -59,7 +59,7 @@ public class UserService {
 		this.userMapper = userMapper;
 	}
 
-	public UserResponse createUser(UserCreationRequest request) {
+	public UserResponse createUserStudent(UserCreationRequest request) {
 		
 		if(userRepository.existsByUsername(request.getUsername())) {
 			throw new AppException(ErrorCode.USER_EXISTED);
@@ -75,7 +75,7 @@ public class UserService {
         user.setCreatedDate(new Date());
         user.setCreatedBy(name);
         HashSet<Role> roles = new HashSet<>();
-        roleRepository.findById(PredefinedRole.USER_ROLE).ifPresent(roles::add);
+        roleRepository.findById(PredefinedRole.STUDENT_ROLE).ifPresent(roles::add);
         user.setRoles(roles);
         user.setVersion(1);
 
@@ -87,6 +87,36 @@ public class UserService {
 
         return userMapper.toUserResponse(user);
 		 
+	}
+	
+	public UserResponse createUserTeacher(UserCreationRequest request) {
+		
+		if(userRepository.existsByUsername(request.getUsername())) {
+			throw new AppException(ErrorCode.USER_EXISTED);
+		}
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		
+		User user = new User();
+		user.setUsername(request.getUsername());
+		user.setEmail(request.getEmail());
+		user.setActive(true);
+		user.setPassword(passwordEncoder.encode(request.getPassword()));
+		user.setCreatedDate(new Date());
+		user.setCreatedBy(name);
+		HashSet<Role> roles = new HashSet<>();
+		roleRepository.findById(PredefinedRole.TEACHER_ROLE).ifPresent(roles::add);
+		user.setRoles(roles);
+		user.setVersion(1);
+		
+		try {
+			user = userRepository.save(user);
+		} catch (DataIntegrityViolationException exception) {
+			throw new AppException(ErrorCode.USER_NOTFOUND);
+		}
+		
+		return userMapper.toUserResponse(user);
+		
 	}
 	
 	public UserResponse getMyInfo() {

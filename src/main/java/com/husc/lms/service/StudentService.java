@@ -27,7 +27,7 @@ public class StudentService {
 				.password(request.getPassword())
 				.email(request.getEmail())
 				.build();
-		UserResponse userResponse = userService.createUser(uRequest);
+		UserResponse userResponse = userService.createUserStudent(uRequest);
 		Student student = Student.builder()
 				.userId(userResponse.getId())
 				.email(request.getEmail())
