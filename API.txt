@@ -1,0 +1,28 @@
+1.(POST)http://localhost:8080/lms/auth/token
+input:
+{
+    "username": "example",
+    "password": "example"
+}
+output:    
+{
+    "code": 0,
+    "result": {
+        "token": "example",
+        "authenticated": true
+    }
+}
+2.(POST) http://localhost:8080/lms/auth/introspect
+input: 
+{
+	"token" : "example"
+}
+output:
+{
+    "code": 0,
+    "result": {
+        "valid": {false/true}
+    }
+}
+
+
