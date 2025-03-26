@@ -44,7 +44,7 @@ public class StudentService {
 	public StudentResponse createStudent(StudentRequest request) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Major major = majorRepository.findById("1").orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
+		Major major = majorRepository.findById(request.getIdmajor()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
 		System.out.println(major.getCode());
 		UserCreationRequest uRequest = UserCreationRequest.builder()
 				.username(request.getUsername())
@@ -72,8 +72,8 @@ public class StudentService {
 	public StudentResponse getStudentInfo() {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		var user = userRepository.findByUsername(name);
-		var student = studentRepository.findByUserId(user.get().getId());
+		User user = userRepository.findByUsername(name).get();
+		Student student = studentRepository.findByUserId(user.getId());
 		return studentMapper.toStudentResponse(student);
 		
 	}

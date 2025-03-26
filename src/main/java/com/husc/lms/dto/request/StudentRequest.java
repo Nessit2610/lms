@@ -30,4 +30,6 @@ public class StudentRequest {
     private String placeOfBirth;
 
     private String gender;
+    
+    private String idmajor;
 }

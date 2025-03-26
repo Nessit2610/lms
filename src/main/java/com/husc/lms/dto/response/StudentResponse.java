@@ -32,6 +32,6 @@ public class StudentResponse {
 	
 	private String clazzId;
 	
-	private Major majorId;
+	private MajorResponse majorId;
 
 }
