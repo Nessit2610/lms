@@ -11,9 +11,14 @@ import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.request.UserCreationRequest;
 import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.dto.response.UserResponse;
+import com.husc.lms.entity.Major;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.User;
+import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.exception.AppException;
+import com.husc.lms.mapper.MajorMapper;
 import com.husc.lms.mapper.StudentMapper;
+import com.husc.lms.repository.MajorRepository;
 import com.husc.lms.repository.StudentRepository;
 import com.husc.lms.repository.UserRepository;
 
@@ -29,12 +34,18 @@ public class StudentService {
 	@Autowired
 	private UserRepository userRepository;
 	
+	
+	@Autowired
+	private MajorRepository majorRepository;
+	
 	@Autowired
 	private UserService userService;
 	
 	public StudentResponse createStudent(StudentRequest request) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
+		Major major = majorRepository.findById("1").orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
+		System.out.println(major.getCode());
 		UserCreationRequest uRequest = UserCreationRequest.builder()
 				.username(request.getUsername())
 				.password(request.getPassword())
@@ -43,9 +54,9 @@ public class StudentService {
 		UserResponse userResponse = userService.createUserStudent(uRequest);
 		Student student = studentMapper.toStudent(request);
 		student.setUserId(userResponse.getId());
-		student.setMajorId("1");
 		student.setCode("TESTCODE");
 		student.setCreatedBy(name);
+		student.setMajorId(major);
 		student.setCreatedDate(new Date());
 		student.setLastModifiedBy(name);
 		student.setLastModifiedDate(new Date());

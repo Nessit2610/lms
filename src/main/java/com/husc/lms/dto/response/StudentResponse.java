@@ -3,6 +3,8 @@ package com.husc.lms.dto.response;
 import java.util.Date;
 import java.util.Set;
 
+import com.husc.lms.entity.Major;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -30,6 +32,6 @@ public class StudentResponse {
 	
 	private String clazzId;
 	
-	private String majorId;
+	private Major majorId;
 
 }
