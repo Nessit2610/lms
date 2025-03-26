@@ -7,16 +7,18 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.husc.lms.constant.PredefinedRole;
 import com.husc.lms.dto.request.UserCreationRequest;
-import com.husc.lms.dto.request.UserUpdateRequest;
+import com.husc.lms.dto.request.PasswordRequest;
 import com.husc.lms.dto.response.UserResponse;
 import com.husc.lms.entity.Role;
 import com.husc.lms.entity.User;
@@ -137,17 +139,22 @@ public class UserService {
 	}
 	
 	
-	public UserResponse UpdateUser(String userId, UserUpdateRequest updateRequest) {
-		User user = userRepository.findById(userId).orElseThrow( () -> new AppException(ErrorCode.USER_NOTFOUND));
-		
-	
-		user.setPassword(passwordEncoder.encode(updateRequest.getPassword()));
-		
-		var roles = roleRepository.findAllById(updateRequest.getRoles());
-		
-		
-		return userMapper.toUserResponse(userRepository.save(user));
+	public UserResponse changePassword(PasswordRequest request) {
+	    var context = SecurityContextHolder.getContext();
+	    String username = context.getAuthentication().getName();
+
+	    User user = userRepository.findByUsername(username).orElseThrow( () -> new AppException(ErrorCode.USER_NOTFOUND));
+
+	    if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+	        throw new AppException(ErrorCode.OLD_PASSWORD_NOT);
+	    }
+
+	    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+	    userRepository.save(user);
+
+	    return userMapper.toUserResponse(user);
 	}
+
 	
 	public void DeleteUser(String id) {
 		userRepository.deleteById(id);

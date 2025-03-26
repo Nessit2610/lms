@@ -14,21 +14,22 @@ import lombok.NoArgsConstructor;
 @Builder
 public class StudentResponse {
 
-	private String username;
+	private String fullName;
+    
+	private String code;
 	
-    private String password;
-    
-    private String email;
-    
-    private String fullName;
+	private Date dateOfBirth;
+	
+	private String gender;
+	
+	private String email;
+	
+	private String phoneNumber;
+	
+	private String contactAddress;
+	
+	private String clazzId;
+	
+	private String majorId;
 
-    private String firstName;
-
-    private String lastName;
-
-    private Date dateOfBirth;
-
-    private String placeOfBirth;
-
-    private String gender;
 }

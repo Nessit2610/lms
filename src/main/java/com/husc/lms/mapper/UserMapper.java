@@ -5,7 +5,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
 import com.husc.lms.dto.request.UserCreationRequest;
-import com.husc.lms.dto.request.UserUpdateRequest;
+import com.husc.lms.dto.request.PasswordRequest;
 import com.husc.lms.dto.response.UserResponse;
 import com.husc.lms.entity.User;
 
