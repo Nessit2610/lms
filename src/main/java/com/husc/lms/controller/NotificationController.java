@@ -31,7 +31,7 @@ public class NotificationController {
 		
 	}
 	
-	@PostMapping("/{notiId}")
+	@GetMapping("/{notiId}")
 	public APIResponse<NotificationResponse> getNoti(@PathVariable("notiId") String id){
 		return APIResponse.<NotificationResponse>builder()
 				.result(notificationService.getNoti(id))

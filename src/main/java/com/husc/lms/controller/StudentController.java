@@ -26,12 +26,6 @@ public class StudentController {
 	@Autowired
 	private StudentService studentService;
 	
-	@PostMapping("/create")
-	public APIResponse<StudentResponse> CreateStudent(@RequestBody StudentRequest request){
-		APIResponse<StudentResponse> apiResponse = new APIResponse<StudentResponse>();
-		apiResponse.setResult(studentService.createStudent(request));
-		return apiResponse;
-	}
 	
 	@GetMapping
 	public APIResponse<List<StudentResponse>> getAllStudent(){
@@ -46,6 +40,14 @@ public class StudentController {
 				.result(studentService.getStudentInfo())
 				.build();
 	}
+	
+	@PostMapping("/create")
+	public APIResponse<StudentResponse> CreateStudent(@RequestBody StudentRequest request){
+		APIResponse<StudentResponse> apiResponse = new APIResponse<StudentResponse>();
+		apiResponse.setResult(studentService.createStudent(request));
+		return apiResponse;
+	}
+	
 	
 	@PostMapping("/{id}/upload-photo")
     public APIResponse<String> uploadPhoto(@PathVariable String id, @RequestParam("file") MultipartFile file) {

@@ -30,7 +30,7 @@ public class StudentResponse {
 	
 	private byte[] avatar;
 	
-	private ClassResponse clazzId;
+	private ClassOfStudentResponse classId;
 	
 	private MajorResponse majorId;
 

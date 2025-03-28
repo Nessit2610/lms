@@ -66,7 +66,6 @@ public class ClassService {
 	}
 	
 	public ClassResponse getClass(String id) {
-	
 		Class c = classRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.CODE_ERROR));
 		ClassResponse cre = classMapper.toClassResponse(c);
 		List<StudentOfClassResponse> lst = studentRepository.findByClassId(c).stream().map(studentMapper::toStudentOfClassResponse).toList();
@@ -74,21 +73,21 @@ public class ClassService {
 		return cre ;
 	}
 	
-	public ClassResponse addStudentToClass(List<String> list, String classId) {
-		List<Student> listStudent = new ArrayList<Student>();
-		for(String s : list) {
-			Student stu = studentRepository.findById(s).orElseThrow();
-			listStudent.add(stu);
+	public ClassResponse addStudentToClass(List<String> studentIds, String classId) {
+	  	Class c = classRepository.findById(classId).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
+
+		for(String s : studentIds) {
+			Student st = studentRepository.findById(s).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
+			st.setClassId(c);
+			st = studentRepository.save(st);
 		}
-		Class c = classRepository.findById(classId).orElseThrow(()-> new AppException(ErrorCode.CODE_ERROR));
-		c.setStudents(listStudent);
-		c = classRepository.save(c);
 		ClassResponse cre = classMapper.toClassResponse(c);
 		List<StudentOfClassResponse> lst = studentRepository.findByClassId(c).stream().map(studentMapper::toStudentOfClassResponse).toList();
 		cre.setStudent(lst);
 		return cre ;
 		
 	}
+
 	
 	
 //	public List<ClassOfStudentResponse> getAllClassOfStudent(){
