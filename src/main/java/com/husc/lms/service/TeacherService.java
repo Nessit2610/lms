@@ -40,8 +40,6 @@ public class TeacherService {
 		
 		teacher = teacherRepository.save(teacher);
 		TeacherResponse teacherResponse = TeacherResponse.builder()
-				.username(uRequest.getUsername())
-				.password(uRequest.getPassword())
 				.email(teacher.getEmail())
 				.fullName(teacher.getFullName())
 				.firstName(teacher.getFirstName())

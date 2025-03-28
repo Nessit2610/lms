@@ -1,11 +1,19 @@
 package com.husc.lms.service;
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.request.UserCreationRequest;
@@ -77,5 +85,38 @@ public class StudentService {
 		return studentMapper.toStudentResponse(student);
 		
 	}
+	
+	public String uploadPhoto(String id, MultipartFile file) {
+	    Student student = studentRepository.findById(id)
+	            .orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
+
+	    try {
+	        // Đọc ảnh từ file
+	        BufferedImage originalImage = ImageIO.read(file.getInputStream());
+
+	        // Resize ảnh (giảm kích thước để tối ưu)
+	        int targetWidth = 100;  // Điều chỉnh kích thước theo nhu cầu
+	        int targetHeight = 100;
+	        BufferedImage resizedImage = new BufferedImage(targetWidth, targetHeight, BufferedImage.TYPE_INT_RGB);
+	        Graphics2D g = resizedImage.createGraphics();
+	        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+	        g.drawImage(originalImage, 0, 0, targetWidth, targetHeight, null);
+	        g.dispose();
+
+	        // Chuyển ảnh thành byte[]
+	        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	        ImageIO.write(resizedImage, "jpg", baos);  // Chuyển sang định dạng JPEG
+	        byte[] photoBytes = baos.toByteArray();
+
+	        // Lưu vào database
+	        student.setAvatar(photoBytes);
+	        studentRepository.save(student);
+
+	        return "Photo uploaded successfully";
+	    } catch (IOException e) {
+	        throw new RuntimeException("Failed to upload photo: " + e.getMessage());
+	    }
+	}
+
 
 }

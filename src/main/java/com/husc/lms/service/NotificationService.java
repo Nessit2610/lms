@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import com.husc.lms.dto.request.NotificationRequest;
 import com.husc.lms.dto.response.NotificationResponse;
 import com.husc.lms.entity.Notification;
+import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.NotificationMapper;
 import com.husc.lms.repository.NotificationRepository;
 
@@ -52,5 +54,10 @@ public class NotificationService {
 	public List<NotificationResponse> getAllNoti() {
 		var Notis = notificationRepository.findAll();
 		return Notis.stream().map(notificationMapper::toNotificationResponse).toList();
+	}
+	
+	public NotificationResponse getNoti(String id) {
+		Notification noti = notificationRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.CODE_ERROR));
+		return notificationMapper.toNotificationResponse(noti);
 	}
 }

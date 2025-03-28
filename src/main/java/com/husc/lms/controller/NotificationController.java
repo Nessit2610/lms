@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,12 +31,18 @@ public class NotificationController {
 		
 	}
 	
+	@PostMapping("/{notiId}")
+	public APIResponse<NotificationResponse> getNoti(@PathVariable("notiId") String id){
+		return APIResponse.<NotificationResponse>builder()
+				.result(notificationService.getNoti(id))
+				.build();
+	}
+	
 	@GetMapping
 	public APIResponse<List<NotificationResponse>> getAllNoti(){
 		return APIResponse.<List<NotificationResponse>>builder()
 				.result(notificationService.getAllNoti())
 				.build();
 	}
-	
 	
 }

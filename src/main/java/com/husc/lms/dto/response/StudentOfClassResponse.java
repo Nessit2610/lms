@@ -1,6 +1,8 @@
 package com.husc.lms.dto.response;
 
 
+import java.util.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -10,13 +12,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class TeacherResponse {
-    
-    private String email;
-    
-    private String fullName;
-
-    private String firstName;
-
-    private String lastName;
+public class StudentOfClassResponse {
+	
+	private String code;
+	private String fullName;
+	private Date dateOfBirth;
 }

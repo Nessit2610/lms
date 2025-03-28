@@ -9,6 +9,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -40,8 +41,10 @@ public class Student {
     private String idCardNumber;
     private String contactAddress;
     private String permanentResidence; //Địa chỉ thường trú
-    private String clazzId;
     
+    @JoinColumn(name = "clazzId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Class classId;
     
     @JoinColumn(name = "majorId", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
@@ -52,7 +55,11 @@ public class Student {
     private String decisionNumber; //Số quyết định nhập học
     private Date decisionDate; //Ngày quyết định nhập học
     private String userId;
+    
+    @Lob
     private byte[] avatar;
+    
+    
     private String createdBy;
     private Date createdDate;
     private String lastModifiedBy;

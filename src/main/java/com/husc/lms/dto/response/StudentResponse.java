@@ -1,9 +1,7 @@
 package com.husc.lms.dto.response;
 
 import java.util.Date;
-import java.util.Set;
 
-import com.husc.lms.entity.Major;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,7 +28,9 @@ public class StudentResponse {
 	
 	private String contactAddress;
 	
-	private String clazzId;
+	private byte[] avatar;
+	
+	private ClassResponse clazzId;
 	
 	private MajorResponse majorId;
 
