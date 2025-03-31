@@ -1,22 +1,17 @@
 package com.husc.lms.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.ClassRequest;
-import com.husc.lms.dto.response.ClassOfStudentResponse;
 import com.husc.lms.dto.response.ClassResponse;
 import com.husc.lms.dto.response.StudentOfClassResponse;
-import com.husc.lms.dto.response.UserResponse;
 import com.husc.lms.entity.Class;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Teacher;
-import com.husc.lms.entity.User;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.ClassMapper;
@@ -43,8 +38,6 @@ public class ClassService {
 	
 	@Autowired
 	private StudentMapper studentMapper;
-	
-	private UserService userService;
 	
 	@Autowired
 	private ClassMapper classMapper;
@@ -86,15 +79,5 @@ public class ClassService {
 		cre.setStudent(lst);
 		return cre ;
 		
-	}
-
-	
-	
-//	public List<ClassOfStudentResponse> getAllClassOfStudent(){
-//		UserResponse user = userService.getMyInfo();
-//		Student s = studentRepository.findByUserId(user.getId());
-//		
-//	}
-//	
-	
+	}	
 }

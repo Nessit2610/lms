@@ -11,7 +11,6 @@ import com.husc.lms.dto.request.UserCreationRequest;
 import com.husc.lms.dto.request.PasswordRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.UserResponse;
-import com.husc.lms.entity.UserMongo;
 import com.husc.lms.service.UserService;
 
 import jakarta.validation.Valid;
@@ -70,12 +69,4 @@ public class UserController {
 		userService.DeleteUser(Id);
 		return "User has been deleted";
 	}
-	 @GetMapping("/mongo")
-    public List<UserMongo> getUsersFromMongo() {
-        return userService.getAllUsersMongo();
-    }
-	 @PostMapping("/mongo")
-    public UserMongo createUserInMongo(@RequestBody UserMongo user) {
-        return userService.saveUserToMongo(user);
-    }
 }

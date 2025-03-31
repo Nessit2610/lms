@@ -11,10 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
+
 
 import com.husc.lms.constant.PredefinedRole;
 import com.husc.lms.dto.request.UserCreationRequest;
@@ -22,27 +21,24 @@ import com.husc.lms.dto.request.PasswordRequest;
 import com.husc.lms.dto.response.UserResponse;
 import com.husc.lms.entity.Role;
 import com.husc.lms.entity.User;
-import com.husc.lms.entity.UserMongo;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.UserMapper;
 import com.husc.lms.repository.RoleRepository;
-import com.husc.lms.repository.UserMongoRepository;
 import com.husc.lms.repository.UserRepository;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class UserService {
 	
 	@Autowired
 	private final UserRepository userRepository;
-	
-	@Autowired
-	private final UserMongoRepository userMongoRepository;
 	
 	@Autowired
 	private UserMapper userMapper;
@@ -53,13 +49,6 @@ public class UserService {
 	@Autowired
 	private RoleRepository roleRepository;
 	
-	@Autowired
-	public UserService(UserRepository userRepository, UserMongoRepository userMongoRepository, UserMapper userMapper) {
-		super();
-		this.userRepository = userRepository;
-		this.userMongoRepository = userMongoRepository;
-		this.userMapper = userMapper;
-	}
 
 	public UserResponse createUserStudent(UserCreationRequest request) {
 		
@@ -159,12 +148,5 @@ public class UserService {
 	public void DeleteUser(String id) {
 		userRepository.deleteById(id);
 	}
-	// Lấy tất cả users từ MongoDB
-    public List<UserMongo> getAllUsersMongo() {
-        return userMongoRepository.findAll();
-    }
-    // Lưu user vào MongoDB
-    public UserMongo saveUserToMongo(UserMongo user) {
-        return userMongoRepository.save(user);
-    }
+
 }

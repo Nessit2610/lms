@@ -1,7 +1,5 @@
 package com.husc.lms.entity;
 
-
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -21,36 +19,32 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name="lms_class")
-public class Class {
-	
+@Table(name = "lms_semester")
+public class Semester {
+
 	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
 
-    private String code;
+    private String name;
 
     private String status;
 
-    private String name;
-
+    @JoinColumn(name = "academicYearId")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "teacherId")
-    private Teacher teacher;
+    private AcademicYear academicYear;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "courseId")
-    private Course course;
+    @OneToMany(mappedBy = "semester", cascade = CascadeType.ALL)
+    private List<ExamSection> examSections;
 
-    @OneToMany(mappedBy = "classId", cascade = CascadeType.ALL)
-    private List<Student> students;
+    @OneToMany(mappedBy = "semester", cascade = CascadeType.ALL)
+    private List<CourseSection> courseSections;
 
     private String createdBy;
 
@@ -63,5 +57,4 @@ public class Class {
     private String deletedBy;
 
     private Date deletedDate;
-
 }

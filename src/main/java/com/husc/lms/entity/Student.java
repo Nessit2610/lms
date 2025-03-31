@@ -56,10 +56,8 @@ public class Student {
     private Date decisionDate; //Ngày quyết định nhập học
     private String userId;
     
-    @Lob
-    private byte[] avatar;
-    
-    
+    private String avatar;
+      
     private String createdBy;
     private Date createdDate;
     private String lastModifiedBy;

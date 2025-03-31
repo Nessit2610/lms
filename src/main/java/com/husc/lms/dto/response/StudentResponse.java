@@ -28,7 +28,7 @@ public class StudentResponse {
 	
 	private String contactAddress;
 	
-	private byte[] avatar;
+	private String avatar;
 	
 	private ClassOfStudentResponse classId;
 	

@@ -84,7 +84,7 @@ public class Teacher {
     
     private String fieldOfWork;
     
-    private boolean getMarried;
+    private Boolean getMarried;
     
     private String	itProficiencyLevel;
     
