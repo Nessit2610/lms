@@ -1,6 +1,8 @@
 package com.husc.lms.dto.response;
 
 
+import com.husc.lms.entity.Faculty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,6 +22,6 @@ public class MajorResponse {
 	
 	private String name;
 	
-	private String faculty;
+	private FacultyResponse faculty;
 	
 }

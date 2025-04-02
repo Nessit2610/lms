@@ -19,6 +19,6 @@ public class MajorRequest {
 	
 	private String name;
 	
-	private String faculty;
+	private String facultyid;
 	
 }

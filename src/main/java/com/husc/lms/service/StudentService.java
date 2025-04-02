@@ -28,6 +28,7 @@ import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.request.UserCreationRequest;
 import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.dto.response.UserResponse;
+import com.husc.lms.entity.Class;
 import com.husc.lms.entity.Major;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.User;
@@ -35,6 +36,7 @@ import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.MajorMapper;
 import com.husc.lms.mapper.StudentMapper;
+import com.husc.lms.repository.ClassRepository;
 import com.husc.lms.repository.MajorRepository;
 import com.husc.lms.repository.StudentRepository;
 import com.husc.lms.repository.UserRepository;
@@ -52,9 +54,11 @@ public class StudentService {
 	@Autowired
 	private UserRepository userRepository;
 	
-	
 	@Autowired
 	private MajorRepository majorRepository;
+	
+	@Autowired
+	private ClassRepository classRepository;
 	
 	@Autowired
 	private UserService userService;
@@ -63,18 +67,20 @@ public class StudentService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Major major = majorRepository.findById(request.getIdmajor()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
-		System.out.println(major.getCode());
 		UserCreationRequest uRequest = UserCreationRequest.builder()
 				.username(request.getUsername())
 				.password(request.getPassword())
 				.email(request.getEmail())
 				.build();
 		UserResponse userResponse = userService.createUserStudent(uRequest);
+		User user = userRepository.findById(userResponse.getId()).get();
+		Class clazz = classRepository.findById(request.getIdclass()).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
 		Student student = studentMapper.toStudent(request);
-		student.setUserId(userResponse.getId());
+		student.setUser(user);
 		student.setCode("TESTCODE");
 		student.setCreatedBy(name);
-		student.setMajorId(major);
+		student.setMajor(major);
+		student.setClazz(clazz);
 		student.setCreatedDate(new Date());
 		student.setLastModifiedBy(name);
 		student.setLastModifiedDate(new Date());
@@ -91,7 +97,7 @@ public class StudentService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		User user = userRepository.findByUsername(name).get();
-		Student student = studentRepository.findByUserId(user.getId());
+		Student student = studentRepository.findByUser(user);
 		return studentMapper.toStudentResponse(student);
 		
 	}

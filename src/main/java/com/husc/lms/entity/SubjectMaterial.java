@@ -3,13 +3,14 @@ package com.husc.lms.entity;
 import java.util.Date;
 import java.util.List;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,8 +22,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name="lms_academic_year")
-public class AcademicYear {
+@Table(name = "lms_subject_material")
+public class SubjectMaterial {
 
 	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -31,12 +32,15 @@ public class AcademicYear {
 	
     private String name;
 
-    private Date startDate;
+    private String fileName;
 
-    private Date endDate;
+    private String contentType;
 
-    @OneToMany(mappedBy = "academicYear", cascade = CascadeType.ALL)
-    private List<Semester> semesters;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject")
+    private Subject subject;
+
+    private String filePath;
 
     private String createdBy;
 

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 import com.husc.lms.dto.request.FacultyRequest;
 import com.husc.lms.dto.response.FacultyResponse;
 import com.husc.lms.entity.Faculty;
-import com.husc.lms.repository.FacultyMapper;
+import com.husc.lms.mapper.FacultyMapper;
 import com.husc.lms.repository.FacultyRepository;
 
 @Service

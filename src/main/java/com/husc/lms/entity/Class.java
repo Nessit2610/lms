@@ -41,15 +41,15 @@ public class Class {
 
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "teacherId")
     private Teacher teacher;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "courseId")
     private Course course;
 
-    @OneToMany(mappedBy = "classId", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "clazz", cascade = CascadeType.ALL)
     private List<Student> students;
 
     private String createdBy;

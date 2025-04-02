@@ -32,4 +32,7 @@ public class StudentRequest {
     private String gender;
     
     private String idmajor;
+    
+    private String idclass;
+    
 }

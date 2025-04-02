@@ -10,6 +10,7 @@ import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.husc.lms.dto.response.APIResponse;
@@ -105,6 +106,15 @@ public class GlobalExceptionHandler {
 		return ResponseEntity.badRequest().body(apiResponse);
 	}
 	
+	@ExceptionHandler(MaxUploadSizeExceededException.class)
+	public ResponseEntity<APIResponse> handleMaxSizeException(MaxUploadSizeExceededException exception) {
+	    ErrorCode errorCode = ErrorCode.FILE_SIZE_EXCEEDED; // Định nghĩa mã lỗi tương ứng
+	    APIResponse apiResponse = new APIResponse();
+	    apiResponse.setCode(errorCode.getCode());
+	    apiResponse.setMessage(errorCode.getMessage());
+
+	    return ResponseEntity.status(errorCode.getStatusCode()).body(apiResponse);
+	}
 	
 	private String mapAttributes(String message, Map<String, Object> attributes) {
 		String minValue = String.valueOf(attributes.get(MIN_ATTRIBUTES));

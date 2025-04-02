@@ -1,7 +1,5 @@
 package com.husc.lms.entity;
 
-import java.util.Date;
-import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,7 +9,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,37 +20,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name="lms_major")
-public class Major {
+@Table(name="lms_notification_course_section")
+public class NotificationCourseSection {
 
 	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
-	 
-    private String code;
- 
-    private String moetCode;
-
-    private Integer status;
-
-    private String name;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "facultyId")
-    private Faculty faculty;
-
-    private String createdBy;
-
-    private Date createdDate;
-
-    private String lastModifiedBy;
-
-    private Date lastModifiedDate;
-
-    private String deletedBy;
-
-    private Date deletedDate;
-
 	
+	@ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notificationId", nullable = false)
+    private Notification notification;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "courseSectionId", nullable = false)
+    private CourseSection courseSection;
 }

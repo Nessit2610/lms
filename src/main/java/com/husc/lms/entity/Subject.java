@@ -36,13 +36,10 @@ public class Subject {
     private String status;
 
     @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL)
-    private List<CourseSection> courseSections;
+    private List<SubjectMaterial> subjectMaterials;
 
-//    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL)
-//    private List<SubjectMaterial> subjectMaterials ;
-//
-//    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL)
-//    private List<CurriculumSubject> curriculumSubjects;
+    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL)
+    private List<CurriculumSubject> curriculumSubjects;
 
     private String createdBy;
 

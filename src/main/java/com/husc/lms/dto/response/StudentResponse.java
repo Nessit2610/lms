@@ -30,8 +30,8 @@ public class StudentResponse {
 	
 	private String avatar;
 	
-	private ClassOfStudentResponse classId;
+	private ClassOfStudentResponse clazz;
 	
-	private MajorResponse majorId;
+	private MajorResponse major;
 
 }

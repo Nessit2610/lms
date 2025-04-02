@@ -61,7 +61,7 @@ public class ClassService {
 	public ClassResponse getClass(String id) {
 		Class c = classRepository.findById(id).orElseThrow(()-> new AppException(ErrorCode.CODE_ERROR));
 		ClassResponse cre = classMapper.toClassResponse(c);
-		List<StudentOfClassResponse> lst = studentRepository.findByClassId(c).stream().map(studentMapper::toStudentOfClassResponse).toList();
+		List<StudentOfClassResponse> lst = studentRepository.findByClazz(c).stream().map(studentMapper::toStudentOfClassResponse).toList();
 		cre.setStudent(lst);
 		return cre ;
 	}
@@ -71,11 +71,11 @@ public class ClassService {
 
 		for(String s : studentIds) {
 			Student st = studentRepository.findById(s).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
-			st.setClassId(c);
+			st.setClazz(c);
 			st = studentRepository.save(st);
 		}
 		ClassResponse cre = classMapper.toClassResponse(c);
-		List<StudentOfClassResponse> lst = studentRepository.findByClassId(c).stream().map(studentMapper::toStudentOfClassResponse).toList();
+		List<StudentOfClassResponse> lst = studentRepository.findByClazz(c).stream().map(studentMapper::toStudentOfClassResponse).toList();
 		cre.setStudent(lst);
 		return cre ;
 		

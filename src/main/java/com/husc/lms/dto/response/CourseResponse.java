@@ -19,5 +19,4 @@ public class CourseResponse {
 	
 	private Date endDate;
 	
-	private String majorId;
 }

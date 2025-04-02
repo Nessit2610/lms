@@ -19,10 +19,11 @@ public enum ErrorCode {
 	USER_UNAUTHENTICATED(1007, "Unauthenticated",HttpStatus.UNAUTHORIZED),
 	UNAUTHORIZED(1008, "You do not have permission",HttpStatus.FORBIDDEN),
 	ROLE_NOT_FOUND(1009, "Role not found", HttpStatus.BAD_REQUEST),
-	OLD_PASSWORD_NOT(1009, "Mat Khau cu sai cmnr", HttpStatus.BAD_REQUEST),
-	MAJOR_NOT_FOUND(1009, "Tim deo thay Major", HttpStatus.BAD_REQUEST),
-	CODE_ERROR(1009, "Loi chua dinh dang", HttpStatus.BAD_REQUEST),
-	DOB_INVALID(1010, "Your age must be at least {min}", HttpStatus.BAD_REQUEST);
+	OLD_PASSWORD_NOT(1010, "Mat Khau cu sai cmnr", HttpStatus.BAD_REQUEST),
+	MAJOR_NOT_FOUND(1011, "Major not found", HttpStatus.BAD_REQUEST),
+	CODE_ERROR(1012, "Error just error", HttpStatus.BAD_REQUEST),
+	FILE_SIZE_EXCEEDED(1013, "File upload exceeds the maximum limit of 10MB!", HttpStatus.BAD_REQUEST),
+	DOB_INVALID(1014, "Your age must be at least {min}", HttpStatus.BAD_REQUEST);
 	
 	
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {

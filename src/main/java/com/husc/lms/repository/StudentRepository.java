@@ -7,10 +7,11 @@ import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.Class;
 import com.husc.lms.entity.Student;
+import com.husc.lms.entity.User;
 
 @Repository
 public interface StudentRepository extends JpaRepository<Student, String> {
 
-	public Student findByUserId(String userId);
-	public List<Student> findByClassId(Class classId);
+	public Student findByUser(User user);
+	public List<Student> findByClazz(Class clazz);
 }

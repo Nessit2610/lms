@@ -25,4 +25,54 @@ output:
     }
 }
 
+3.(POST)http://localhost:8080/lms/student/create
 
+input:
+{
+    "username": "student",
+    "password": "123",
+    "email": "letien@example.com",
+    "fullName": "Lê Văn Tiến",
+    "firstName": "Lê Văn",
+    "lastName": "Tiến",
+    "dateOfBirth": "2003-10-26",
+    "placeOfBirth": "Bệnh viện TW Huế",
+    "gender": "Nam",
+    "idmajor": "2a5a5787f80efe059f805e7004b28e83",
+    "idclass":"41c1ba8b01af8cec2cac9a493b1db3ef"
+}
+4.(GET) http://localhost:8080/lms/student/myinfo
+output: 
+{
+    "code": 0,
+    "result": {
+        "fullName": "Lê Văn Tiến",
+        "code": "TESTCODE",
+        "dateOfBirth": "2003-10-25T17:00:00.000+00:00",
+        "gender": "Nam",
+        "email": "letien@example.com",
+        "phoneNumber": null,
+        "contactAddress": null,
+        "avatar": null,
+        "clazz": {
+            "code": "LOP001",
+            "status": null,
+            "name": null,
+            "course": {
+                "name": "K45",
+                "startDate": "2028-12-30T17:00:00.000+00:00",
+                "endDate": "2024-12-31T17:00:00.000+00:00"
+            }
+        },
+        "major": {
+            "code": "KTPM",
+            "moetCode": "qweqwe",
+            "status": 1,
+            "name": "Kỹ Thuật Phần Mềm",
+            "faculty": {
+                "name": "CNTT",
+                "code": "abcxyz"
+            }
+        }
+    }
+}

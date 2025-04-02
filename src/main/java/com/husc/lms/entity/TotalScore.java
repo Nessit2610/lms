@@ -39,6 +39,10 @@ public class TotalScore {
     @JoinColumn(name = "examScoreId", nullable = false)
     private ExamScore examScore;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "final_score_id")
+    private FinalScore finalScore;
+
     private Double totalScore; // Tổng điểm
 
     private String createdBy;

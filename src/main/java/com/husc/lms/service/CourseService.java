@@ -42,7 +42,6 @@ public class CourseService {
 				.name(course.getName())
 				.startDate(course.getStartDate())
 				.endDate(course.getEndDate())
-				.majorId(course.getMajorId())
 				.build();
 		return courseResponse;
 	}

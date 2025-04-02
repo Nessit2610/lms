@@ -1,4 +1,4 @@
-package com.husc.lms.repository;
+package com.husc.lms.mapper;
 
 import org.mapstruct.Mapper;
 

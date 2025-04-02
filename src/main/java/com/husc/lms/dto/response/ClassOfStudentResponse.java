@@ -18,8 +18,6 @@ public class ClassOfStudentResponse {
     private String status;
 
     private String name;
-
-//    private TeacherResponse teacher;
-//
-//    private CourseResponse course;
+    
+    private CourseResponse course;
 }
