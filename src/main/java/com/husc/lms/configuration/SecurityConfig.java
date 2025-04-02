@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 
+import com.husc.lms.entity.Role;
 import com.husc.lms.enums.Roles;
 
 
@@ -36,6 +37,7 @@ public class SecurityConfig {
     	httpSecurity.authorizeHttpRequests(request ->
     		request.requestMatchers(HttpMethod.POST,PUBPIC_API).permitAll()
     				.requestMatchers(HttpMethod.GET, "/users").hasRole(Roles.ADMIN.name())
+    				.requestMatchers(HttpMethod.POST,"/noti/create").hasAnyRole(Roles.ADMIN.name(),Roles.TEACHER.name())
     				.anyRequest().authenticated());
     	
     	httpSecurity.oauth2ResourceServer( oauth2configure -> 

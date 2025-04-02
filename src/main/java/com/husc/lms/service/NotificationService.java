@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ public class NotificationService {
 	
 	@Autowired
 	private NotificationMapper notificationMapper;
+	
 	
 	public NotificationResponse createNotification(NotificationRequest request) {
 		var context = SecurityContextHolder.getContext();
@@ -51,8 +53,14 @@ public class NotificationService {
 	}
 	
 	
-	public List<NotificationResponse> getAllNoti() {
-		var Notis = notificationRepository.findAll();
+	public List<NotificationResponse> getAllNoti(String type) {
+		String publicTybe = "1";
+		var Notis = notificationRepository.findByType(publicTybe);
+		
+		if(!(type == null || type.isEmpty())) {
+			Notis = notificationRepository.findByType(type);
+		}
+	
 		return Notis.stream().map(notificationMapper::toNotificationResponse).toList();
 	}
 	

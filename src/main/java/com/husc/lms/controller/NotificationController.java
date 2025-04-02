@@ -31,18 +31,25 @@ public class NotificationController {
 		
 	}
 	
-	@GetMapping("/{notiId}")
-	public APIResponse<NotificationResponse> getNoti(@PathVariable("notiId") String id){
+	@GetMapping("/details/{notiId}")
+	public APIResponse<NotificationResponse> getNotiDetails(@PathVariable("notiId") String id){
 		return APIResponse.<NotificationResponse>builder()
 				.result(notificationService.getNoti(id))
 				.build();
 	}
 	
-	@GetMapping
-	public APIResponse<List<NotificationResponse>> getAllNoti(){
-		return APIResponse.<List<NotificationResponse>>builder()
-				.result(notificationService.getAllNoti())
-				.build();
+	@GetMapping("/{classId}")
+	public APIResponse<List<NotificationResponse>> getNotiClass(@PathVariable("ClassId") String id) {
+	    return APIResponse.<List<NotificationResponse>>builder()
+	            .result(notificationService.getAllNoti(id))
+	            .build();
+	}
+
+	@GetMapping()
+	public APIResponse<List<NotificationResponse>> getAllNoti() {
+	    return APIResponse.<List<NotificationResponse>>builder()
+	            .result(notificationService.getAllNoti(""))
+	            .build();
 	}
 	
 }
