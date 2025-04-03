@@ -36,8 +36,8 @@ public class Room {
     @Column(name = "status")
     private String status;
 
-//    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private List<ExamScheduleRoom> examScheduleRooms;
+    @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ExamScheduleRoom> examScheduleRooms;
 
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<CourseSection> courseSections;

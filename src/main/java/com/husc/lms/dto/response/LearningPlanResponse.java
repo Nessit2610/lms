@@ -1,6 +1,6 @@
 package com.husc.lms.dto.response;
 
-import com.husc.lms.entity.Subject;
+import com.husc.lms.entity.ExamSchedule;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CurriculumSubjectResponse {
+public class LearningPlanResponse {
 
-	private SubjectResponse subject;
-	private Integer credit;
-	private Boolean required;
+	private CourseSectionResponse courseSection;
+	
+	//private ExamSchedule examSchedule;
 }

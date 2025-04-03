@@ -33,20 +33,14 @@ public class CourseSection {
 
     private String name;
 
-    @NotNull
+
     @JoinColumn(name = "semesterId")
     @ManyToOne(fetch = FetchType.LAZY)
     private Semester semester;
 
-    @NotNull
-    @JoinColumn(name = "majorId")
+    @JoinColumn(name = "curriculumSubjectId")
     @ManyToOne(fetch = FetchType.LAZY)
-    private Major major;
-
-    @NotNull
-    @JoinColumn(name = "subjectId")
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Subject subject;
+    private CurriculumSubject curriculumSubject;
 
     @NotNull
     @JoinColumn(name = "teacherId")
@@ -64,8 +58,6 @@ public class CourseSection {
     private Integer startPeriod;
 
     private Integer endPeriod;
-
-    private Integer credit;
 
     private String createdBy;
 

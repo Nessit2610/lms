@@ -26,6 +26,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.request.UserCreationRequest;
+import com.husc.lms.dto.response.LearningPlanOfStudent;
 import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.dto.response.UserResponse;
 import com.husc.lms.entity.Class;
@@ -78,9 +79,9 @@ public class StudentService {
 		Student student = studentMapper.toStudent(request);
 		student.setUser(user);
 		student.setCode("TESTCODE");
-		student.setCreatedBy(name);
 		student.setMajor(major);
 		student.setClazz(clazz);
+		student.setCreatedBy(name);
 		student.setCreatedDate(new Date());
 		student.setLastModifiedBy(name);
 		student.setLastModifiedDate(new Date());
@@ -100,6 +101,14 @@ public class StudentService {
 		Student student = studentRepository.findByUser(user);
 		return studentMapper.toStudentResponse(student);
 		
+	}
+	
+	public LearningPlanOfStudent getLearningPlanOfStudent() {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		User user = userRepository.findByUsername(name).get();
+		Student student = studentRepository.findByUser(user);
+		return studentMapper.toLearningPlanOfStudent(student);
 	}
 	
 	public String uploadPhoto(String id, MultipartFile file) {

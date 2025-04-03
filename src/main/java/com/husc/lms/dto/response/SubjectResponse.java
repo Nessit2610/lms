@@ -24,7 +24,7 @@ public class SubjectResponse {
 
     private String status;
     
-    private List<SubjectMaterialResponse> subjectMaterial;
+    private List<SubjectMaterialResponse> subjectMaterials;
     
     //private List<CurriculumSubject> curriculumSubjects;
 }

@@ -1,6 +1,6 @@
 package com.husc.lms.dto.response;
 
-import com.husc.lms.entity.Subject;
+import java.util.Date;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,9 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CurriculumSubjectResponse {
+public class AcademicYearResponse {
 
-	private SubjectResponse subject;
-	private Integer credit;
-	private Boolean required;
+	private String name;
+
+    private Date startDate;
+
+    private Date endDate;
 }
