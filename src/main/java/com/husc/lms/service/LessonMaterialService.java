@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.husc.lms.constant.Constant;
+import com.husc.lms.constant.TriFunction;
 import com.husc.lms.dto.response.LessonMaterialResponse;
 import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.LessonMaterial;
@@ -34,13 +35,13 @@ public class LessonMaterialService {
 	private LessonRepository lessonRepository;
 	
 	
-	public LessonMaterialResponse createMaterial(String lessonid, MultipartFile file) {
+	public LessonMaterialResponse createMaterial(String lessonid, MultipartFile file, String type) {
 		Lesson lesson = lessonRepository.findById(lessonid).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
 		LessonMaterial lessonMaterial = LessonMaterial.builder()
 				.lesson(lesson)
 				.build();
 		lessonMaterial = lessonMaterialRepository.save(lessonMaterial);
-		String url = uploadFile(lessonMaterial.getId(), file);
+		String url = uploadFile(lessonMaterial.getId(), file, type);
 		lessonMaterial.setPath(url);
 		lessonMaterial = lessonMaterialRepository.save(lessonMaterial);
 		
@@ -50,82 +51,67 @@ public class LessonMaterialService {
 		return ler;
 	}
 	
-	public String uploadFile(String id, MultipartFile file) {
-	    if (file.isEmpty()) {
+	public String uploadFile(String id, MultipartFile file, String type) {
+	    if (file == null || file.isEmpty()) {
 	        throw new RuntimeException("File is empty");
 	    }
-	    
-	    LessonMaterial lessonMaterial = lessonMaterialRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));  
-	    String fileUrl = fileUploadFunction.apply(id, file);
+
+	    LessonMaterial lessonMaterial = lessonMaterialRepository.findById(id)
+	            .orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
+
+	    String fileUrl = generalFileUploadFunction.apply(id, type.toLowerCase(), file);
 	    lessonMaterial.setPath(fileUrl);
 	    lessonMaterialRepository.save(lessonMaterial);
+
 	    return fileUrl;
 	}
 
+
 	private final Function<String, String> fileExtension = filename ->
-	        Optional.ofNullable(filename)
-	                .filter(name -> name.contains("."))
-	                .map(name -> "." + name.substring(name.lastIndexOf('.') + 1))
-	                .orElse("");
+    Optional.ofNullable(filename)
+            .filter(name -> name.contains("."))
+            .map(name -> "." + name.substring(name.lastIndexOf('.') + 1))
+            .orElse("");
 
-	private final BiFunction<String, MultipartFile, String> fileUploadFunction = (id, file) -> {
-	    String extension = fileExtension.apply(file.getOriginalFilename());
-	    String filename = id + "_" + System.currentTimeMillis() + extension;
+	private String getFolderFromType(String type) {
+	    return switch (type.toLowerCase()) {
+	        case "photo", "image" -> "images";
+	        case "video" -> "videos";
+	        case "file", "document" -> "files";
+	        default -> throw new RuntimeException("Unsupported file type: " + type);
+	    };
+	}
 
-	    try {
-	        // Tuỳ vào loại file (video hay không), chọn thư mục phù hợp
-	        String folder = getFileFolder(extension);
+	private final TriFunction<String, String, MultipartFile, String> generalFileUploadFunction = (id, type, file) -> {
+    String extension = fileExtension.apply(file.getOriginalFilename());
+    String filename = id + extension;
 
-	        // Xử lý lưu file vào thư mục đã chọn
-	        Path fileStorageLocation = Paths.get(folder).toAbsolutePath().normalize();
-	        Files.createDirectories(fileStorageLocation);
+    String folder = getFolderFromType(type);
+    String baseDir = switch (folder) {
+        case "photos" -> Constant.PHOTO_DIRECTORY;
+        case "videos" -> Constant.VIDEO_DIRECTORY;
+        case "files" -> Constant.FILE_DIRECTORY;
+        default -> throw new RuntimeException("Invalid folder: " + folder);
+    };
 
-	        // Đường dẫn hoàn chỉnh lưu file
-	        Path targetLocation = fileStorageLocation.resolve(filename);
-	        Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+    try {
+        Path storagePath = Paths.get(baseDir).toAbsolutePath().normalize();
+        if (!Files.exists(storagePath)) {
+            Files.createDirectories(storagePath);
+        }
 
-	        // Trả về URL truy cập file
-	        return ServletUriComponentsBuilder.fromCurrentContextPath()
-	                .path("/" + getFolderPath(extension) + "/")  // Dựa trên loại file (ảnh, video, file)
-	                .path(filename)
-	                .toUriString();
-	    } catch (IOException e) {
-	        throw new RuntimeException("Unable to upload file", e);
-	    }
+        Path destination = storagePath.resolve(filename);
+        Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/lessonmaterial/" + folder + "/" + filename)
+                .toUriString();
+
+    } catch (IOException e) {
+        throw new RuntimeException("Could not save file: " + filename, e);
+    	}
 	};
 
-	// Hàm xác định thư mục lưu trữ phù hợp (video, ảnh, hay file chung)
-	private String getFileFolder(String extension) {
-	    if (isVideo(extension)) {
-	        return Constant.VIDEO_DIRECTORY;  // Video lưu vào thư mục "videos"
-	    } else if (isImage(extension)) {
-	        return Constant.PHOTO_DIRECTORY;  // Ảnh lưu vào thư mục "images"
-	    } else {
-	        return Constant.FILE_DIRECTORY;  // Các file khác sẽ lưu vào thư mục "files"
-	    }
-	}
+    
 
-	// Hàm xác định đường dẫn để truy cập file qua URL (dựa vào loại file)
-	private String getFolderPath(String extension) {
-	    if (isVideo(extension)) {
-	        return "lessonmaterial";  // Video sẽ truy cập qua /videos/{filename}
-	    } else if (isImage(extension)) {
-	        return "lessonmaterial";  // Ảnh sẽ truy cập qua /images/{filename}
-	    } else {
-	        return "lessonmaterial";  // File sẽ truy cập qua /files/{filename}
-	    }
-	}
-
-	// Kiểm tra nếu là video (các định dạng phổ biến như mp4, avi, mkv, ... )
-	private boolean isVideo(String extension) {
-	    String ext = extension.toLowerCase();
-	    return ext.equals(".mp4") || ext.equals(".avi") || ext.equals(".mov") || ext.equals(".mkv");
-	}
-
-	// Kiểm tra nếu là ảnh (các định dạng phổ biến như jpg, png, gif, ...)
-	private boolean isImage(String extension) {
-	    String ext = extension.toLowerCase();
-	    return ext.equals(".jpg") || ext.equals(".png") || ext.equals(".gif") || ext.equals(".jpeg");
-	}
-	
 }

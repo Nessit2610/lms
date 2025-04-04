@@ -1,6 +1,7 @@
 package com.husc.lms.controller;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -34,26 +35,37 @@ public class LessonMaterialController {
 	
 	@PostMapping("/create")
 	public APIResponse<LessonMaterialResponse> createLessonMaterial(@RequestParam("id") String id,
-            													@RequestParam("file") MultipartFile file) {
+        															@RequestParam("file") MultipartFile file,
+        															@RequestParam("type")String type) {
 		return APIResponse.<LessonMaterialResponse>builder()
-				.result(lessonMaterialService.createMaterial(id, file))
+				.result(lessonMaterialService.createMaterial(id, file, type))
 				.build();
 	}
 	
-	@GetMapping("/{filename}")
-	public ResponseEntity<Resource> getVideo(@PathVariable String filename) throws IOException {
-	    Path videoPath = Paths.get(Constant.VIDEO_DIRECTORY).resolve(filename);
-	    Resource videoResource = new UrlResource(videoPath.toUri());
+	// Lưu ý: Type bao gồm {photo , video , file}
+	
+	@GetMapping(path = "/images/{filename}", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE })
+	public byte[] getPhoto(@PathVariable("filename") String filename) throws IOException {
+	    return Files.readAllBytes(Paths.get(Constant.PHOTO_DIRECTORY + filename));
+	}
 
-	    if (videoResource.exists() || videoResource.isReadable()) {
-	        InputStreamResource resource = new InputStreamResource(videoResource.getInputStream());
-	        return ResponseEntity.ok()
-	                .contentType(MediaType.APPLICATION_OCTET_STREAM) // Đảm bảo định dạng của file
-	                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-	                .body(resource);
-	    } else {
-	        throw new RuntimeException("Video not found: " + filename);
-	    }
+	@GetMapping(path = "/videos/{filename}", produces = "video/mp4")
+	public byte[] getVideo(@PathVariable("filename") String filename) throws IOException {
+	    return Files.readAllBytes(Paths.get(Constant.VIDEO_DIRECTORY + filename));
+	}
+
+
+	@GetMapping("/files/{filename}")
+	public ResponseEntity<byte[]> getFile(@PathVariable String filename) throws IOException {
+	    Path path = Paths.get(Constant.FILE_DIRECTORY + filename);
+	    byte[] data = Files.readAllBytes(path);
+
+	    String mimeType = Files.probeContentType(path); // Lấy content-type tự động
+	    
+	    return ResponseEntity.ok()
+	            .contentType(MediaType.parseMediaType(mimeType != null ? mimeType : MediaType.APPLICATION_OCTET_STREAM_VALUE))
+	            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+	            .body(data);
 	}
 
 }
