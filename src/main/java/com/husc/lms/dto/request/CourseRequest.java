@@ -1,5 +1,6 @@
 package com.husc.lms.dto.request;
 
+
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -15,9 +16,15 @@ public class CourseRequest {
 
 	private String name;
 	
-	private Date startDate;
+	private String description;
 	
-	private Date endDate;
+	private String status; //private or public
+
+	private String learningDurationType; // Thoi han khoa hoc
 	
-	private String majorId;
+    private Date startDate;
+
+    private Date endDate;
+
+    private String major;
 }

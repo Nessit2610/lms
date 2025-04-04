@@ -1,9 +1,8 @@
 package com.husc.lms.controller;
 
-import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,7 +19,7 @@ public class CourseController {
 
 	@Autowired
 	private CourseService courseService;
-
+	
 	@PostMapping("/create")
 	public APIResponse<CourseResponse> createCourse(@RequestBody CourseRequest request){
 		return APIResponse.<CourseResponse>builder()
@@ -28,10 +27,11 @@ public class CourseController {
 				.build();
 	}
 	
-	@GetMapping
-	public APIResponse<List<CourseResponse>> getAllCourse() {
-		return APIResponse.<List<CourseResponse>>builder()
-				.result(courseService.getAllCourse())
+	@GetMapping("/{id}")
+	public APIResponse<CourseResponse> getCourseById(@PathVariable("id") String id){
+		return APIResponse.<CourseResponse>builder()
+				.result(courseService.getCourseById(id))
 				.build();
 	}
+	
 }

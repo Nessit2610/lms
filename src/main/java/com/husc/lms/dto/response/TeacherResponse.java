@@ -16,7 +16,4 @@ public class TeacherResponse {
     
     private String fullName;
 
-    private String firstName;
-
-    private String lastName;
 }

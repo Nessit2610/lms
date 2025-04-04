@@ -1,4 +1,4 @@
-package com.husc.lms.controller;
+	package com.husc.lms.controller;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -20,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.response.APIResponse;
-import com.husc.lms.dto.response.LearningPlanOfStudent;
 import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.entity.Student;
 import com.husc.lms.service.StudentService;
@@ -41,12 +40,6 @@ public class StudentController {
 				.build();
 	}
 	
-	@GetMapping("/myCourseSections")
-	public APIResponse<LearningPlanOfStudent> getLearningPlan(){
-		return APIResponse.<LearningPlanOfStudent>builder()
-				.result(studentService.getLearningPlanOfStudent())
-				.build();
-	}
 	
 	@GetMapping("/myinfo")
 	public APIResponse<StudentResponse> getStudentInfo(){

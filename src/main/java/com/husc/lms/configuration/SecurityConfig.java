@@ -26,7 +26,9 @@ import com.husc.lms.enums.Roles;
 @EnableWebSecurity
 public class SecurityConfig {
 
-	private final String[] PUBPIC_API = {"/users","/auth/token","/auth/introspect","/auth/logout","/auth/refresh"};
+	private final String[] PUBPIC_API = {"/account/changePassword","/auth/token","/auth/introspect","/auth/logout","/auth/refresh"};
+	
+	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create"};
 
 	@Autowired
 	private CustomJwtDecoder customJwtDecoder;
@@ -36,8 +38,7 @@ public class SecurityConfig {
 
     	httpSecurity.authorizeHttpRequests(request ->
     		request.requestMatchers(HttpMethod.POST,PUBPIC_API).permitAll()
-    				.requestMatchers(HttpMethod.GET, "/users").hasRole(Roles.ADMIN.name())
-    				.requestMatchers(HttpMethod.POST,"/noti/create").hasAnyRole(Roles.ADMIN.name(),Roles.TEACHER.name())
+    				.requestMatchers(HttpMethod.POST, TEACHER_POST_API).hasAnyRole(Roles.ADMIN.name(),Roles.TEACHER.name())
     				.anyRequest().authenticated());
     	
     	httpSecurity.oauth2ResourceServer( oauth2configure -> 

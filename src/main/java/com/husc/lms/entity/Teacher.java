@@ -1,12 +1,17 @@
 package com.husc.lms.entity;
 
 import java.util.Date;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,31 +31,23 @@ public class Teacher {
     @Column(length = 36)
     private String id;
 	
-    private String code;
-
     private String fullName;
 
-    private String firstName;
-
-    private String lastName;
-
-    private String gender;
 
     private String email;
 
-    private String idCardNumber;
+    @JoinColumn(name = "userId")
+    @OneToOne(fetch = FetchType.LAZY)
+    private Account account;
 
-    private String status;
+    @OneToMany(mappedBy = "teacher")
+    private List<Course> course;
 
-    private String phoneNumber;
+    private String avatar;
 
-    private String contactAddress;
+    private String description;
 
-    private String majorId;
-
-    private String userId;
-
-    private byte[] avatar;
+    private String contact;
 
     private String createdBy;
 
@@ -64,49 +61,7 @@ public class Teacher {
 
     private Date deletedDate;
     
-    @Column(name="FOREIGN_LANGUAGE_PROFICIENCY")
-    private String foreignLanguageProficiency;
-    
-    @Column(name="STATE_MANAGEMENT_LEVEL")
-    private String stateManagementLevel;
-    
-    private String background;
-    
-    private Date dateOfBirth;
-    
-    private String educationEntryDate;
-    
-    private String educationalLevel;
-    
-    private String educationalManagementLevel;
-    
-    private String ethnicity;
-    
-    private String fieldOfWork;
-    
-    private Boolean getMarried;
-    
-    private String	itProficiencyLevel;
-    
-    private String nationality;
-    
-    private String organizationEntryDate;
-    
-    private Date partyEntryDate;
-    
-    private String permanentResidence;
-    
-    private String placeOfBirth;
-    
-    private String placeOfPartyAdmission;
-    
-    private String politicalTheoryLevel;
-    
-    private String professionalQualification;
-    
-    private String staffClassification;
-    
-    private Date unionEntryDate;
+
     
 
 }

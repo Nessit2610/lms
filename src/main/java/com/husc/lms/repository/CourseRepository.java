@@ -6,6 +6,6 @@ import org.springframework.stereotype.Repository;
 import com.husc.lms.entity.Course;
 
 @Repository
-public interface CourseRepository extends JpaRepository<Course, String> {
+public interface CourseRepository extends JpaRepository<Course,String> {
 
 }

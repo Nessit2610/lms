@@ -21,11 +21,11 @@ import com.husc.lms.dto.request.RefreshRequest;
 import com.husc.lms.dto.response.AuthenticationResponse;
 import com.husc.lms.dto.response.IntrospectResponse;
 import com.husc.lms.entity.InvalidatedToken;
-import com.husc.lms.entity.User;
+import com.husc.lms.entity.Account;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.repository.InvalidatedTokenRepository;
-import com.husc.lms.repository.UserRepository;
+import com.husc.lms.repository.AccountRepository;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
@@ -45,7 +45,7 @@ import lombok.experimental.NonFinal;
 public class AuthenticationService {
 	
 	@Autowired
-	private UserRepository userRepository;
+	private AccountRepository userRepository;
 	
 	@Autowired
 	private InvalidatedTokenRepository invalidatedTokenRepository;
@@ -79,7 +79,7 @@ public class AuthenticationService {
 				.build();
 	}
 	
-	private String generateToken(User user) {
+	private String generateToken(Account user) {
 		
 		JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 		
@@ -124,7 +124,7 @@ public class AuthenticationService {
 	}
 	
 	
-	private String buildScope(User user) {
+	private String buildScope(Account user) {
 		StringJoiner stringJoiner = new StringJoiner(" ");
 		if(!CollectionUtils.isEmpty(user.getRoles())) {
 			user.getRoles().forEach(role -> {
@@ -167,9 +167,6 @@ public class AuthenticationService {
 		if(invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID())) {
 			throw new AppException(ErrorCode.USER_UNAUTHENTICATED);
 		}
-		
-		
-			
 		return signedJWT;
 	}
 	
