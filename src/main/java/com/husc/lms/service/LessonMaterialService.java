@@ -103,9 +103,7 @@ public class LessonMaterialService {
         Path destination = storagePath.resolve(filename);
         Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
 
-        return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/lessonmaterial/" + folder + "/" + filename)
-                .toUriString();
+        return "/lms/lessonmaterial/" + folder + "/" + filename;
 
     } catch (IOException e) {
         throw new RuntimeException("Could not save file: " + filename, e);
