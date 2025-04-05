@@ -26,7 +26,7 @@ import com.husc.lms.enums.Roles;
 @EnableWebSecurity
 public class SecurityConfig {
 
-	private final String[] PUBPIC_API = {"/account/changePassword","/auth/token","/auth/introspect","/auth/logout","/auth/refresh"};
+	private final String[] PUBPIC_API = {"/account/changePassword","/auth/token","/auth/introspect","/auth/logout","/auth/refresh","/student/create","/teacher/create"};
 	
 	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create"};
 
