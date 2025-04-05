@@ -36,6 +36,7 @@ public class LessonQuiz {
     
     private String question;
     
+    @Column(name = "`option`")
     private String option;
 
     private String answer;

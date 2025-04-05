@@ -10,8 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LessonMaterialResponse {
-	
-	private String path;
-	
+public class LessonQuizResponse {
+
+	private String question;
+    
+    private String option;
+
+    private String answer;
 }
