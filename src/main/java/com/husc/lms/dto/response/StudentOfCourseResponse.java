@@ -9,14 +9,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class StudentResponse {
+public class StudentOfCourseResponse {
+
+	private String fullName;
 	
-	private String id;
-	private String fullName;			
-	private String email;
 	private String major;
-	private String description;
-	private String avatar;
-	
-	
+    
+    private String email;
+    
 }

@@ -3,6 +3,7 @@ package com.husc.lms.mapper;
 import org.mapstruct.Mapper;
 
 import com.husc.lms.dto.request.StudentRequest;
+import com.husc.lms.dto.response.StudentOfCourseResponse;
 import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.entity.Student;
 
@@ -13,5 +14,6 @@ public interface StudentMapper {
 	
 	public StudentResponse toStudentResponse(Student student);
 	
+	public StudentOfCourseResponse tosStudentOfCourseResponse(Student student);
 	
 }

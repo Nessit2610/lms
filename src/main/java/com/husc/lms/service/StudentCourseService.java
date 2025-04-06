@@ -1,0 +1,75 @@
+package com.husc.lms.service;
+
+import java.util.Date;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+
+import com.husc.lms.dto.request.StudentCourseRequest;
+import com.husc.lms.dto.response.CourseOfStudentResponse;
+import com.husc.lms.dto.response.StudentOfCourseResponse;
+import com.husc.lms.entity.Account;
+import com.husc.lms.entity.Course;
+import com.husc.lms.entity.Student;
+import com.husc.lms.entity.StudentCourse;
+import com.husc.lms.mapper.CourseMapper;
+import com.husc.lms.mapper.StudentMapper;
+import com.husc.lms.repository.AccountRepository;
+import com.husc.lms.repository.CourseRepository;
+import com.husc.lms.repository.StudentCourseRepository;
+import com.husc.lms.repository.StudentRepository;
+
+@Service
+public class StudentCourseService {
+
+	@Autowired
+	private StudentCourseRepository studentCourseRepository;
+	
+	@Autowired
+	private StudentRepository studentRepository;
+	
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
+	private CourseRepository courseRepository;
+	
+	@Autowired
+	private CourseMapper courseMapper;
+	
+	@Autowired
+	private StudentMapper studentMapper;
+	
+	public void addListStudentToCourse(StudentCourseRequest request) {
+		Course course = courseRepository.findById(request.getCourseId()).get();
+		for(String id : request.getStudentIds()) {
+			Student student = studentRepository.findById(id).get();
+			StudentCourse studentCourse = StudentCourse.builder()
+					.registrationDate(new Date())
+					.createdDate(new Date())
+					.student(student)
+					.course(course)
+					.build();
+			studentCourseRepository.save(studentCourse);
+		}
+	}
+	
+	public List<CourseOfStudentResponse> getAllCourseOfStudent() {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsername(name).get();
+		Student student = studentRepository.findByAccount(account);
+		List<Course> courses = studentCourseRepository.findByStudent(student);
+		return courses.stream().map(courseMapper::toCourseOfStudentResponse).toList();
+	}
+	
+	public List<StudentOfCourseResponse> getAllStudentOfCourse(String courseId){
+		Course course = courseRepository.findById(courseId).get();
+		List<Student> listSoC = studentCourseRepository.findByCourse(course);
+		return listSoC.stream().map(studentMapper::tosStudentOfCourseResponse).toList();
+	}
+	
+	
+}
