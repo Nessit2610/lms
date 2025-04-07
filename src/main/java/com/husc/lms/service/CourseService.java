@@ -1,6 +1,7 @@
 package com.husc.lms.service;
 
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +15,7 @@ import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Teacher;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.StatusCourse;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.CourseMapper;
 import com.husc.lms.repository.AccountRepository;
@@ -58,6 +60,9 @@ public class CourseService {
 		return courseMapper.toCourseResponse(course);
 	}
 	
-	
+	public List<CourseResponse> getAllPublicCourse(){
+		List<Course> courses = courseRepository.findByStatus(StatusCourse.PUBLIC.name());
+		return courses.stream().map(courseMapper::toCourseResponse).toList();
+	}
 		
 }
