@@ -1,5 +1,7 @@
 package com.husc.lms.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +21,13 @@ public class CourseController {
 
 	@Autowired
 	private CourseService courseService;
+	
+	@GetMapping
+	public APIResponse<List<CourseResponse>> getAllPublicCourse(){
+		return APIResponse.<List<CourseResponse>>builder()
+				.result(courseService.getAllPublicCourse())
+				.build();
+	}
 	
 	@PostMapping("/create")
 	public APIResponse<CourseResponse> createCourse(@RequestBody CourseRequest request){
