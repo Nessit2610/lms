@@ -18,14 +18,12 @@ import com.husc.lms.dto.response.RoleResponse;
 import com.husc.lms.service.RoleService;
 
 
-
 @RestController
 @RequestMapping("/roles")
 public class RoleController {
 
 	@Autowired
 	private RoleService roleService;
-	
 	
 	@PostMapping
 	public APIResponse<RoleResponse> create(@RequestBody RoleRequest request){

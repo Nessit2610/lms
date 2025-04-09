@@ -21,4 +21,5 @@ public class LessonResponse {
     private Integer order;
     List<LessonMaterialResponse> lessonMaterial;
     private List<LessonQuizResponse> lessonQuiz;
+    
 }

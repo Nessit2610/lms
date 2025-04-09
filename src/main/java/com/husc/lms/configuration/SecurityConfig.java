@@ -30,6 +30,8 @@ public class SecurityConfig {
 	
 	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create"};
 
+	private final String[] ADMIN_GET_API= {"/account"};
+	
 	@Autowired
 	private CustomJwtDecoder customJwtDecoder;
 	
@@ -39,6 +41,7 @@ public class SecurityConfig {
     	httpSecurity.authorizeHttpRequests(request ->
     		request.requestMatchers(HttpMethod.POST,PUBPIC_API).permitAll()
     				.requestMatchers(HttpMethod.POST, TEACHER_POST_API).hasAnyRole(Roles.ADMIN.name(),Roles.TEACHER.name())
+    				.requestMatchers(HttpMethod.GET,ADMIN_GET_API).hasRole(Roles.ADMIN.name())
     				.anyRequest().authenticated());
     	
     	httpSecurity.oauth2ResourceServer( oauth2configure -> 

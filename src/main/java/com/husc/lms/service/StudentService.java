@@ -54,7 +54,6 @@ public class StudentService {
 	
 	public StudentResponse createStudent(StudentRequest request) {
 		AccountRequest uRequest = AccountRequest.builder()
-				.username(request.getEmail())
 				.password(request.getPassword())
 				.email(request.getEmail())
 				.build();
