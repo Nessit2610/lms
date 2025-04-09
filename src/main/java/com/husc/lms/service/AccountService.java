@@ -7,9 +7,6 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.access.prepost.PostAuthorize;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,20 +17,26 @@ import com.husc.lms.dto.request.AccountRequest;
 import com.husc.lms.dto.request.PasswordRequest;
 import com.husc.lms.dto.response.AccountResponse;
 import com.husc.lms.entity.Role;
+import com.husc.lms.entity.Student;
+import com.husc.lms.entity.Teacher;
 import com.husc.lms.entity.Account;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.Roles;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.AccountMapper;
+import com.husc.lms.mapper.StudentMapper;
+import com.husc.lms.mapper.TeacherMapper;
 import com.husc.lms.repository.RoleRepository;
+import com.husc.lms.repository.StudentRepository;
+import com.husc.lms.repository.TeacherRepository;
 import com.husc.lms.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 
 
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class AccountService {
 	
@@ -49,23 +52,34 @@ public class AccountService {
 	@Autowired
 	private RoleRepository roleRepository;
 	
-
+	@Autowired
+	private StudentRepository studentRepository;
+	
+	@Autowired
+	private StudentMapper studentMapper;
+	
+	@Autowired
+	private TeacherRepository teacherRepository;
+	
+	@Autowired
+	private TeacherMapper teacherMapper;
+	
+	
+	//PUBLIC
+	
 	public AccountResponse createAccountStudent(AccountRequest request) {
 		
-		if(accountRepository.existsByUsername(request.getUsername())) {
+		if(accountRepository.existsByUsername(request.getEmail())) {
 			throw new AppException(ErrorCode.USER_EXISTED);
 		}
 		
-		var context = SecurityContextHolder.getContext();
-		String name = context.getAuthentication().getName();
-		
 		Account account = new Account();
-		account.setUsername(request.getUsername());
+		account.setUsername(request.getEmail());
 		account.setEmail(request.getEmail());
 		account.setActive(true);
 		account.setPassword(passwordEncoder.encode(request.getPassword()));
 		account.setCreatedDate(new Date());
-		account.setCreatedBy(name);
+		account.setCreatedBy(request.getEmail());
 		
         HashSet<Role> roles = new HashSet<>();
         roleRepository.findById(PredefinedRole.STUDENT_ROLE).ifPresent(roles::add);
@@ -83,19 +97,17 @@ public class AccountService {
 	
 	public AccountResponse createAccountTeacher(AccountRequest request) {
 		
-		if(accountRepository.existsByUsername(request.getUsername())) {
+		if(accountRepository.existsByUsername(request.getEmail())) {
 			throw new AppException(ErrorCode.USER_EXISTED);
 		}
-		var context = SecurityContextHolder.getContext();
-		String name = context.getAuthentication().getName();
 		
 		Account account = new Account();
-		account.setUsername(request.getUsername());
+		account.setUsername(request.getEmail());
 		account.setEmail(request.getEmail());
 		account.setActive(true);
 		account.setPassword(passwordEncoder.encode(request.getPassword()));
 		account.setCreatedDate(new Date());
-		account.setCreatedBy(name);
+		account.setCreatedBy(request.getEmail());
 		
         HashSet<Role> roles = new HashSet<>();
         roleRepository.findById(PredefinedRole.TEACHER_ROLE).ifPresent(roles::add);
@@ -110,38 +122,44 @@ public class AccountService {
         return accountMapper.toAccountResponse(account);
 		
 	}
-	
-		
-	@PreAuthorize("hasRole('ADMIN')")
-	public List<AccountResponse> GetAllUser() {
-		return accountRepository.findAll().stream().map(accountMapper :: toAccountResponse).toList();	
-	}
-
-	@PostAuthorize("returnObject.username == authentication.name")
-	public AccountResponse GetUserById(String id) {
-		return accountMapper.toAccountResponse(accountRepository.findById(id).orElseThrow(() -> new RuntimeException()));
-	}
-	
-	
-	public AccountResponse changePassword(PasswordRequest request) {
+	public void changePassword(PasswordRequest request) {
 	    var context = SecurityContextHolder.getContext();
 	    String username = context.getAuthentication().getName();
 
-	    Account user = accountRepository.findByUsername(username).orElseThrow( () -> new AppException(ErrorCode.USER_NOTFOUND));
+	    Account account = accountRepository.findByUsername(username).orElseThrow( () -> new AppException(ErrorCode.USER_NOTFOUND));
 
-	    if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+	    if (!passwordEncoder.matches(request.getOldPassword(), account.getPassword())) {
 	        throw new AppException(ErrorCode.OLD_PASSWORD_NOT);
 	    }
-
-	    user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-	    accountRepository.save(user);
-
-	    return accountMapper.toAccountResponse(user);
+	    account.setPassword(passwordEncoder.encode(request.getNewPassword()));
+	    accountRepository.save(account);
 	}
 
+	//ROLE ADMIN
 	
-	public void DeleteUser(String id) {
-		accountRepository.deleteById(id);
+	public List<AccountResponse> getAllAccount(){
+		return accountRepository.findAll().stream().map(accountMapper::toAccountResponse).toList();
 	}
-
+	
+	
+	public Object getAccountDetails(String accountId){
+		List<String> roles = accountRepository.findRoleNamesByAccountId(accountId);
+		Account account = accountRepository.findById(accountId).get();
+		if(roles.contains(Roles.STUDENT.name())) {
+			Student student = studentRepository.findByAccount(account);
+			return studentMapper.toStudentResponse(student);
+		}
+		else if(roles.contains(Roles.TEACHER.name())) {
+			Teacher teacher = teacherRepository.findByAccount(account);
+			return teacherMapper.toTeacherResponse(teacher);
+		}
+		return null;
+	}
+	
+	
+	public AccountResponse getAccountById(String id) {
+		Account account = accountRepository.findById(id).get();
+		return accountMapper.toAccountResponse(account);
+	}
+	
 }
