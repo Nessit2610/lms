@@ -51,7 +51,7 @@ public class LessonMaterialController {
 	
 	// Lưu ý: Type bao gồm {photo , video , file}
 	
-	@GetMapping("/videos/{filename}")
+	@GetMapping("/testvideos/{filename}")
 	public ResponseEntity<Resource> streamVideo(
 	        @PathVariable String filename,
 	        @RequestHeader(value = "Range", required = false) String rangeHeader) throws IOException {
