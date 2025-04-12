@@ -1,7 +1,6 @@
 package com.husc.lms.entity;
 
 import java.util.Date;
-import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,7 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,40 +17,28 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 @Entity
-@Table(name = "lms_course")
-public class Course {
-
+@Table(name = "lms_student_lesson_chapter_progress")
+public class StudentLessonChapterProgress {
 	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
 	
-    private String name;
-
-    private String description;
-
-    private Date startDate;
-
-    private Date endDate;
-
-    private String major;
-
-    private String status;
+	@JoinColumn(name = "studentId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Student student;
+   
+    @JoinColumn(name = "chapterId")
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Chapter chapter;
     
-    private String image;
-    
-    @OneToMany(mappedBy = "course")
-    private List<Lesson> lesson;
-    
-    private String learningDurationType;
-    
-    @JoinColumn(name = "teacherId")
-    @ManyToOne(fetch = FetchType.EAGER)
-    private Teacher teacher;
+    private Boolean isCompleted;
+
+    private Date completeAt;
 
     private String createdBy;
 

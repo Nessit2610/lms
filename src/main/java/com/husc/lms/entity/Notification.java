@@ -1,7 +1,6 @@
 package com.husc.lms.entity;
 
 import java.util.Date;
-import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,58 +10,39 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "lms_notifications")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity
-@Table(name = "lms_course")
-public class Course {
+public class Notification {
 
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
-	
-    private String name;
 
-    private String description;
-
-    private Date startDate;
-
-    private Date endDate;
-
-    private String major;
-
-    private String status;
-    
-    private String image;
-    
-    @OneToMany(mappedBy = "course")
-    private List<Lesson> lesson;
-    
-    private String learningDurationType;
-    
-    @JoinColumn(name = "teacherId")
+    @JoinColumn(name = "senderAccountId")
     @ManyToOne(fetch = FetchType.EAGER)
-    private Teacher teacher;
+    private Account sender;
+    
+    @JoinColumn(name = "receiverAccountId")
+    @ManyToOne(fetch = FetchType.EAGER)
+    private Account receiver;
+    
+    private String type;
 
-    private String createdBy;
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
 
-    private Date createdDate;
+    private Boolean isRead = false;
 
-    private String lastModifiedBy;
-
-    private Date lastModifiedDate;
-
-    private String deletedBy;
-
-    private Date deletedDate;
+    private Date createdAt;
 }
