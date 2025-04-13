@@ -26,8 +26,16 @@ import com.husc.lms.enums.Roles;
 @EnableWebSecurity
 public class SecurityConfig {
 
-	private final String[] PUBPIC_API = {"/account/changePassword","/auth/token","/auth/introspect","/auth/logout","/auth/refresh","/student/create","/teacher/create"};
-	
+	private final String[] PUBPIC_API = {"/account/changePassword",
+										"/auth/token",
+										"/auth/introspect",
+										"/auth/logout",
+										"/auth/refresh",
+										"/student/create",
+										"/teacher/create"};
+	private final String[] PUBLIC_WS_API = {
+		    "/ws/**" // Cho phép mọi truy cập tới WebSocket endpoint
+		};	
 	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create"};
 
 	private final String[] ADMIN_GET_API= {"/account"};
@@ -40,6 +48,7 @@ public class SecurityConfig {
 
     	httpSecurity.authorizeHttpRequests(request ->
     		request.requestMatchers(HttpMethod.POST,PUBPIC_API).permitAll()
+    		.requestMatchers(PUBLIC_WS_API).permitAll()
     				.requestMatchers(HttpMethod.POST, TEACHER_POST_API).hasAnyRole(Roles.ADMIN.name(),Roles.TEACHER.name())
     				.requestMatchers(HttpMethod.GET,ADMIN_GET_API).hasRole(Roles.ADMIN.name())
     				.anyRequest().authenticated());
@@ -52,9 +61,10 @@ public class SecurityConfig {
     	
     	httpSecurity.cors(cors -> cors.configurationSource(request -> {
             CorsConfiguration config = new CorsConfiguration();
-            config.setAllowedOrigins(List.of("http://localhost:3000"));
+            config.setAllowedOrigins(List.of("http://127.0.0.1:5500","http://localhost:3000"));
             config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
             config.setAllowedHeaders(List.of("*"));
+            config.setAllowCredentials(true);
             return config;
         }));
     	httpSecurity.csrf(crfsconfigure -> crfsconfigure.disable());

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login Page</title>
+    <script>
+        async function login(event) {
+            event.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+
+            const response = await fetch("http://localhost:8080/lms/auth/token", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ username: username, password: password })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                // Lưu token vào localStorage
+                localStorage.setItem("token", data.result.token);
+
+                // Điều hướng đến index.html
+                window.location.href = "/index.html";
+            } else {
+                alert("Đăng nhập thất bại. Kiểm tra lại thông tin.");
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <h2>Đăng nhập</h2>
+    <form onsubmit="login(event)">
+        <label for="username">Email:</label><br>
+        <input type="text" id="username" name="username" required><br>
+        <label for="password">Mật khẩu:</label><br>
+        <input type="password" id="password" name="password" required><br><br>
+        <input type="submit" value="Đăng nhập">
+    </form>
+</body>
+
+</html>
