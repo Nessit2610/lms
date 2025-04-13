@@ -51,7 +51,7 @@ public class LessonMaterialController {
 	
 	// Lưu ý: Type bao gồm {photo , video , file}
 	
-	@GetMapping("/testvideos/{filename}")
+	@GetMapping("/videos/{filename}")
 	public ResponseEntity<Resource> streamVideo(
 	        @PathVariable String filename,
 	        @RequestHeader(value = "Range", required = false) String rangeHeader) throws IOException {
@@ -86,12 +86,6 @@ public class LessonMaterialController {
 	            .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileLength)
 	            .body(inputStreamResource);
 	}
-
-	@GetMapping(path = "/videos/{filename}", produces = "video/mp4")
-	public byte[] getVideo(@PathVariable("filename") String filename) throws IOException {
-	    return Files.readAllBytes(Paths.get(Constant.VIDEO_DIRECTORY + filename));
-	}
-
 
 	@GetMapping("/files/{filename}")
 	public ResponseEntity<byte[]> getFile(@PathVariable String filename) throws IOException {
