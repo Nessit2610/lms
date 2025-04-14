@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.Lesson;
+import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentLessonProgress;
 
 @Repository
@@ -11,5 +12,5 @@ public interface StudentLessonProgressRepository extends JpaRepository<StudentLe
 
 	public StudentLessonProgress findByLesson(Lesson lesson);
 
-
+	public StudentLessonProgress findByLessonAndStudent(Lesson lesson, Student student);
 }
