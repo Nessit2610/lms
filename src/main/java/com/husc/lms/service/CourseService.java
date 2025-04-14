@@ -95,7 +95,7 @@ public class CourseService {
 				Files.createDirectories(fileStorageLocation);
 			}
 			Files.copy(image.getInputStream(), fileStorageLocation.resolve(id + fileExtension.apply(image.getOriginalFilename())),StandardCopyOption.REPLACE_EXISTING);
-			return ServletUriComponentsBuilder.fromCurrentContextPath().path("/course/image/" + filename).toUriString();
+			return "/lms/course/image/" + filename;
 		} catch (Exception e) {
 			throw new RuntimeException("Unable to save image");
 		}
