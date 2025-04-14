@@ -99,5 +99,11 @@ public class LessonMaterialController {
 	            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
 	            .body(data);
 	}
+	
+	
+	@GetMapping(path = "/image/{filename}", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE })
+    public byte[] getPhoto(@PathVariable("filename") String filename) throws IOException {
+        return Files.readAllBytes(Paths.get(Constant.PHOTO_DIRECTORY + filename));
+    }
 
 }

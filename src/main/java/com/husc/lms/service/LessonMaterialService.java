@@ -85,7 +85,7 @@ public class LessonMaterialService {
 
     String folder = getFolderFromType(type);
     String baseDir = switch (folder) {
-        case "photos" -> Constant.PHOTO_DIRECTORY;
+        case "images" -> Constant.PHOTO_DIRECTORY;
         case "videos" -> Constant.VIDEO_DIRECTORY;
         case "files" -> Constant.FILE_DIRECTORY;
         default -> throw new RuntimeException("Invalid folder: " + folder);
