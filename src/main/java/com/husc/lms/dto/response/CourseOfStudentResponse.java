@@ -16,6 +16,8 @@ public class CourseOfStudentResponse {
 
 	private String id;
 	
+	private String image;
+	
 	private String name;
 	
 	private String description;

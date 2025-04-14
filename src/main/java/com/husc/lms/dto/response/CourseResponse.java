@@ -21,6 +21,8 @@ public class CourseResponse {
 	
 	private String name;
 	
+	private String image;
+	
 	private String description;
 	
 	private String status; //private or public
