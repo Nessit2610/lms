@@ -43,6 +43,9 @@ public class Lesson {
     @OneToMany(mappedBy = "lesson")
     private List<LessonQuiz> lessonQuiz;
  
+    @OneToMany(mappedBy = "lesson")
+    private List<Chapter> chapter;
+    
     @Column(name = "`order`")
     private Integer order;
  

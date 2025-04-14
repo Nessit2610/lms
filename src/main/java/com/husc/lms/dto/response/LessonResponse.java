@@ -19,7 +19,8 @@ public class LessonResponse {
 	private String id;
 	private String description;
     private Integer order;
-    List<LessonMaterialResponse> lessonMaterial;
+    private List<LessonMaterialResponse> lessonMaterial;
     private List<LessonQuizResponse> lessonQuiz;
+    private List<ChapterResponse> chapter;
     
 }
