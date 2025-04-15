@@ -18,6 +18,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.CourseRequest;
+import com.husc.lms.dto.response.CourseOfTeacherResponse;
 import com.husc.lms.dto.response.CourseResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
@@ -75,6 +76,16 @@ public class CourseService {
 		return courses.stream().map(courseMapper::toCourseResponse).toList();
 	}
 	
+	public List<CourseOfTeacherResponse> getCourseOfTeacher(){
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		
+		Account account = accountRepository.findByUsername(name).get();
+		Teacher teacher = teacherRepository.findByAccount(account);
+		List<Course> courses = courseRepository.findByTeacher(teacher);
+		
+		return courses.stream().map(courseMapper::toCourseOfTeacherResponse).toList();
+	}
 	
 	public String uploadPhoto(String id, MultipartFile file) {
 		Course course = courseRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
