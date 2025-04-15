@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class LessonQuizRequest {
-
-	private String idLesson;
 	
 	private String question;
 	    
