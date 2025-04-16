@@ -117,7 +117,7 @@ public class CourseService {
 	}
 	
 	public List<CourseResponse> getAllPublicCourse(){
-		List<Course> courses = courseRepository.findByStatusAndDeletedDateIsNull(Arrays.asList(StatusCourse.PUBLIC.name(), StatusCourse.REQUEST.name()));
+		List<Course> courses = courseRepository.findByStatusInAndDeletedDateIsNull(Arrays.asList(StatusCourse.PUBLIC.name(), StatusCourse.REQUEST.name()));
 		return courses.stream().map(courseMapperImpl::toFilteredCourseResponse).toList();
 	}
 	

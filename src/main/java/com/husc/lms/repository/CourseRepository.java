@@ -13,7 +13,7 @@ public interface CourseRepository extends JpaRepository<Course,String> {
 
 	List<Course> findByStatus(String status);
 	
-	List<Course> findByStatusAndDeletedDateIsNull(List<String> statusList);
+	List<Course> findByStatusInAndDeletedDateIsNull(List<String> statuses);
 	
 	List<Course> findByTeacherAndDeletedDateIsNull(Teacher teacher);
 	
