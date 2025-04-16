@@ -133,9 +133,9 @@ public class ChapterService {
 
 	private String getFolderFromType(String type) {
 	    return switch (type.toLowerCase()) {
-	        case "photo", "image" -> "images";
+	        case "image" -> "images";
 	        case "video" -> "videos";
-	        case "file", "document" -> "files";
+	        case "file"-> "files";
 	        default -> throw new RuntimeException("Unsupported file type: " + type);
 	    };
 	}
@@ -146,7 +146,6 @@ public class ChapterService {
 
     String folder = getFolderFromType(type);
     String baseDir = switch (folder) {
-        case "photos" -> Constant.PHOTO_DIRECTORY;
         case "images" -> Constant.PHOTO_DIRECTORY;
         case "videos" -> Constant.VIDEO_DIRECTORY;
         case "files" -> Constant.FILE_DIRECTORY;

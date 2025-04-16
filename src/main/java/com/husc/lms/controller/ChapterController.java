@@ -47,23 +47,6 @@ public class ChapterController {
 	
 	
 	@PostMapping("/create")
-	public APIResponse<ChapterResponse> createChapter(@RequestBody ChapterRequest request){
-		return APIResponse.<ChapterResponse>builder()
-				.result(chapterService.createChapter(request))
-				.build();
-		
-	}
-	
-	
-	@PostMapping("/uploads")
-	public APIResponse<ChapterResponse> uploadfile(@RequestParam("id") String id,
-													@RequestParam("file") MultipartFile file,
-													@RequestParam("type")String type){
-		return APIResponse.<ChapterResponse>builder()
-				.result(chapterService.uploadFileToChapter(id, file, type))
-				.build();
-		
-	}
 	public APIResponse<ChapterResponse> createChapter(@RequestParam("lessonId") String lessonid,
 													@RequestParam("name") String name,
 													@RequestParam("order") int order,
@@ -74,6 +57,7 @@ public class ChapterController {
 				.build();
 		
 	}	
+	// Luu y, type : image , video , file
 	
 	@PutMapping("/update")
 	public APIResponse<ChapterResponse> updateChapter(@RequestParam("chapterId") String chapterId,

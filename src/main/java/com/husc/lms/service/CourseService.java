@@ -139,15 +139,21 @@ public class CourseService {
 		return courseResponses;
 	}
 	
-	public List<CourseOfTeacherResponse> getCourseOfTeacher(){
+	public List<CourseViewResponse> getCourseOfTeacher(){
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
 		Account account = accountRepository.findByUsername(name).get();
 		Teacher teacher = teacherRepository.findByAccount(account);
 		List<Course> courses = courseRepository.findByTeacherAndDeletedDateIsNull(teacher);
-		
-		return courses.stream().map(courseMapper::toCourseOfTeacherResponse).toList();
+		List<CourseViewResponse> courseResponses = new ArrayList<CourseViewResponse>();
+		for(Course c : courses) {
+			CourseViewResponse cr = courseMapper.toCourseViewResponse(c);
+			cr.setStudentCount(studentCourseRepository.countStudentsByCourse(c));
+			cr.setLessonCount(lessonRepository.countLessonsByCourse(c));
+			courseResponses.add(cr);
+		}
+		return courseResponses;
 	}
 	
 	public String uploadPhoto(String id, MultipartFile file) {

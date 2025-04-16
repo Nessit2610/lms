@@ -44,8 +44,8 @@ public class CourseController {
 	
 
 	@GetMapping("/courseofteacher")
-	public APIResponse<List<CourseOfTeacherResponse>> getCourseOfTeacher(){
-		return APIResponse.<List<CourseOfTeacherResponse>>builder()
+	public APIResponse<List<CourseViewResponse>> getCourseOfTeacher(){
+		return APIResponse.<List<CourseViewResponse>>builder()
 				.result(courseService.getCourseOfTeacher())
 				.build();
 	}
