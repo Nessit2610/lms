@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,6 +50,13 @@ public class LessonMaterialController {
 				.build();
 	}
 	
+	
+	@DeleteMapping("/{lessonMaterialId}")
+	public APIResponse<Boolean> deleteChapter(@PathVariable("lessonMaterialId") String id){
+		return APIResponse.<Boolean>builder()
+				.result(lessonMaterialService.deleteMaterial(id))
+				.build();
+	}
 	// Lưu ý: Type bao gồm {photo , video , file}
 	
 	@GetMapping("/videos/{filename}")

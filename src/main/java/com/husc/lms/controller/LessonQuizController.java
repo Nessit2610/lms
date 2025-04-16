@@ -3,6 +3,7 @@ package com.husc.lms.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,5 +28,10 @@ public class LessonQuizController {
 				.result(lessonQuizService.createLessonQuiz(idLesson,request))
 				.build();
 	}
-	
+	@DeleteMapping("/{lessonQuizId}")
+	public APIResponse<Boolean> deleteChapter(@PathVariable("lessonQuizId") String id){
+		return APIResponse.<Boolean>builder()
+				.result(lessonQuizService.deleteLessonQuiz(id))
+				.build();
+	}
 }

@@ -12,5 +12,6 @@ import com.husc.lms.entity.Lesson;
 @Repository
 public interface LessonQuizRepository extends JpaRepository<LessonQuiz, String> {
 
-	List<LessonQuiz> findByLessonAndDeletedDateIsNull(Lesson lesson);                                                                                                                                                                     
+	List<LessonQuiz> findByLessonAndDeletedDateIsNull(Lesson lesson);  
+	LessonQuiz findByIdAndDeletedDateIsNull(String id);
 }

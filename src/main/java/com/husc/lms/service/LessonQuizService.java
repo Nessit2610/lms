@@ -47,5 +47,25 @@ public class LessonQuizService {
 		return listLessonQuiz.stream().map(lessonQuizMapper::toLessonQuizResponse).toList();
 	}
 	
-
+	public Boolean deleteLessonQuiz(String id) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		
+		LessonQuiz lessonQuiz = lessonQuizRepository.findByIdAndDeletedDateIsNull(id);
+		if(lessonQuiz != null) {
+			lessonQuiz.setDeletedBy(name);
+			lessonQuiz.setDeletedDate(new Date());
+			lessonQuizRepository.save(lessonQuiz);
+			return true;
+		}
+		return false;
+	}
+	
+	public void deleteLessonQuizByLesson(Lesson lesson) {
+		List<LessonQuiz> listLessonQuizs = lessonQuizRepository.findByLessonAndDeletedDateIsNull(lesson);
+		for(LessonQuiz l : listLessonQuizs) {
+			deleteLessonQuiz(l.getId());
+		}
+	}
+	
 }

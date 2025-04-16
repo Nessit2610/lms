@@ -12,6 +12,7 @@ import com.husc.lms.dto.response.LessonResponse;
 import com.husc.lms.dto.update.LessonUpdateRequest;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
+import com.husc.lms.entity.LessonMaterial;
 import com.husc.lms.mapper.LessonMapper;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.LessonRepository;
@@ -30,6 +31,12 @@ public class LessonService {
 	
 	@Autowired
 	private ChapterService chapterService;
+	
+	@Autowired
+	private LessonMaterialService lessonMaterialService;
+	
+	@Autowired
+	private LessonQuizService lessonQuizService;
 	
 	public LessonResponse createLesson(LessonRequest request) {
 		
@@ -55,6 +62,8 @@ public class LessonService {
 		Lesson lesson = lessonRepository.findByIdAndDeletedDateIsNull(id);
 		if(lesson != null) {
 			chapterService.deleteChapterByLesson(lesson);
+			lessonMaterialService.deleteMaterialByLesson(lesson);
+			lessonQuizService.deleteLessonQuizByLesson(lesson);
 			lesson.setDeletedBy(nameAccount);
 			lesson.setDeletedDate(new Date());
 			lessonRepository.save(lesson);

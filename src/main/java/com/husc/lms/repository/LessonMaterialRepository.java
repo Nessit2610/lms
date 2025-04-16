@@ -12,4 +12,5 @@ import com.husc.lms.entity.LessonMaterial;
 public interface LessonMaterialRepository extends JpaRepository<LessonMaterial, String> {
 
 	List<LessonMaterial> findByLessonAndDeletedDateIsNull(Lesson lesson);
+	LessonMaterial findByIdAndDeletedDateIsNull(String id);
 }
