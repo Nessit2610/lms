@@ -45,7 +45,7 @@ public class Course {
     
     private String image;
     
-    @OneToMany(mappedBy = "course")
+    @OneToMany(mappedBy = "course", fetch = FetchType.EAGER)
     private List<Lesson> lesson;
     
     private String learningDurationType;

@@ -3,14 +3,36 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Test WebSocket</title>
+    <title>LMS Course Viewer</title>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        .course,
+        .lesson,
+        .chapter {
+            margin-left: 20px;
+            padding: 5px;
+        }
+
+        button {
+            margin: 5px;
+        }
+
+        .material,
+        .quiz {
+            margin-left: 40px;
+            font-style: italic;
+        }
+    </style>
 </head>
 
 <body>
-    <h2>WebSocket STOMP Test</h2>
-    <button onclick="connect()">Kết nối</button>
+    <h2>Danh sách khóa học</h2>
+    <button onclick="loadCourses()">Tải khóa học</button>
+    <ul id="courseList"></ul>
+
+    <h3>Thông báo WebSocket:</h3>
+    <button onclick="connect()">Kết nối WebSocket</button>
     <ul id="messages"></ul>
 
     <script>
@@ -23,6 +45,18 @@
                 console.log("Kết nối thành công: " + frame);
                 stompClient.subscribe("/topic/comments", function (message) {
                     const content = JSON.parse(message.body);
+
+                    const commentList = document.getElementById(`comments-${content.chapterId}`);
+                    if (commentList) {
+                        const li = document.createElement("li");
+
+                        const createdAt = new Date(content.createdDate); // parse lại thành Date object
+                        const formattedTime = createdAt.toLocaleString(); // bạn có thể dùng .toLocaleDateString() nếu chỉ cần ngày
+
+                        li.textContent = `${content.detail} (người gửi: ${content.accountId}, lúc: ${formattedTime})`;
+                        commentList.appendChild(li);
+                    }
+
                     const li = document.createElement("li");
                     li.innerText = content.detail;
                     document.getElementById("messages").appendChild(li);
@@ -30,6 +64,150 @@
             });
         }
 
+        function sendComment(lessonId, chapterId, courseId) {
+            const commentInput = document.getElementById(`comment-${chapterId}`);
+            const comment = commentInput.value;
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                alert("Không có token. Hãy đăng nhập trước.");
+                return;
+            }
+
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const username = payload.sub;
+
+            if (stompClient && stompClient.connected) {
+                stompClient.send("/app/comment", {}, JSON.stringify({
+                    detail: comment,
+                    lessonId: lessonId,
+                    chapterId: chapterId,
+                    courseId: courseId,
+                    accountId: username
+                }));
+                commentInput.value = "";
+            } else {
+                alert("WebSocket chưa kết nối!");
+            }
+        }
+
+        async function loadCourses() {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Chưa có token! Hãy đăng nhập trước.");
+                return;
+            }
+
+            const res = await fetch("http://localhost:8080/lms/course", {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            });
+
+            const data = await res.json();
+            const courseList = document.getElementById("courseList");
+            courseList.innerHTML = "";
+
+            data.result.forEach(course => {
+                const li = document.createElement("li");
+                li.innerHTML = `
+                    <div class="course">
+                        <strong>${course.name}</strong> - ${course.description}<br/>
+                        <em>Giảng viên:</em> ${course.teacher.fullName} (${course.teacher.email})<br/>
+                        <em>Ngành:</em> ${course.major}<br/>
+                        <em>Thời gian học:</em> ${new Date(course.startDate).toLocaleDateString()} - ${new Date(course.endDate).toLocaleDateString()}<br/>
+                        <button onclick="toggleLessons('${course.id}')">Xem bài học</button>
+                        <ul id="lessons-${course.id}" style="display:none;"></ul>
+                    </div>`;
+                courseList.appendChild(li);
+
+                const lessonsUl = li.querySelector(`#lessons-${course.id}`);
+                const sortedLessons = course.lesson.sort((a, b) => a.order - b.order);
+
+                sortedLessons.forEach(lesson => {
+                    const lessonLi = document.createElement("li");
+                    lessonLi.innerHTML = `
+                        <div class="lesson">
+                            <strong>Bài ${lesson.order}:</strong> ${lesson.description}<br/>
+                            <div class="material">
+                                <em>Tài liệu:</em>
+                                ${lesson.lessonMaterial.length > 0 ? lesson.lessonMaterial.map(m => `<a href="${m.path}" target="_blank">Xem</a>`).join(', ') : 'Không có'}
+                            </div>
+                            <div class="quiz">
+                                <em>Quiz:</em><br/>
+                                ${lesson.lessonQuiz.length > 0 ? lesson.lessonQuiz.map(q =>
+                        `Câu hỏi: ${q.question}<br/>Tùy chọn: ${q.option}<br/>Đáp án: ${q.answer}<br/>`).join('') : 'Không có'}
+                            </div>
+                            <button onclick="toggleChapters('${lesson.id}')">Xem chương</button>
+                            <ul id="chapters-${lesson.id}" style="display:none;"></ul>
+                        </div>`;
+                    lessonsUl.appendChild(lessonLi);
+
+                    const chapterUl = lessonLi.querySelector(`#chapters-${lesson.id}`);
+
+                    if (lesson.chapter && lesson.chapter.length > 0) {
+                        const sortedChapters = lesson.chapter.sort((a, b) => a.order - b.order);
+
+                        sortedChapters.forEach((chapter) => {
+                            const chapterLi = document.createElement("li");
+                            chapterLi.innerHTML = `
+                                <div class="chapter">
+                                    <strong>Chương ${chapter.order}:</strong> ${chapter.name || "Không có tên chương"}<br/>
+                                    <em>Đường dẫn:</em> ${chapter.path ? `<a href="${chapter.path}" target="_blank">${chapter.path}</a>` : "Không có"}<br/>
+                                    ${chapter.path ? `
+                                        <input type="text" placeholder="Nhập bình luận..." id="comment-${chapter.id}" />
+                                        <button onclick="sendComment('${lesson.id}', '${chapter.id}', '${course.id}')">Gửi</button>
+                                    ` : ''}
+                                    <ul id="comments-${chapter.id}" class="comments"></ul>
+                                </div>`;
+                            chapterUl.appendChild(chapterLi);
+
+                            const token = localStorage.getItem("token");
+
+                            fetch(`http://localhost:8080/lms/comments/chapter/${chapter.id}`, {
+                                method: "GET",
+                                headers: {
+                                    "Authorization": "Bearer " + token
+                                }
+                            })
+                                .then(response => response.json())
+                                .then(comments => {
+                                    const commentList = chapterLi.querySelector(`#comments-${chapter.id}`);
+                                    comments.forEach(comment => {
+                                        const li = document.createElement("li");
+
+                                        let formattedTime = "";
+                                        if (comment.createdDate) {
+                                            const createdAt = new Date(comment.createdDate);
+                                            formattedTime = createdAt.toLocaleString();
+                                        }
+
+                                        li.textContent = `${comment.detail} (người gửi: ${comment.username}${formattedTime ? `, lúc: ${formattedTime}` : ''})`;
+                                        commentList.appendChild(li);
+                                    });
+
+                                });
+
+                        });
+                    } else {
+                        const chapterLi = document.createElement("li");
+                        chapterLi.innerHTML = `<div class="chapter"><em>Không có chương.</em></div>`;
+                        chapterUl.appendChild(chapterLi);
+                    }
+                });
+            });
+        }
+
+        function toggleLessons(courseId) {
+            const ul = document.getElementById(`lessons-${courseId}`);
+            ul.style.display = ul.style.display === "none" ? "block" : "none";
+        }
+
+        function toggleChapters(lessonId) {
+            const ul = document.getElementById(`chapters-${lessonId}`);
+            ul.style.display = ul.style.display === "none" ? "block" : "none";
+        }
     </script>
 </body>
 

@@ -34,7 +34,7 @@ public class SecurityConfig {
 										"/student/create",
 										"/teacher/create"};
 	private final String[] PUBLIC_WS_API = {
-		    "/ws/**" // Cho phép mọi truy cập tới WebSocket endpoint
+		    "/ws/**"
 		};	
 	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create"};
 

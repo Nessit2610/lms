@@ -5,12 +5,38 @@
     <title>Trang chính</title>
 </head>
 <body>
-    <h1>Hello</h1>
+    <h1 id="greeting" style="display:none;">Hello</h1>
+    <button id="toTest" style="display:none;" onclick="window.location.href='/src/main/resources/static/test.html'">Đi tới Test</button>
+
     <script>
         const token = localStorage.getItem("token");
         if (!token) {
             // Nếu không có token thì quay lại trang đăng nhập
-            window.location.href = "/loginn.html";
+            window.location.href = "/src/main/resources/static/loginn.html";
+        } else {
+            // Gửi yêu cầu introspect để kiểm tra token hợp lệ
+            fetch("http://localhost:8080/lms/auth/introspect", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ token: token })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.code === 0 && data.result && data.result.valid === true) {
+                    // Token hợp lệ, hiển thị nội dung
+                    document.getElementById("greeting").style.display = "block";
+                    document.getElementById("toTest").style.display = "inline-block";
+                } else {
+                    // Token không hợp lệ, quay lại trang đăng nhập
+                    window.location.href = "/src/main/resources/static/loginn.html";
+                }
+            })
+            .catch(error => {
+                console.error("Lỗi xác thực token:", error);
+                window.location.href = "/src/main/resources/static/loginn.html";
+            });
         }
     </script>
 </body>

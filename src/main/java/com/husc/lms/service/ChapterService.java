@@ -1,64 +1,73 @@
 package com.husc.lms.service;
 
 import java.io.IOException;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.husc.lms.constant.Constant;
 import com.husc.lms.constant.TriFunction;
-import com.husc.lms.dto.response.LessonMaterialResponse;
+import com.husc.lms.dto.request.ChapterRequest;
+import com.husc.lms.dto.response.ChapterResponse;
+import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.LessonMaterial;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
-import com.husc.lms.repository.LessonMaterialRepository;
+import com.husc.lms.mapper.ChapterMapper;
+import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.LessonRepository;
 
 @Service
-public class LessonMaterialService {
+public class ChapterService {
 
 	@Autowired
-	private LessonMaterialRepository lessonMaterialRepository;
-	
+	private ChapterRepository chapterRepository;
+
+	@Autowired
+	private ChapterMapper chapterMapper;
 	
 	@Autowired
 	private LessonRepository lessonRepository;
 	
-	
-	public LessonMaterialResponse createMaterial(String lessonid, MultipartFile file, String type) {
-		Lesson lesson = lessonRepository.findById(lessonid).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
-		LessonMaterial lessonMaterial = LessonMaterial.builder()
+	public ChapterResponse createChapter(ChapterRequest request) {
+		Lesson lesson = lessonRepository.findById(request.getLessonId()).get();
+		Chapter chapter = Chapter.builder()
+				.name(request.getName())
+				.order(request.getOrder())
 				.lesson(lesson)
 				.build();
-		lessonMaterial = lessonMaterialRepository.save(lessonMaterial);
-		String url = uploadFile(lessonMaterial.getId(), file, type);
-		LessonMaterialResponse ler = LessonMaterialResponse.builder()
-				.path(url)
-				.build();
-		return ler;
+		chapter = chapterRepository.save(chapter);
+		return chapterMapper.toChapterResponse(chapter);
 	}
 	
+	public ChapterResponse uploadFileToChapter(String chapterId,MultipartFile file, String type ) {
+		uploadFile(chapterId, file, type);
+		Chapter chapter = chapterRepository.findById(chapterId).get();
+		return chapterMapper.toChapterResponse(chapter);
+	}
+	
+	
+
 	public String uploadFile(String id, MultipartFile file, String type) {
 	    if (file == null || file.isEmpty()) {
 	        throw new RuntimeException("File is empty");
 	    }
 
-	    LessonMaterial lessonMaterial = lessonMaterialRepository.findById(id)
+	    Chapter chapter = chapterRepository.findById(id)
 	            .orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
 
 	    String fileUrl = generalFileUploadFunction.apply(id, type.toLowerCase(), file);
-	    lessonMaterial.setPath(fileUrl);
-	    lessonMaterialRepository.save(lessonMaterial);
+	    chapter.setPath(fileUrl);
+	    chapter.setType(type);
+	    chapterRepository.save(chapter);
 
 	    return fileUrl;
 	}
@@ -100,13 +109,10 @@ public class LessonMaterialService {
         Path destination = storagePath.resolve(filename);
         Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
 
-        return "/lms/lessonmaterial/" + folder + "/" + filename;
+        return "/lms/chapter/" + folder + "/" + filename;
 
     } catch (IOException e) {
         throw new RuntimeException("Could not save file: " + filename, e);
     	}
 	};
-
-    
-
 }

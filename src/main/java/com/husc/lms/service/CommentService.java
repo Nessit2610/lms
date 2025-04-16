@@ -5,10 +5,14 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
 import com.husc.lms.entity.Lesson;
 import com.husc.lms.repository.CommentRepository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 
@@ -22,7 +26,7 @@ public class CommentService {
         return commentRepository.save(comment);
     }
 
-    public List<Comment> getCommentsByLesson(Lesson lesson) {
-        return commentRepository.findByLessonIdOrderByCreatedDateDesc(lesson);
+    public List<Comment> getCommentsByChapter(Chapter chapter) {
+        return commentRepository.findByChapterOrderByCreatedDateDesc(chapter);
     }
 }

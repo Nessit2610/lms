@@ -31,6 +31,6 @@ public class Account {
     private String deletedBy;
     private Date deletedDate;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
 }

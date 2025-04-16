@@ -37,12 +37,15 @@ public class Lesson {
  
     private String description;
     
-    @OneToMany(mappedBy = "lesson")
+    @OneToMany(mappedBy = "lesson", fetch = FetchType.EAGER)
     private List<LessonMaterial> lessonMaterial;
     
-    @OneToMany(mappedBy = "lesson")
+    @OneToMany(mappedBy = "lesson", fetch = FetchType.EAGER)
     private List<LessonQuiz> lessonQuiz;
  
+    @OneToMany(mappedBy = "lesson",fetch = FetchType.EAGER)
+    private List<Chapter> chapter;
+    
     @Column(name = "`order`")
     private Integer order;
  

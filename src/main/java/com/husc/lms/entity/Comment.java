@@ -1,7 +1,8 @@
 package com.husc.lms.entity;
 
 import java.time.OffsetDateTime;
-import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -32,15 +33,18 @@ public class Comment {
     private String id;
 
     @JoinColumn(name = "accountId")
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonBackReference
     private Account account;
 
-    @JoinColumn(name = "lessonId")
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    private Lesson lesson;
+    @JoinColumn(name = "chapterId")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonBackReference
+    private Chapter chapter;
 
     @JoinColumn(name = "courseId")
-    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JsonBackReference
     private Course course;
     
     private String detail;
