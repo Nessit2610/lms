@@ -18,7 +18,7 @@ public class CourseRequest {
 	
 	private String description;
 	
-	private String status; //private or public
+	private String status; //private or public or request
 
 	private String learningDurationType; // Thoi han khoa hoc
 	

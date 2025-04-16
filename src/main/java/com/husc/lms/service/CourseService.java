@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -64,12 +65,21 @@ public class CourseService {
 		
 		Account account = accountRepository.findByUsername(name).get();
 		Teacher teacher = teacherRepository.findByAccount(account);
+		
+		String status = switch (request.getStatus()) {
+        case "PRIVATE" -> StatusCourse.PRIVATE.name();
+        case "PUBLIC" -> StatusCourse.PUBLIC.name();
+        case "REQUEST" -> StatusCourse.REQUEST.name();
+        default -> throw new AppException(ErrorCode.CODE_ERROR);
+		};
+		
 		Course course = courseMapper.toCourse(request);
 				course.setTeacher(teacher);
 				course.setCreatedBy(name);
-				course.setCreatedDate(new Date());
-				
-		course = courseRepository.save(course);			
+				course.setStatus(status);
+				course.setCreatedDate(new Date());	
+		course = courseRepository.save(course);		
+		
 		return courseMapper.toCourseResponse(course);
 		
 	}
@@ -107,7 +117,7 @@ public class CourseService {
 	}
 	
 	public List<CourseResponse> getAllPublicCourse(){
-		List<Course> courses = courseRepository.findByStatusAndDeletedDateIsNull(StatusCourse.PUBLIC.name());
+		List<Course> courses = courseRepository.findByStatusAndDeletedDateIsNull(Arrays.asList(StatusCourse.PUBLIC.name(), StatusCourse.REQUEST.name()));
 		return courses.stream().map(courseMapperImpl::toFilteredCourseResponse).toList();
 	}
 	

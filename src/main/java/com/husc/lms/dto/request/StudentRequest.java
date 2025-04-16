@@ -17,5 +17,5 @@ public class StudentRequest {
     
     private String fullName;
 
-    private String major;
+    private String majorID;
 }

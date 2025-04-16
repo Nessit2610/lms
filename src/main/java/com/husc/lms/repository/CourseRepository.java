@@ -12,7 +12,8 @@ import com.husc.lms.entity.Teacher;
 public interface CourseRepository extends JpaRepository<Course,String> {
 
 	List<Course> findByStatus(String status);
-	List<Course> findByStatusAndDeletedDateIsNull(String status);
+	
+	List<Course> findByStatusAndDeletedDateIsNull(List<String> statusList);
 	
 	List<Course> findByTeacherAndDeletedDateIsNull(Teacher teacher);
 	
