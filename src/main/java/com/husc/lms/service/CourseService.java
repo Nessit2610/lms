@@ -30,6 +30,8 @@ import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.StatusCourse;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.CourseMapper;
+import com.husc.lms.mapper.CourseMapperImpl;
+import com.husc.lms.mapperImpl.CourseMapperImplCustom;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.TeacherRepository;
@@ -42,6 +44,9 @@ public class CourseService {
 	
 	@Autowired
 	private CourseMapper courseMapper;
+	
+	@Autowired
+	private CourseMapperImplCustom courseMapperImpl;
 	
 	@Autowired
 	private TeacherRepository teacherRepository;
@@ -103,7 +108,7 @@ public class CourseService {
 	
 	public List<CourseResponse> getAllPublicCourse(){
 		List<Course> courses = courseRepository.findByStatusAndDeletedDateIsNull(StatusCourse.PUBLIC.name());
-		return courses.stream().map(courseMapper::toCourseResponse).toList();
+		return courses.stream().map(courseMapperImpl::toFilteredCourseResponse).toList();
 	}
 	
 	public List<CourseOfTeacherResponse> getCourseOfTeacher(){

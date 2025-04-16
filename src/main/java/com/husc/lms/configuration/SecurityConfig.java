@@ -26,7 +26,7 @@ import com.husc.lms.enums.Roles;
 @EnableWebSecurity
 public class SecurityConfig {
 
-	private final String[] PUBPIC_API = {"/account/changePassword","/auth/token","/auth/introspect","/auth/logout","/auth/refresh","/student/create","/teacher/create"};
+	private final String[] PUBPLIC_API = {"/account/changePassword","/auth/token","/auth/introspect","/auth/logout","/auth/refresh","/student/create","/teacher/create"};
 	
 	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create"};
 
@@ -39,7 +39,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
 
     	httpSecurity.authorizeHttpRequests(request ->
-    		request.requestMatchers(HttpMethod.POST,PUBPIC_API).permitAll()
+    		request.requestMatchers(HttpMethod.POST,PUBPLIC_API).permitAll()
     				.requestMatchers(HttpMethod.POST, TEACHER_POST_API).hasAnyRole(Roles.ADMIN.name(),Roles.TEACHER.name())
     				.requestMatchers(HttpMethod.GET,ADMIN_GET_API).hasRole(Roles.ADMIN.name())
     				.anyRequest().authenticated());
