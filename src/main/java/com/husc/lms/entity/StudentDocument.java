@@ -1,5 +1,7 @@
 package com.husc.lms.entity;
 
+import java.util.Date;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -8,7 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,29 +21,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "lms_student")
-public class Student {
-
+@Table(name = "lms_student_document")
+public class StudentDocument {
 	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
-
-    private String fullName;
-    
-    private String email;
-    
-    private String description;
-    
-    @JoinColumn(name = "majorId")
-    @ManyToOne(fetch = FetchType.EAGER)
-    private Major major;
-    
-    @OneToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "accountId")
-    private Account account;
-    
-    private String avatar;
-
-  
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "documentId")
+	private Document document;
+	
+	@ManyToOne(fetch = FetchType.EAGER)
+	@JoinColumn(name = "studentId")
+	private Student student;
+	
+	private Date createAt;
 }
