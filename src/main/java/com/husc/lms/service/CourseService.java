@@ -20,6 +20,7 @@ import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.CourseRequest;
 import com.husc.lms.dto.response.CourseOfTeacherResponse;
 import com.husc.lms.dto.response.CourseResponse;
+import com.husc.lms.dto.update.CourseUpdateRequest;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
@@ -48,6 +49,8 @@ public class CourseService {
 	@Autowired
 	private AccountRepository accountRepository;
 	
+	@Autowired
+	private LessonService lessonService;
 	
 	public CourseResponse createCourse(CourseRequest request) {
 		
@@ -67,12 +70,39 @@ public class CourseService {
 	}
 	
 	public CourseResponse getCourseById(String id) {
-		Course course = courseRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
+		Course course = courseRepository.findByIdAndDeletedDateIsNull(id);
 		return courseMapper.toCourseResponse(course);
 	}
 	
+	public CourseResponse updateCourse(CourseUpdateRequest request) {
+		
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		
+		Course course = courseRepository.findById(request.getIdCourse()).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
+		course = courseMapper.toCourse(request);
+		course.setLastModifiedBy(name);
+		course.setLastModifiedDate(new Date());
+		course = courseRepository.save(course);
+		return courseMapper.toCourseResponse(course);
+	}
+	
+	public boolean deleteCourse(String id) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Course course = courseRepository.findByIdAndDeletedDateIsNull(id);
+		if(course != null) {
+			lessonService.deleteLessonByCourse(course);
+			course.setDeletedBy(name);
+			course.setDeletedDate(new Date());
+			courseRepository.save(course);
+			return true;
+		}
+		return false;
+	}
+	
 	public List<CourseResponse> getAllPublicCourse(){
-		List<Course> courses = courseRepository.findByStatus(StatusCourse.PUBLIC.name());
+		List<Course> courses = courseRepository.findByStatusAndDeletedDateIsNull(StatusCourse.PUBLIC.name());
 		return courses.stream().map(courseMapper::toCourseResponse).toList();
 	}
 	
@@ -82,7 +112,7 @@ public class CourseService {
 		
 		Account account = accountRepository.findByUsername(name).get();
 		Teacher teacher = teacherRepository.findByAccount(account);
-		List<Course> courses = courseRepository.findByTeacher(teacher);
+		List<Course> courses = courseRepository.findByTeacherAndDeletedDateIsNull(teacher);
 		
 		return courses.stream().map(courseMapper::toCourseOfTeacherResponse).toList();
 	}

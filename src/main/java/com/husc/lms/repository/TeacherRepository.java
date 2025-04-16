@@ -8,7 +8,5 @@ import com.husc.lms.entity.Teacher;
 
 @Repository
 public interface TeacherRepository extends JpaRepository<Teacher, String> {
-
-	
 	public Teacher findByAccount(Account account);
 }

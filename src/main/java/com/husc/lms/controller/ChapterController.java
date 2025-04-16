@@ -16,9 +16,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,7 +53,27 @@ public class ChapterController {
 				.result(chapterService.createChapter(lessonid, name, order, file, type))
 				.build();
 		
+	}	
+	
+	@PutMapping("/update")
+	public APIResponse<ChapterResponse> updateChapter(@RequestParam("chapterId") String chapterId,
+			@RequestParam("name") String name,
+			@RequestParam("order") int order,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("type")String type){
+		return APIResponse.<ChapterResponse>builder()
+				.result(chapterService.updateChapter(chapterId, name, order, file, type))
+				.build();
 	}
+	
+	
+	@DeleteMapping("/{chapterId}")
+	public APIResponse<Boolean> deleteChapter(@PathVariable("chapterId") String id){
+		return APIResponse.<Boolean>builder()
+				.result(chapterService.deleteChapter(id))
+				.build();
+	}
+	
 	
 	@GetMapping("/videos/{filename}")
 	public ResponseEntity<Resource> streamVideo(
