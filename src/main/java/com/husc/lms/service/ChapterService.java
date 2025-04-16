@@ -5,10 +5,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -54,8 +57,57 @@ public class ChapterService {
 		return chapterMapper.toChapterResponse(chapter);
 	}
 	
+	public ChapterResponse createChapter(String lessonId, String name, int order, MultipartFile file, String type) {
+		var context = SecurityContextHolder.getContext();
+		String nameAccount = context.getAuthentication().getName();
+		Lesson lesson = lessonRepository.findById(lessonId).get();
+		Chapter chapter = Chapter.builder()
+				.name(name)
+				.order(order)
+				.lesson(lesson)
+				.createdBy(nameAccount)
+				.createdDate(new Date())
+				.build();
+		chapter = chapterRepository.save(chapter);
+		String chapterId = chapter.getId();
+		uploadFile(chapterId, file, type);
+		return chapterMapper.toChapterResponse(chapter);
+	}
 	
+	public ChapterResponse updateChapter(String chapterId, String name, int order, MultipartFile file, String type) {
+		var context = SecurityContextHolder.getContext();
+		String nameAccount = context.getAuthentication().getName();
+		Chapter chapter = chapterRepository.findById(chapterId).get();
+			chapter.setName(name);
+			chapter.setOrder(order);
+			chapter.setType(type);
+			chapter.setLastModifiedBy(nameAccount);
+			chapter.setLastModifiedDate(new Date());
+		chapter = chapterRepository.save(chapter);
+		uploadFile(chapterId, file, type);
+		return chapterMapper.toChapterResponse(chapter);
+	}
 
+    public boolean deleteChapter(String id) {
+    	var context = SecurityContextHolder.getContext();
+		String nameAccount = context.getAuthentication().getName();
+        Chapter chapter = chapterRepository.findByIdAndDeletedDateIsNull(id);
+        if (chapter != null) {
+            chapter.setDeletedBy(nameAccount);
+            chapter.setDeletedDate(new Date());
+            chapterRepository.save(chapter);
+            return true;
+        }
+        return false;
+    }
+	
+    public void deleteChapterByLesson(Lesson lesson) {
+    	List<Chapter> listChapter = chapterRepository.findByLessonAndDeletedDateIsNull(lesson);
+    	for(Chapter c : listChapter) {
+    		deleteChapter(c.getId());
+    	}
+    }
+	
 	public String uploadFile(String id, MultipartFile file, String type) {
 	    if (file == null || file.isEmpty()) {
 	        throw new RuntimeException("File is empty");
@@ -95,6 +147,7 @@ public class ChapterService {
     String folder = getFolderFromType(type);
     String baseDir = switch (folder) {
         case "photos" -> Constant.PHOTO_DIRECTORY;
+        case "images" -> Constant.PHOTO_DIRECTORY;
         case "videos" -> Constant.VIDEO_DIRECTORY;
         case "files" -> Constant.FILE_DIRECTORY;
         default -> throw new RuntimeException("Invalid folder: " + folder);

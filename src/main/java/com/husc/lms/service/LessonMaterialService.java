@@ -5,11 +5,14 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.Files;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -36,9 +39,13 @@ public class LessonMaterialService {
 	
 	
 	public LessonMaterialResponse createMaterial(String lessonid, MultipartFile file, String type) {
+		var context = SecurityContextHolder.getContext();
+		String nameAccount = context.getAuthentication().getName();
 		Lesson lesson = lessonRepository.findById(lessonid).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
 		LessonMaterial lessonMaterial = LessonMaterial.builder()
 				.lesson(lesson)
+				.createdBy(nameAccount)
+				.createdDate(new Date())
 				.build();
 		lessonMaterial = lessonMaterialRepository.save(lessonMaterial);
 		String url = uploadFile(lessonMaterial.getId(), file, type);
@@ -47,6 +54,27 @@ public class LessonMaterialService {
 				.build();
 		return ler;
 	}
+	
+	public boolean deleteMaterial(String id) {
+		var context = SecurityContextHolder.getContext();
+		String nameAccount = context.getAuthentication().getName();
+		LessonMaterial material = lessonMaterialRepository.findByIdAndDeletedDateIsNull(id);
+		if(material != null) {
+			material.setDeletedBy(nameAccount);
+			material.setDeletedDate(new Date());
+			lessonMaterialRepository.save(material);
+			return true;
+		}
+		return false;
+	}
+	
+	public void deleteMaterialByLesson(Lesson lesson) {
+		List<LessonMaterial> lessonMaterials =lessonMaterialRepository.findByLessonAndDeletedDateIsNull(lesson);
+		for(LessonMaterial l : lessonMaterials) {
+			deleteMaterial(l.getId());
+		}
+	}
+	
 	
 	public String uploadFile(String id, MultipartFile file, String type) {
 	    if (file == null || file.isEmpty()) {
@@ -85,7 +113,7 @@ public class LessonMaterialService {
 
     String folder = getFolderFromType(type);
     String baseDir = switch (folder) {
-        case "photos" -> Constant.PHOTO_DIRECTORY;
+        case "images" -> Constant.PHOTO_DIRECTORY;
         case "videos" -> Constant.VIDEO_DIRECTORY;
         case "files" -> Constant.FILE_DIRECTORY;
         default -> throw new RuntimeException("Invalid folder: " + folder);

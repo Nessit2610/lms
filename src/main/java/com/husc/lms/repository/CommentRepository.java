@@ -12,4 +12,3 @@ import com.husc.lms.entity.Comment;
 public interface CommentRepository extends JpaRepository<Comment, String>{
     List<Comment> findByChapterOrderByCreatedDateDesc(Chapter chapter);
 }
-

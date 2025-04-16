@@ -1,5 +1,4 @@
-package com.husc.lms.dto.request;
-
+package com.husc.lms.dto.update;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,11 +9,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LessonQuizRequest {
-	
-	private String question;
-	    
-    private String option;
+public class LessonUpdateRequest {
 
-    private String answer;
+	private String idLesson;
+	private String description;
+	private Integer order;
 }

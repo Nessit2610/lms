@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -49,9 +50,17 @@ public class LessonMaterialController {
 				.build();
 	}
 	
+	
+	@DeleteMapping("/{lessonMaterialId}")
+	public APIResponse<Boolean> deleteChapter(@PathVariable("lessonMaterialId") String id){
+		return APIResponse.<Boolean>builder()
+				.result(lessonMaterialService.deleteMaterial(id))
+				.build();
+	}
 	// Lưu ý: Type bao gồm {photo , video , file}
 	
-	@GetMapping("/testvideos/{filename}")
+	
+	@GetMapping("/videos/{filename}")
 	public ResponseEntity<Resource> streamVideo(
 	        @PathVariable String filename,
 	        @RequestHeader(value = "Range", required = false) String rangeHeader) throws IOException {
@@ -87,12 +96,6 @@ public class LessonMaterialController {
 	            .body(inputStreamResource);
 	}
 
-	@GetMapping(path = "/videos/{filename}", produces = "video/mp4")
-	public byte[] getVideo(@PathVariable("filename") String filename) throws IOException {
-	    return Files.readAllBytes(Paths.get(Constant.VIDEO_DIRECTORY + filename));
-	}
-
-
 	@GetMapping("/files/{filename}")
 	public ResponseEntity<byte[]> getFile(@PathVariable String filename) throws IOException {
 	    Path path = Paths.get(Constant.FILE_DIRECTORY + filename);
@@ -105,5 +108,11 @@ public class LessonMaterialController {
 	            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
 	            .body(data);
 	}
+	
+	
+	@GetMapping(path = "/image/{filename}", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE })
+    public byte[] getPhoto(@PathVariable("filename") String filename) throws IOException {
+        return Files.readAllBytes(Paths.get(Constant.PHOTO_DIRECTORY + filename));
+    }
 
 }

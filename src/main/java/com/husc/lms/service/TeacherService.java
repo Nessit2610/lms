@@ -87,7 +87,7 @@ public class TeacherService {
 				Files.createDirectories(fileStorageLocation);
 			}
 			Files.copy(image.getInputStream(), fileStorageLocation.resolve(id + fileExtension.apply(image.getOriginalFilename())),StandardCopyOption.REPLACE_EXISTING);
-			return ServletUriComponentsBuilder.fromCurrentContextPath().path("/teacher/image/" + filename).toUriString();
+			return "/lms/teacher/image/" + filename;
 		} catch (Exception e) {
 			throw new RuntimeException("Unable to save image");
 		}

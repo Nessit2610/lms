@@ -12,6 +12,7 @@ import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentLessonProgress;
 import com.husc.lms.mapper.StudentLessonProgressMapper;
+import com.husc.lms.mapper.StudentLessonProgressMapperImpl;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.StudentLessonProgressRepository;
@@ -26,10 +27,10 @@ public class StudentLessonProgressService {
 	private StudentLessonProgressMapper lessonProgressMapper;
 	@Autowired
 	private StudentRepository studentRepository;
-	
 	@Autowired
 	private AccountRepository accountRepository;
 	
+	@Autowired
 	private LessonRepository lessonRepository;
 	
 	public StudentLessonProgressResponse saveProgressLesson(String lessonId) {
@@ -54,8 +55,10 @@ public class StudentLessonProgressService {
 	public StudentLessonProgressResponse setCompletedLesson(String lessonId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsername(name).get();
+		Student student = studentRepository.findByAccount(account);
 		Lesson lesson = lessonRepository.findById(lessonId).get();
-		StudentLessonProgress slp = studentLessonProgressRepository.findByLesson(lesson);
+		StudentLessonProgress slp = studentLessonProgressRepository.findByLessonAndStudent(lesson,student);
 		slp.setIsCompleted(true);
 		slp.setCompleteAt(new Date());
 		slp.setLastModifiedBy(name);
@@ -66,8 +69,12 @@ public class StudentLessonProgressService {
 	}
 
 	public StudentLessonProgressResponse getLessonProgress(String lessonId) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsername(name).get();
+		Student student = studentRepository.findByAccount(account);
 		Lesson lesson = lessonRepository.findById(lessonId).get();
-		StudentLessonProgress slp = studentLessonProgressRepository.findByLesson(lesson);
+		StudentLessonProgress slp = studentLessonProgressRepository.findByLessonAndStudent(lesson,student);
 		if(slp == null) {
 			return StudentLessonProgressResponse.builder()
 					.isCompleted(false)

@@ -1,6 +1,8 @@
 package com.husc.lms.service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,21 +29,43 @@ public class LessonQuizService {
 	private LessonQuizMapper lessonQuizMapper;
 	
 	
-	public LessonQuizResponse createLessonQuiz(LessonQuizRequest request) {
+	public List<LessonQuizResponse> createLessonQuiz(String idLesson,List<LessonQuizRequest> requestList) {
 		
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
-		Lesson lesson = lessonRepository.findById(request.getIdLesson()).get();
-		
-		LessonQuiz lessonQuiz = lessonQuizMapper.toLessonQuiz(request);
-					lessonQuiz.setLesson(lesson);
-					lessonQuiz.setCreatedBy(name);
-					lessonQuiz.setCreatedDate(new Date());
-		lessonQuiz = lessonQuizRepository.save(lessonQuiz);
-		
-		return lessonQuizMapper.toLessonQuizResponse(lessonQuiz);
+		Lesson lesson = lessonRepository.findById(idLesson).get();
+		List<LessonQuiz> listLessonQuiz = new ArrayList<LessonQuiz>();
+		for(LessonQuizRequest request : requestList) {
+			LessonQuiz lessonQuiz = lessonQuizMapper.toLessonQuiz(request);
+			lessonQuiz.setLesson(lesson);
+			lessonQuiz.setCreatedBy(name);
+			lessonQuiz.setCreatedDate(new Date());
+			lessonQuiz = lessonQuizRepository.save(lessonQuiz);
+			listLessonQuiz.add(lessonQuiz);
+		}	
+		return listLessonQuiz.stream().map(lessonQuizMapper::toLessonQuizResponse).toList();
 	}
 	
-
+	public Boolean deleteLessonQuiz(String id) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		
+		LessonQuiz lessonQuiz = lessonQuizRepository.findByIdAndDeletedDateIsNull(id);
+		if(lessonQuiz != null) {
+			lessonQuiz.setDeletedBy(name);
+			lessonQuiz.setDeletedDate(new Date());
+			lessonQuizRepository.save(lessonQuiz);
+			return true;
+		}
+		return false;
+	}
+	
+	public void deleteLessonQuizByLesson(Lesson lesson) {
+		List<LessonQuiz> listLessonQuizs = lessonQuizRepository.findByLessonAndDeletedDateIsNull(lesson);
+		for(LessonQuiz l : listLessonQuizs) {
+			deleteLessonQuiz(l.getId());
+		}
+	}
+	
 }

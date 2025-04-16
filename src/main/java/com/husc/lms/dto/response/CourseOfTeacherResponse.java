@@ -7,12 +7,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CourseOfStudentResponse {
+public class CourseOfTeacherResponse {
 
 	private String id;
 	
@@ -31,6 +30,4 @@ public class CourseOfStudentResponse {
     private Date endDate;
 
     private String major;
-    
-    private TeacherResponse teacher;
 }
