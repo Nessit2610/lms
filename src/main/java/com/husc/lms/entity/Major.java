@@ -29,11 +29,15 @@ public class Major {
 	
 	private String name;
 	
+	@Column(name = "created_by")
 	private String createdBy;
-    
-    private Date createdDate;
 
-    private String deletedBy;
-    
-    private Date deletedDate;
+	@Column(name = "created_date")
+	private Date createdDate;
+
+	@Column(name = "deleted_by")
+	private String deletedBy;
+
+	@Column(name = "deleted_date")
+	private Date deletedDate;
 }
