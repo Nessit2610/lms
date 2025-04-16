@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +22,7 @@ import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.CourseRequest;
 import com.husc.lms.dto.response.CourseOfTeacherResponse;
 import com.husc.lms.dto.response.CourseResponse;
+import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.update.CourseUpdateRequest;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
@@ -35,6 +37,8 @@ import com.husc.lms.mapper.CourseMapperImpl;
 import com.husc.lms.mapperImpl.CourseMapperImplCustom;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.CourseRepository;
+import com.husc.lms.repository.LessonRepository;
+import com.husc.lms.repository.StudentCourseRepository;
 import com.husc.lms.repository.TeacherRepository;
 
 @Service
@@ -57,6 +61,12 @@ public class CourseService {
 	
 	@Autowired
 	private LessonService lessonService;
+	
+	@Autowired
+	private StudentCourseRepository studentCourseRepository;
+	
+	@Autowired
+	private LessonRepository lessonRepository;
 	
 	public CourseResponse createCourse(CourseRequest request) {
 		
@@ -116,9 +126,17 @@ public class CourseService {
 		return false;
 	}
 	
-	public List<CourseResponse> getAllPublicCourse(){
+	public List<CourseViewResponse> getAllPublicCourse(){
 		List<Course> courses = courseRepository.findByStatusInAndDeletedDateIsNull(Arrays.asList(StatusCourse.PUBLIC.name(), StatusCourse.REQUEST.name()));
-		return courses.stream().map(courseMapperImpl::toFilteredCourseResponse).toList();
+
+		List<CourseViewResponse> courseResponses = new ArrayList<CourseViewResponse>();
+		for(Course c : courses) {
+			CourseViewResponse cr = courseMapper.toCourseViewResponse(c);
+			cr.setStudentCount(studentCourseRepository.countStudentsByCourse(c));
+			cr.setLessonCount(lessonRepository.countLessonsByCourse(c));
+			courseResponses.add(cr);
+		}
+		return courseResponses;
 	}
 	
 	public List<CourseOfTeacherResponse> getCourseOfTeacher(){

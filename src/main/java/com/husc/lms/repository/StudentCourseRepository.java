@@ -18,4 +18,7 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, St
 
     @Query("SELECT sc.student FROM StudentCourse sc WHERE sc.course = :course")
     List<Student> findByCourse(@Param("course") Course course);
+    
+    @Query("SELECT COUNT(sc.student) FROM StudentCourse sc WHERE sc.course = :course")
+    long countStudentsByCourse(@Param("course") Course course);
 }

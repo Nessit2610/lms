@@ -24,6 +24,7 @@ import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CourseOfStudentResponse;
 import com.husc.lms.dto.response.CourseOfTeacherResponse;
 import com.husc.lms.dto.response.CourseResponse;
+import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.update.CourseUpdateRequest;
 import com.husc.lms.service.CourseService;
 
@@ -35,8 +36,8 @@ public class CourseController {
 	private CourseService courseService;
 	
 	@GetMapping
-	public APIResponse<List<CourseResponse>> getAllPublicCourse(){
-		return APIResponse.<List<CourseResponse>>builder()
+	public APIResponse<List<CourseViewResponse>> getAllPublicCourse(){
+		return APIResponse.<List<CourseViewResponse>>builder()
 				.result(courseService.getAllPublicCourse())
 				.build();
 	}
