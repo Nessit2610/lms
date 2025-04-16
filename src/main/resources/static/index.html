@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Trang chính</title>
 </head>
+
 <body>
     <h1 id="greeting" style="display:none;">Hello</h1>
-    <button id="toTest" style="display:none;" onclick="window.location.href='/src/main/resources/static/test.html'">Đi tới Test</button>
+    <button id="toTest" style="display:none;" onclick="window.location.href='/src/main/resources/static/test.html'">Đi
+        tới Test</button>
 
     <script>
         const token = localStorage.getItem("token");
@@ -22,22 +25,23 @@
                 },
                 body: JSON.stringify({ token: token })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.code === 0 && data.result && data.result.valid === true) {
-                    // Token hợp lệ, hiển thị nội dung
-                    document.getElementById("greeting").style.display = "block";
-                    document.getElementById("toTest").style.display = "inline-block";
-                } else {
-                    // Token không hợp lệ, quay lại trang đăng nhập
+                .then(response => response.json())
+                .then(data => {
+                    if (data.code === 0 && data.result && data.result.valid === true) {
+                        // Token hợp lệ, hiển thị nội dung
+                        document.getElementById("greeting").style.display = "block";
+                        document.getElementById("toTest").style.display = "inline-block";
+                    } else {
+                        // Token không hợp lệ, quay lại trang đăng nhập
+                        window.location.href = "/src/main/resources/static/loginn.html";
+                    }
+                })
+                .catch(error => {
+                    console.error("Lỗi xác thực token:", error);
                     window.location.href = "/src/main/resources/static/loginn.html";
-                }
-            })
-            .catch(error => {
-                console.error("Lỗi xác thực token:", error);
-                window.location.href = "/src/main/resources/static/loginn.html";
-            });
+                });
         }
     </script>
 </body>
+
 </html>

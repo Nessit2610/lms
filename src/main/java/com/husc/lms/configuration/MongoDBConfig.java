@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @Configuration
-@EnableMongoRepositories(basePackages = "mysql.mongodb.com.MysqlMongoDB.Repository")
+@EnableMongoRepositories(basePackages = "com.husc.lms.mongoRepository")
 public class MongoDBConfig {
     
     @Bean
@@ -15,4 +15,3 @@ public class MongoDBConfig {
         return new MongoTemplate(mongoDatabaseFactory);
     }
 }
-

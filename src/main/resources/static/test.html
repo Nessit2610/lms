@@ -3,37 +3,353 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMS Course Viewer</title>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        .course,
-        .lesson,
-        .chapter {
-            margin-left: 20px;
-            padding: 5px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h2,
+        h3 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         button {
-            margin: 5px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        .course {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .lesson {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-left: 4px solid #3498db;
+        }
+
+        .chapter {
+            background: white;
+            border-radius: 6px;
+            padding: 1rem;
+            margin: 0.8rem 0;
+            border: 1px solid #e1e8ed;
         }
 
         .material,
         .quiz {
-            margin-left: 40px;
+            margin: 0.8rem 0;
+            padding: 0.8rem;
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+
+        .comments {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .comments li {
+            background: #f8f9fa;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .course-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .course-info-item {
+            background: #f8f9fa;
+            padding: 0.8rem;
+            border-radius: 4px;
+        }
+
+        .course-info-item em {
+            color: #7f8c8d;
+            font-style: normal;
+            font-size: 0.9rem;
+        }
+
+        .toggle-button {
+            background-color: #2ecc71;
+            margin-top: 1rem;
+        }
+
+        .toggle-button:hover {
+            background-color: #27ae60;
+        }
+
+        .comment-section {
+            margin-top: 1.5rem;
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .comment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .comment-header h4 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .comment-count {
+            margin-left: auto;
+            background: #e1f5fe;
+            color: #0288d1;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .comment-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .comment-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 1rem;
+            padding-right: 3rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+
+        .comment-input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .send-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .send-button:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .comments-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .comment-item {
+            padding: 1rem;
+            margin-bottom: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .comment-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .comment-content {
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        .comment-metadata {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.85rem;
+            color: #7f8c8d;
+        }
+
+        .comment-author {
+            color: #34495e;
+            font-weight: 500;
+        }
+
+        .comment-time {
+            color: #95a5a6;
+        }
+
+        .empty-comments {
+            text-align: center;
+            padding: 2rem;
+            color: #7f8c8d;
             font-style: italic;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        @keyframes spin {
+            0% {
+                transform: translateY(-50%) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(-50%) rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .course-info {
+                grid-template-columns: 1fr;
+            }
+
+            .comment-form {
+                flex-direction: column;
+            }
+
+            .send-button {
+                width: 100%;
+            }
         }
     </style>
 </head>
 
 <body>
-    <h2>Danh sách khóa học</h2>
-    <button onclick="loadCourses()">Tải khóa học</button>
-    <ul id="courseList"></ul>
+    <div class="container">
+        <div class="header">
+            <h2>Danh sách khóa học</h2>
+            <div>
+                <button onclick="loadCourses()">Tải khóa học</button>
+                <button onclick="connect()">Kết nối WebSocket</button>
+            </div>
+        </div>
 
-    <h3>Thông báo WebSocket:</h3>
-    <button onclick="connect()">Kết nối WebSocket</button>
-    <ul id="messages"></ul>
+        <ul id="courseList"></ul>
+
+        <div class="websocket-section">
+            <h3>Thông báo thời gian thực</h3>
+            <ul id="messages"></ul>
+        </div>
+    </div>
 
     <script>
         let stompClient = null;
@@ -64,31 +380,133 @@
             });
         }
 
-        function sendComment(lessonId, chapterId, courseId) {
-            const commentInput = document.getElementById(`comment-${chapterId}`);
-            const comment = commentInput.value;
-            const token = localStorage.getItem("token");
+        function formatTimeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
 
+            if (days > 7) {
+                return date.toLocaleDateString('vi-VN', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } else if (days > 0) {
+                return `${days} ngày trước`;
+            } else if (hours > 0) {
+                return `${hours} giờ trước`;
+            } else if (minutes > 0) {
+                return `${minutes} phút trước`;
+            } else {
+                return 'Vừa xong';
+            }
+        }
+
+        async function sendComment(lessonId, chapterId, courseId) {
+            const commentInput = document.getElementById(`comment-${chapterId}`);
+            const comment = commentInput.value.trim();
+            const spinner = document.getElementById(`spinner-${chapterId}`);
+            const sendButton = document.getElementById(`send-button-${chapterId}`);
+
+            if (!comment) return;
+
+            const token = localStorage.getItem("token");
             if (!token) {
-                alert("Không có token. Hãy đăng nhập trước.");
+                alert("Vui lòng đăng nhập để bình luận.");
                 return;
             }
 
             const payload = JSON.parse(atob(token.split('.')[1]));
             const username = payload.sub;
 
-            if (stompClient && stompClient.connected) {
-                stompClient.send("/app/comment", {}, JSON.stringify({
-                    detail: comment,
-                    lessonId: lessonId,
-                    chapterId: chapterId,
-                    courseId: courseId,
-                    accountId: username
-                }));
-                commentInput.value = "";
-            } else {
-                alert("WebSocket chưa kết nối!");
+            try {
+                spinner.style.display = 'block';
+                sendButton.disabled = true;
+
+                if (stompClient && stompClient.connected) {
+                    stompClient.send("/app/comment", {}, JSON.stringify({
+                        detail: comment,
+                        lessonId: lessonId,
+                        chapterId: chapterId,
+                        courseId: courseId,
+                        accountId: username
+                    }));
+
+                    const commentsList = document.getElementById(`comments-${chapterId}`);
+                    const newComment = document.createElement('li');
+                    newComment.className = 'comment-item';
+                    newComment.innerHTML = `
+                        <div class="comment-content">${comment}</div>
+                        <div class="comment-metadata">
+                            <span class="comment-author">${username}</span>
+                            <span class="comment-time">Vừa xong</span>
+                        </div>
+                    `;
+                    commentsList.insertBefore(newComment, commentsList.firstChild);
+
+                    const countElement = document.getElementById(`comment-count-${chapterId}`);
+                    const currentCount = parseInt(countElement.textContent);
+                    countElement.textContent = currentCount + 1;
+
+                    commentInput.value = '';
+                } else {
+                    throw new Error("WebSocket chưa kết nối!");
+                }
+            } catch (error) {
+                alert(error.message);
+            } finally {
+                spinner.style.display = 'none';
+                sendButton.disabled = false;
             }
+        }
+
+        function displayComments(chapter, comments = []) {
+            const commentsList = Array.isArray(comments) ? comments : [];
+
+            return `
+                <div class="comment-section">
+                    <div class="comment-header">
+                        <h4>Bình luận</h4>
+                        <span class="comment-count" id="comment-count-${chapter.id}">${commentsList.length}</span>
+                    </div>
+                    <div class="comment-form">
+                        <div class="comment-input-wrapper">
+                            <input type="text" 
+                                   class="comment-input" 
+                                   id="comment-${chapter.id}" 
+                                   placeholder="Viết bình luận của bạn..."
+                                   onkeypress="if(event.key === 'Enter') sendComment('${chapter.lessonId}', '${chapter.id}', '${chapter.courseId}')"
+                            />
+                            <div class="loading-spinner" id="spinner-${chapter.id}"></div>
+                        </div>
+                        <button class="send-button" 
+                                id="send-button-${chapter.id}"
+                                onclick="sendComment('${chapter.lessonId}', '${chapter.id}', '${chapter.courseId}')">
+                            Gửi
+                        </button>
+                    </div>
+                    <ul class="comments-list" id="comments-${chapter.id}">
+                        ${commentsList.length > 0 ?
+                    commentsList.map(comment => `
+                                <li class="comment-item">
+                                    <div class="comment-content">${comment.detail || ''}</div>
+                                    <div class="comment-metadata">
+                                        <span class="comment-author">${comment.username || 'Anonymous'}</span>
+                                        <span class="comment-time">${comment.createdDate ? formatTimeAgo(comment.createdDate) : ''}</span>
+                                    </div>
+                                </li>
+                            `).join('')
+                    :
+                    '<li class="empty-comments">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</li>'
+                }
+                    </ul>
+                </div>
+            `;
         }
 
         async function loadCourses() {
@@ -98,105 +516,97 @@
                 return;
             }
 
-            const res = await fetch("http://localhost:8080/lms/course", {
-                method: "GET",
-                headers: {
-                    "Authorization": "Bearer " + token
-                }
-            });
-
-            const data = await res.json();
-            const courseList = document.getElementById("courseList");
-            courseList.innerHTML = "";
-
-            data.result.forEach(course => {
-                const li = document.createElement("li");
-                li.innerHTML = `
-                    <div class="course">
-                        <strong>${course.name}</strong> - ${course.description}<br/>
-                        <em>Giảng viên:</em> ${course.teacher.fullName} (${course.teacher.email})<br/>
-                        <em>Ngành:</em> ${course.major}<br/>
-                        <em>Thời gian học:</em> ${new Date(course.startDate).toLocaleDateString()} - ${new Date(course.endDate).toLocaleDateString()}<br/>
-                        <button onclick="toggleLessons('${course.id}')">Xem bài học</button>
-                        <ul id="lessons-${course.id}" style="display:none;"></ul>
-                    </div>`;
-                courseList.appendChild(li);
-
-                const lessonsUl = li.querySelector(`#lessons-${course.id}`);
-                const sortedLessons = course.lesson.sort((a, b) => a.order - b.order);
-
-                sortedLessons.forEach(lesson => {
-                    const lessonLi = document.createElement("li");
-                    lessonLi.innerHTML = `
-                        <div class="lesson">
-                            <strong>Bài ${lesson.order}:</strong> ${lesson.description}<br/>
-                            <div class="material">
-                                <em>Tài liệu:</em>
-                                ${lesson.lessonMaterial.length > 0 ? lesson.lessonMaterial.map(m => `<a href="${m.path}" target="_blank">Xem</a>`).join(', ') : 'Không có'}
-                            </div>
-                            <div class="quiz">
-                                <em>Quiz:</em><br/>
-                                ${lesson.lessonQuiz.length > 0 ? lesson.lessonQuiz.map(q =>
-                        `Câu hỏi: ${q.question}<br/>Tùy chọn: ${q.option}<br/>Đáp án: ${q.answer}<br/>`).join('') : 'Không có'}
-                            </div>
-                            <button onclick="toggleChapters('${lesson.id}')">Xem chương</button>
-                            <ul id="chapters-${lesson.id}" style="display:none;"></ul>
-                        </div>`;
-                    lessonsUl.appendChild(lessonLi);
-
-                    const chapterUl = lessonLi.querySelector(`#chapters-${lesson.id}`);
-
-                    if (lesson.chapter && lesson.chapter.length > 0) {
-                        const sortedChapters = lesson.chapter.sort((a, b) => a.order - b.order);
-
-                        sortedChapters.forEach((chapter) => {
-                            const chapterLi = document.createElement("li");
-                            chapterLi.innerHTML = `
-                                <div class="chapter">
-                                    <strong>Chương ${chapter.order}:</strong> ${chapter.name || "Không có tên chương"}<br/>
-                                    <em>Đường dẫn:</em> ${chapter.path ? `<a href="${chapter.path}" target="_blank">${chapter.path}</a>` : "Không có"}<br/>
-                                    ${chapter.path ? `
-                                        <input type="text" placeholder="Nhập bình luận..." id="comment-${chapter.id}" />
-                                        <button onclick="sendComment('${lesson.id}', '${chapter.id}', '${course.id}')">Gửi</button>
-                                    ` : ''}
-                                    <ul id="comments-${chapter.id}" class="comments"></ul>
-                                </div>`;
-                            chapterUl.appendChild(chapterLi);
-
-                            const token = localStorage.getItem("token");
-
-                            fetch(`http://localhost:8080/lms/comments/chapter/${chapter.id}`, {
-                                method: "GET",
-                                headers: {
-                                    "Authorization": "Bearer " + token
-                                }
-                            })
-                                .then(response => response.json())
-                                .then(comments => {
-                                    const commentList = chapterLi.querySelector(`#comments-${chapter.id}`);
-                                    comments.forEach(comment => {
-                                        const li = document.createElement("li");
-
-                                        let formattedTime = "";
-                                        if (comment.createdDate) {
-                                            const createdAt = new Date(comment.createdDate);
-                                            formattedTime = createdAt.toLocaleString();
-                                        }
-
-                                        li.textContent = `${comment.detail} (người gửi: ${comment.username}${formattedTime ? `, lúc: ${formattedTime}` : ''})`;
-                                        commentList.appendChild(li);
-                                    });
-
-                                });
-
-                        });
-                    } else {
-                        const chapterLi = document.createElement("li");
-                        chapterLi.innerHTML = `<div class="chapter"><em>Không có chương.</em></div>`;
-                        chapterUl.appendChild(chapterLi);
+            try {
+                const res = await fetch("http://localhost:8080/lms/course", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
                     }
                 });
-            });
+
+                const data = await res.json();
+                const courseList = document.getElementById("courseList");
+                courseList.innerHTML = "";
+
+                data.result.forEach(course => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `
+                        <div class="course">
+                            <strong>${course.name}</strong> - ${course.description}<br/>
+                            <em>Giảng viên:</em> ${course.teacher.fullName} (${course.teacher.email})<br/>
+                            <em>Ngành:</em> ${course.major}<br/>
+                            <em>Thời gian học:</em> ${new Date(course.startDate).toLocaleDateString()} - ${new Date(course.endDate).toLocaleDateString()}<br/>
+                            <button onclick="toggleLessons('${course.id}')">Xem bài học</button>
+                            <ul id="lessons-${course.id}" style="display:none;"></ul>
+                        </div>`;
+                    courseList.appendChild(li);
+
+                    const lessonsUl = li.querySelector(`#lessons-${course.id}`);
+                    const sortedLessons = course.lesson.sort((a, b) => a.order - b.order);
+
+                    sortedLessons.forEach(lesson => {
+                        const lessonLi = document.createElement("li");
+                        lessonLi.innerHTML = `
+                            <div class="lesson">
+                                <strong>Bài ${lesson.order}:</strong> ${lesson.description}<br/>
+                                <div class="material">
+                                    <em>Tài liệu:</em>
+                                    ${lesson.lessonMaterial.length > 0 ? lesson.lessonMaterial.map(m => `<a href="${m.path}" target="_blank">Xem</a>`).join(', ') : 'Không có'}
+                                </div>
+                                <div class="quiz">
+                                    <em>Quiz:</em><br/>
+                                    ${lesson.lessonQuiz.length > 0 ? lesson.lessonQuiz.map(q =>
+                            `Câu hỏi: ${q.question}<br/>Tùy chọn: ${q.option}<br/>Đáp án: ${q.answer}<br/>`).join('') : 'Không có'}
+                                </div>
+                                <button onclick="toggleChapters('${lesson.id}')">Xem chương</button>
+                                <ul id="chapters-${lesson.id}" style="display:none;"></ul>
+                            </div>`;
+                        lessonsUl.appendChild(lessonLi);
+
+                        const chapterUl = lessonLi.querySelector(`#chapters-${lesson.id}`);
+
+                        if (lesson.chapter && lesson.chapter.length > 0) {
+                            const sortedChapters = lesson.chapter.sort((a, b) => a.order - b.order);
+
+                            sortedChapters.forEach((chapter) => {
+                                const chapterLi = document.createElement("li");
+                                chapterLi.innerHTML = `
+                                    <div class="chapter">
+                                        <strong>Chương ${chapter.order}:</strong> ${chapter.name || "Không có tên chương"}<br/>
+                                        <em>Đường dẫn:</em> ${chapter.path ? `<a href="${chapter.path}" target="_blank">${chapter.path}</a>` : "Không có"}<br/>
+                                    </div>
+                                `;
+
+                                fetch(`http://localhost:8080/lms/comments/chapter/${chapter.id}`, {
+                                    method: "GET",
+                                    headers: {
+                                        "Authorization": "Bearer " + token
+                                    }
+                                })
+                                    .then(response => response.json())
+                                    .then(commentsData => {
+                                        const commentsHtml = displayComments(chapter, commentsData.result || []);
+                                        chapterLi.querySelector('.chapter').insertAdjacentHTML('beforeend', commentsHtml);
+                                    })
+                                    .catch(error => {
+                                        console.error('Error loading comments:', error);
+                                        const commentsHtml = displayComments(chapter, []);
+                                        chapterLi.querySelector('.chapter').insertAdjacentHTML('beforeend', commentsHtml);
+                                    });
+
+                                chapterUl.appendChild(chapterLi);
+                            });
+                        } else {
+                            const chapterLi = document.createElement("li");
+                            chapterLi.innerHTML = `<div class="chapter"><em>Không có chương.</em></div>`;
+                            chapterUl.appendChild(chapterLi);
+                        }
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                alert('Có lỗi xảy ra khi tải khóa học. Vui lòng thử lại sau.');
+            }
         }
 
         function toggleLessons(courseId) {
