@@ -14,7 +14,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer{
         // Cấu hình prefix cho message để send đến (ví dụ: /app)
         config.setApplicationDestinationPrefixes("/app");
         // Cấu hình prefix cho message để subscribe (ví dụ: /topic)
-        config.enableSimpleBroker("/topic");
+        config.enableSimpleBroker("/topic", "/queue");
+        config.setUserDestinationPrefix("/user");
     }
 
     @Override
