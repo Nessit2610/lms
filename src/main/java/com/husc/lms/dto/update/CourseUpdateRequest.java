@@ -24,7 +24,5 @@ public class CourseUpdateRequest {
 
     private String status;
     
-    private String image;
-    
     private String learningDurationType;
 }

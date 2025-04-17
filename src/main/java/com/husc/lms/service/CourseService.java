@@ -50,7 +50,7 @@ public class CourseService {
 	private CourseMapper courseMapper;
 	
 	@Autowired
-	private CourseMapperImplCustom courseMapperImpl;
+	private CourseMapperImplCustom courseMapperImplCustom;
 	
 	@Autowired
 	private TeacherRepository teacherRepository;
@@ -95,7 +95,7 @@ public class CourseService {
 	
 	public CourseResponse getCourseById(String id) {
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(id);
-		return courseMapper.toCourseResponse(course);
+		return courseMapperImplCustom.toFilteredCourseResponse(course);
 	}
 	
 	public CourseResponse updateCourse(CourseUpdateRequest request) {
@@ -104,7 +104,12 @@ public class CourseService {
 		String name = context.getAuthentication().getName();
 		
 		Course course = courseRepository.findById(request.getIdCourse()).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
-		course = courseMapper.toCourse(request);
+		course.setName(request.getName());
+		course.setDescription(request.getDescription());
+		course.setEndDate(request.getEndDate());
+		course.setMajor(request.getMajor());
+		course.setStatus(request.getStatus());
+		course.setLearningDurationType(request.getLearningDurationType());
 		course.setLastModifiedBy(name);
 		course.setLastModifiedDate(new Date());
 		course = courseRepository.save(course);
