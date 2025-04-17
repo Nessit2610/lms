@@ -40,23 +40,6 @@ public class ChapterService {
 	@Autowired
 	private LessonRepository lessonRepository;
 	
-	public ChapterResponse createChapter(ChapterRequest request) {
-		Lesson lesson = lessonRepository.findById(request.getLessonId()).get();
-		Chapter chapter = Chapter.builder()
-				.name(request.getName())
-				.order(request.getOrder())
-				.lesson(lesson)
-				.build();
-		chapter = chapterRepository.save(chapter);
-		return chapterMapper.toChapterResponse(chapter);
-	}
-	
-	public ChapterResponse uploadFileToChapter(String chapterId,MultipartFile file, String type ) {
-		uploadFile(chapterId, file, type);
-		Chapter chapter = chapterRepository.findById(chapterId).get();
-		return chapterMapper.toChapterResponse(chapter);
-	}
-	
 	public ChapterResponse createChapter(String lessonId, String name, int order, MultipartFile file, String type) {
 		var context = SecurityContextHolder.getContext();
 		String nameAccount = context.getAuthentication().getName();

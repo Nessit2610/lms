@@ -1,5 +1,6 @@
 package com.husc.lms.dto.response;
 
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,19 +10,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class DocumentResponse {
+public class MajorResponse {
 
 	private String id;
-		
-	private String title;
 	
-	private String description;
-	
-	private String status;
-	
-	private MajorResponse major;
-	
-	private String path;
-	
-	private Object object;
+	private String name;
 }

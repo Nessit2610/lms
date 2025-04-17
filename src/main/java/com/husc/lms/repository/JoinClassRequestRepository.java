@@ -2,6 +2,7 @@ package com.husc.lms.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.JoinClassRequest;
@@ -15,12 +16,14 @@ public interface JoinClassRequestRepository extends JpaRepository<JoinClassReque
 
 	JoinClassRequest findByStudentAndCourse(Student student, Course course);
 
-    @Query("SELECT j.student FROM JoinClassRequest j WHERE j.course.id = :courseId")
-    List<Student> findAllStudentsByCourseId(String courseId);
+	@Query("SELECT j.student FROM JoinClassRequest j WHERE j.course.id = :courseId AND j.status = :status")
+	List<Student> findAllStudentsByCourseIdAndStatus(@Param("courseId") String courseId, @Param("status") String status);
+
 
     
-    @Query("SELECT j.course FROM JoinClassRequest j WHERE j.student.id = :studentId AND j.course.deletedDate IS NULL")
-    List<Course> findAllCoursesByStudentId(String studentId);
+	@Query("SELECT j.course FROM JoinClassRequest j WHERE j.student.id = :studentId AND j.course.deletedDate IS NULL AND j.status = :status")
+	List<Course> findAllCoursesByStudentIdAndStatus(@Param("studentId") String studentId, @Param("status") String status);
+
 
 
 }

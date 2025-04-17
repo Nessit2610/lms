@@ -104,12 +104,12 @@ public class JoinClassRequestService {
 	}
 	
 	public List<StudentOfCourseResponse> getAllStudentRequestOfCourse(String courseId){
-		List<Student> students = joinClassRequestRepository.findAllStudentsByCourseId(courseId);
+		List<Student> students = joinClassRequestRepository.findAllStudentsByCourseIdAndStatus(courseId, "PENDING");
 		return students.stream().map(studentMapper::tosStudentOfCourseResponse).toList();
 	}
 	
 	public List<CourseViewResponse> getAllCourseRequestOfStudent(String studentId){
-		List<Course> courses = joinClassRequestRepository.findAllCoursesByStudentId(studentId);
+		List<Course> courses = joinClassRequestRepository.findAllCoursesByStudentIdAndStatus(studentId, "PENDING");
 		List<CourseViewResponse> courseResponses = new ArrayList<CourseViewResponse>();
 		for(Course c : courses) {
 			CourseViewResponse cr = courseMapper.toCourseViewResponse(c);
