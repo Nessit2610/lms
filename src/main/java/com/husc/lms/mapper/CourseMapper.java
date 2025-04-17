@@ -3,8 +3,6 @@ package com.husc.lms.mapper;
 import org.mapstruct.Mapper;
 
 import com.husc.lms.dto.request.CourseRequest;
-import com.husc.lms.dto.response.CourseOfStudentResponse;
-import com.husc.lms.dto.response.CourseOfTeacherResponse;
 import com.husc.lms.dto.response.CourseResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.update.CourseUpdateRequest;
@@ -22,7 +20,4 @@ public interface CourseMapper {
 	
 	public CourseViewResponse toCourseViewResponse(Course course);
 	
-	public CourseOfStudentResponse toCourseOfStudentResponse(Course course);
-	
-	public CourseOfTeacherResponse toCourseOfTeacherResponse(Course course);
 }

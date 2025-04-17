@@ -21,8 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.CourseRequest;
 import com.husc.lms.dto.response.APIResponse;
-import com.husc.lms.dto.response.CourseOfStudentResponse;
-import com.husc.lms.dto.response.CourseOfTeacherResponse;
 import com.husc.lms.dto.response.CourseResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.update.CourseUpdateRequest;

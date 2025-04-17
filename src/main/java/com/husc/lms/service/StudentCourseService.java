@@ -1,5 +1,6 @@
 package com.husc.lms.service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -8,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.StudentCourseRequest;
-import com.husc.lms.dto.response.CourseOfStudentResponse;
+import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.response.StudentOfCourseResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
@@ -18,6 +19,7 @@ import com.husc.lms.mapper.CourseMapper;
 import com.husc.lms.mapper.StudentMapper;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.CourseRepository;
+import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.StudentCourseRepository;
 import com.husc.lms.repository.StudentRepository;
 
@@ -35,6 +37,9 @@ public class StudentCourseService {
 	
 	@Autowired
 	private CourseRepository courseRepository;
+	
+	@Autowired
+	private LessonRepository lessonRepository;
 	
 	@Autowired
 	private CourseMapper courseMapper;
@@ -56,14 +61,32 @@ public class StudentCourseService {
 		}
 	}
 	
-	public List<CourseOfStudentResponse> getAllCourseOfStudent() {
+	public void addStudentToCourse(Student student , Course course) {
+		StudentCourse studentCourse = StudentCourse.builder()
+				.registrationDate(new Date())
+				.createdDate(new Date())
+				.student(student)
+				.course(course)
+				.build();
+		studentCourseRepository.save(studentCourse);
+		
+	}
+	
+	
+	public List<CourseViewResponse> getAllCourseOfStudent() {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsername(name).get();
 		Student student = studentRepository.findByAccount(account);
 		List<Course> courses = studentCourseRepository.findByStudent(student);
-		return courses.stream().map(courseMapper::toCourseOfStudentResponse).toList();
-	}
+		List<CourseViewResponse> courseResponses = new ArrayList<CourseViewResponse>();
+		for(Course c : courses) {
+			CourseViewResponse cr = courseMapper.toCourseViewResponse(c);
+			cr.setStudentCount(studentCourseRepository.countStudentsByCourse(c));
+			cr.setLessonCount(lessonRepository.countLessonsByCourse(c));
+			courseResponses.add(cr);
+		}
+		return courseResponses;	}
 	
 	public List<StudentOfCourseResponse> getAllStudentOfCourse(String courseId){
 		Course course = courseRepository.findById(courseId).get();

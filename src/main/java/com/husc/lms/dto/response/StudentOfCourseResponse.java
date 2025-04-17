@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class StudentOfCourseResponse {
 
+	private String id;
+	
 	private String fullName;
 	
 	private Major major;

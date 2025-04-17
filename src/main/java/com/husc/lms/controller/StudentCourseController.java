@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.request.StudentCourseRequest;
 import com.husc.lms.dto.response.APIResponse;
-import com.husc.lms.dto.response.CourseOfStudentResponse;
+import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.response.StudentOfCourseResponse;
 import com.husc.lms.service.StudentCourseService;
 
@@ -33,8 +33,8 @@ public class StudentCourseController {
 	}
 	
 	@GetMapping("/mycourse")
-	public APIResponse<List<CourseOfStudentResponse>> getAllCourseOfStudent(){
-		return APIResponse.<List<CourseOfStudentResponse>>builder()
+	public APIResponse<List<CourseViewResponse>> getAllCourseOfStudent(){
+		return APIResponse.<List<CourseViewResponse>>builder()
 				.result(studentCourseService.getAllCourseOfStudent())
 				.build();
 	}
