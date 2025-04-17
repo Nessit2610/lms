@@ -9,6 +9,7 @@ import com.husc.lms.mongoEntity.ChatBoxMember;
 
 @Repository
 public interface ChatBoxMemberRepository extends MongoRepository<ChatBoxMember, String> {
-    List<ChatBoxMember> findByAccountId(String accountId);
+	List<ChatBoxMember> findByAccountId(String accountId);
     List<ChatBoxMember> findByChatBoxId(String chatBoxId);
+    boolean existsByChatBoxIdAndAccountId(String chatBoxId, String accountId);
 }
