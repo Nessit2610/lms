@@ -19,7 +19,8 @@ public interface JoinClassRequestRepository extends JpaRepository<JoinClassReque
     List<Student> findAllStudentsByCourseId(String courseId);
 
     
-    @Query("SELECT j.course FROM JoinClassRequest j WHERE j.student.id = :studentId AND j.deletedDate IS NULL")
+    @Query("SELECT j.course FROM JoinClassRequest j WHERE j.student.id = :studentId AND j.course.deletedDate IS NULL")
     List<Course> findAllCoursesByStudentId(String studentId);
+
 
 }
