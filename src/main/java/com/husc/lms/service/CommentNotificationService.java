@@ -26,7 +26,7 @@ public class CommentNotificationService {
         Course course = chapter.getLesson().getCourse();
 
         // Bước 1: Lấy tất cả học viên đã đăng ký khóa học
-        List<StudentCourse> studentCourses = studentCourseRepository.getStudentCourseByCourse(course);
+        List<StudentCourse> studentCourses = studentCourseRepository.findByCourse(course);
 
         // Bước 2: Kiểm tra ai đã học tới chapter này
         for (StudentCourse sc : studentCourses) {

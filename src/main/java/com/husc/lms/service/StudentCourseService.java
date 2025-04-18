@@ -78,7 +78,7 @@ public class StudentCourseService {
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsername(name).get();
 		Student student = studentRepository.findByAccount(account);
-		List<Course> courses = studentCourseRepository.findByStudent(student);
+		List<Course> courses = courseRepository.findByStudent(student);
 		List<CourseViewResponse> courseResponses = new ArrayList<CourseViewResponse>();
 		for(Course c : courses) {
 			CourseViewResponse cr = courseMapper.toCourseViewResponse(c);
@@ -90,9 +90,14 @@ public class StudentCourseService {
 	
 	public List<StudentOfCourseResponse> getAllStudentOfCourse(String courseId){
 		Course course = courseRepository.findById(courseId).get();
-		List<Student> listSoC = studentCourseRepository.findByCourse(course);
+		List<Student> listSoC = studentRepository.findByCourse(course);
 		return listSoC.stream().map(studentMapper::tosStudentOfCourseResponse).toList();
 	}
 	
+	public List<StudentOfCourseResponse> getAllStudentNotInCourse(String courseId){
+		Course course = courseRepository.findById(courseId).get();
+		List<Student> listSoC = studentRepository.findStudentsNotInCourse(course);
+		return listSoC.stream().map(studentMapper::tosStudentOfCourseResponse).toList();
+	}
 	
 }
