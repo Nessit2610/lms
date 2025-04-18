@@ -13,4 +13,6 @@ import com.husc.lms.entity.Student;
 public interface StudentLessonChapterProgressRepository extends JpaRepository<StudentLessonChapterProgress, String> {
 
 	public StudentLessonChapterProgress findByStudentAndChapter(Student student, Chapter chapter);
+    boolean existsByStudentAndChapter(Student student, Chapter chapter);  // Cập nhật để dùng accountId
+
 }
