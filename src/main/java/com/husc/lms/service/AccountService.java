@@ -64,6 +64,8 @@ public class AccountService {
 	@Autowired
 	private TeacherMapper teacherMapper;
 	
+	@Autowired
+	private EmailService emailService;
 	
 	//PUBLIC
 	
@@ -71,8 +73,7 @@ public class AccountService {
 		
 		if(accountRepository.existsByUsername(request.getEmail())) {
 			throw new AppException(ErrorCode.USER_EXISTED);
-		}
-		
+		}    
 		Account account = new Account();
 		account.setUsername(request.getEmail());
 		account.setEmail(request.getEmail());

@@ -28,7 +28,7 @@ public class SecurityConfig {
 	private final String[] PUBLIC_WS_API = {
 		    "/ws/**"
 		};	
-	private final String[] PUBLIC_API = {"/account/changePassword","/auth/token","/auth/introspect","/auth/logout","/auth/refresh","/student/create","/teacher/create"};
+	private final String[] PUBLIC_API = {"/account/changePassword","/auth/token","/auth/introspect","/auth/logout","/auth/refresh","/email/send","/email/verifycode","/student/create","/teacher/create"};
 	
 	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create"};
 

@@ -17,10 +17,10 @@ import lombok.NoArgsConstructor;
 public class AccountRequest {
 	
 	@Size(min = 8, message = "PASSWORD_INVALID")
-	@Pattern(
-	    regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
-	    message = "PASSWORD_INVALID"
-	)
+//	@Pattern(
+//	    regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+//	    message = "PASSWORD_INVALID"
+//	)
 	private String password;
 	
 	@Pattern(

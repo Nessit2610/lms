@@ -25,7 +25,7 @@ public enum ErrorCode {
 	FILE_SIZE_EXCEEDED(1013, "File upload exceeds the maximum limit of 10MB!", HttpStatus.BAD_REQUEST),
 	DOB_INVALID(1014, "Your age must be at least {min}", HttpStatus.BAD_REQUEST),
 	EMAIL_INVALID(1015,"Email invalid", HttpStatus.BAD_REQUEST),
-	REQUEST_EXIST(1016, "Request exist", HttpStatus.BAD_REQUEST);
+	REQUEST_EXIST(1016, "Request existed", HttpStatus.BAD_REQUEST);
 	
 	
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
