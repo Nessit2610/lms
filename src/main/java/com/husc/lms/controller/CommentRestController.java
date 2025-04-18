@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.response.CommentChapterResponse;
+import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
 import com.husc.lms.entity.Lesson;
@@ -38,18 +39,18 @@ public class CommentRestController {
 	
 	@GetMapping("/chapter/{chapterId}")
 	public ResponseEntity<List<CommentChapterResponse>> getComments(@PathVariable("chapterId") String chapterId) {
-	    Chapter chapter = chapterRepository.findById(chapterId).orElseThrow();
-	    List<Comment> comments = commentService.getCommentsByChapter(chapter);
-
-	    List<CommentChapterResponse> response = comments.stream()
-	            .map(comment -> new CommentChapterResponse(
-	                    comment.getAccount().getUsername(),
-	                    comment.getDetail(),
-	                    comment.getCreatedDate()
-	            ))
-	            .collect(Collectors.toList());
-
+	    List<CommentChapterResponse> response = commentService.getCommentsByChapterId(chapterId);
 	    return ResponseEntity.ok(response);
 	}
 
+//	@GetMapping("/chapter/unreadCommentsOfCourse/{courseId}")
+//	public ResponseEntity<List<CommentChapterResponse>> getUnreadCommentsOfCourse(@PathVariable("courseId") String courseId) {
+//		List<CommentChapterResponse> response = commentService.getUnreadCommentsByCourseId(courseId);
+//		return ResponseEntity.ok(response);
+//	}
+	@GetMapping("/chapter/unreadCommentsOfCourse/{courseId}")
+	public ResponseEntity<CommentsOfChapterInLessonOfCourseResponse> getUnreadCommentsOfCourse(@PathVariable("courseId") String courseId) {
+		CommentsOfChapterInLessonOfCourseResponse response = commentService.getStructuredUnreadComments(courseId);
+		return ResponseEntity.ok(response);
+	}
 }
