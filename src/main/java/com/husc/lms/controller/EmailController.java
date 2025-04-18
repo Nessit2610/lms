@@ -1,5 +1,7 @@
 package com.husc.lms.controller;
 
+import java.io.UnsupportedEncodingException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,7 +19,7 @@ public class EmailController {
 	private EmailService emailService;
 	
 	@PostMapping("/send")
-	public APIResponse<Void> sendConfirmationEmail(@RequestParam("email") String email){
+	public APIResponse<Void> sendConfirmationEmail(@RequestParam("email") String email) throws UnsupportedEncodingException{
 		emailService.sendConfirmationEmail(email);
 		return APIResponse.<Void>builder()
 				.code(200)

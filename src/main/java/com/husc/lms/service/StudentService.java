@@ -58,14 +58,14 @@ public class StudentService {
 	
 	public StudentResponse createStudent(StudentRequest request) {
 		
-		if(accountRepository.existsByUsername(request.getEmail())) {
-			throw new AppException(ErrorCode.USER_EXISTED);
-		} 
-		
-		if(codeRepository.findByEmail(request.getEmail()) == null || codeRepository.findByEmail(request.getEmail()).isVerify() == false) {
-			throw new AppException(ErrorCode.EMAIL_INVALID);
-		}
-		
+//		if(accountRepository.existsByUsername(request.getEmail())) {
+//			throw new AppException(ErrorCode.USER_EXISTED);
+//		} 
+//		
+//		if(codeRepository.findByEmail(request.getEmail()) == null || codeRepository.findByEmail(request.getEmail()).isVerify() == false) {
+//			throw new AppException(ErrorCode.EMAIL_INVALID);
+//		}
+//		
 		AccountRequest uRequest = AccountRequest.builder()
 				.password(request.getPassword())
 				.email(request.getEmail())

@@ -3,10 +3,12 @@ package com.husc.lms.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Random;
@@ -18,6 +20,8 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.entity.ConfirmationCode;
+import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.repository.ConfirmationCodeRepository;
 
 @Service
@@ -30,14 +34,15 @@ public class EmailService {
     private ConfirmationCodeRepository confirmationCodeRepository;
 
     @Transactional
-    public void sendConfirmationEmail(String toEmail) {
+    public void sendConfirmationEmail(String toEmail) throws UnsupportedEncodingException {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(toEmail);
             helper.setSubject("Xác nhận đăng ký tài khoản - HUSC LMS");
-            helper.setFrom("husclms@gmail.com");
+            helper.setFrom(new InternetAddress("husclms@gmail.com", "HUSC LMS"));
+
 
             if (confirmationCodeRepository.existsByEmail(toEmail)) {
 				confirmationCodeRepository.deleteByEmail(toEmail);
@@ -111,7 +116,7 @@ public class EmailService {
                     <div class="code">%s</div>
                     <p>Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email này.</p>
                     <div class="footer">
-                        © 2025 Công ty của bạn. Mọi quyền được bảo lưu.
+                        © 2025 HUSC LMS - 4T75 Team .
                     </div>
                 </div>
             </body>
@@ -127,8 +132,8 @@ public class EmailService {
             return false; // Không tìm thấy mã xác nhận cho email này
         }
         
-        if (confirmationCode.getCreatedAt().isBefore(LocalDateTime.now().minusMinutes(15))) {
-            return false; // Mã xác nhận đã hết hạn
+        if (confirmationCode.getCreatedAt().isBefore(LocalDateTime.now().minusMinutes(10))) {
+            throw new AppException(ErrorCode.TIME_LIMITED);
         }
 	     if(confirmationCode.getCode().equals(code)) {
 	    	 isVerify = true;
