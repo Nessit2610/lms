@@ -14,7 +14,10 @@ import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.JoinClassRequest;
 import com.husc.lms.entity.Student;
+import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.JoinClassStatus;
+import com.husc.lms.enums.StatusCourse;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.CourseMapper;
 import com.husc.lms.mapper.StudentMapper;
 import com.husc.lms.repository.AccountRepository;
@@ -62,6 +65,11 @@ public class JoinClassRequestService {
 		Student student = studentRepository.findByAccount(account);
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
 		
+		if(joinClassRequestRepository.existsByStudentAndCourseAndStatus(student, course, JoinClassStatus.PENDING.name())
+		|| joinClassRequestRepository.existsByStudentAndCourseAndStatus(student, course, JoinClassStatus.APPROVED.name())) {
+			throw new AppException(ErrorCode.REQUEST_EXIST);
+		}
+	
 		if(student != null && course != null) {
 			JoinClassRequest joinClassRequest = JoinClassRequest.builder()
 					.student(student)
@@ -104,12 +112,12 @@ public class JoinClassRequestService {
 	}
 	
 	public List<StudentOfCourseResponse> getAllStudentRequestOfCourse(String courseId){
-		List<Student> students = joinClassRequestRepository.findAllStudentsByCourseIdAndStatus(courseId, "PENDING");
+		List<Student> students = joinClassRequestRepository.findAllStudentsByCourseIdAndStatus(courseId,JoinClassStatus.PENDING.name());
 		return students.stream().map(studentMapper::tosStudentOfCourseResponse).toList();
 	}
 	
 	public List<CourseViewResponse> getAllCourseRequestOfStudent(String studentId){
-		List<Course> courses = joinClassRequestRepository.findAllCoursesByStudentIdAndStatus(studentId, "PENDING");
+		List<Course> courses = joinClassRequestRepository.findAllCoursesByStudentIdAndStatus(studentId, JoinClassStatus.PENDING.name());
 		List<CourseViewResponse> courseResponses = new ArrayList<CourseViewResponse>();
 		for(Course c : courses) {
 			CourseViewResponse cr = courseMapper.toCourseViewResponse(c);

@@ -25,5 +25,7 @@ public interface JoinClassRequestRepository extends JpaRepository<JoinClassReque
 	List<Course> findAllCoursesByStudentIdAndStatus(@Param("studentId") String studentId, @Param("status") String status);
 
 
+	boolean existsByStudentAndCourseAndStatus(Student student, Course course, String status);
+
 
 }
