@@ -24,6 +24,8 @@ import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.entity.Student;
 import com.husc.lms.service.StudentService;
 
+import jakarta.validation.Valid;
+
 
 @RestController
 @RequestMapping("/student")
@@ -49,7 +51,7 @@ public class StudentController {
 	}
 	
 	@PostMapping("/create")
-	public APIResponse<StudentResponse> CreateStudent(@RequestBody StudentRequest request){
+	public APIResponse<StudentResponse> CreateStudent(@RequestBody @Valid StudentRequest request){
 		APIResponse<StudentResponse> apiResponse = new APIResponse<StudentResponse>();
 		apiResponse.setResult(studentService.createStudent(request));
 		return apiResponse;

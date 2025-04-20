@@ -13,11 +13,11 @@ import com.husc.lms.entity.StudentCourse;
 
 @Repository
 public interface StudentCourseRepository extends JpaRepository<StudentCourse, String> {
-//	@Query("SELECT sc.course FROM StudentCourse sc WHERE sc.student = :student")
-//    List<Course> findByStudent(@Param("student") Student student);
-//
-//    @Query("SELECT sc.student FROM StudentCourse sc WHERE sc.course = :course")
-//    List<Student> findByCourse(@Param("course") Course course);
+	@Query("SELECT sc.course FROM StudentCourse sc WHERE sc.student = :student")
+    List<Course> findByStudent(@Param("student") Student student);
+
+    @Query("SELECT sc.student FROM StudentCourse sc WHERE sc.course = :course")
+    List<Student> findStudentByCourse(@Param("course") Course course);
     
     @Query("SELECT COUNT(sc.student) FROM StudentCourse sc WHERE sc.course = :course")
     long countStudentsByCourse(@Param("course") Course course);

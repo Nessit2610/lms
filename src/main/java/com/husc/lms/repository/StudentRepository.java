@@ -17,12 +17,5 @@ import com.husc.lms.entity.Course;
 public interface StudentRepository extends JpaRepository<Student, String> {
 
 	public Student findByAccount(Account account);
-	
-	@Query("SELECT s FROM Student s JOIN s.studentCourses sc WHERE sc.course = :course")
-	List<Student> findByCourse(@Param("course") Course course);
-	
-	@Query("SELECT s FROM Student s WHERE s.id NOT IN (" +
-		       "SELECT s2.id FROM Student s2 JOIN s2.studentCourses sc WHERE sc.course = :course)")
-	List<Student> findStudentsNotInCourse(@Param("course") Course course);
 
 }

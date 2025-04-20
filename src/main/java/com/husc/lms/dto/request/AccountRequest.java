@@ -23,10 +23,10 @@ public class AccountRequest {
 //	)
 	private String password;
 	
-	@Pattern(
-	    regexp = "^[a-zA-Z0-9._%+-]+@husc\\.edu\\.vn$",
-	    message = "EMAIL_INVALID"
-	)
+//	@Pattern(
+//	    regexp = "^[a-zA-Z0-9._%+-]+@husc\\.edu\\.vn$",
+//	    message = "EMAIL_INVALID"
+//	)
 	private String email;
 
 	

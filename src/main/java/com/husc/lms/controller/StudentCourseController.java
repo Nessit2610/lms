@@ -45,10 +45,10 @@ public class StudentCourseController {
 				.result(studentCourseService.getAllStudentOfCourse(courseId))
 				.build();
 	}
-	@GetMapping("/studentnotincourse/{courseId}")
-	public APIResponse<List<StudentOfCourseResponse>> getAllStudentNotInCourse(@PathVariable("courseId") String courseId){
-		return APIResponse.<List<StudentOfCourseResponse>>builder()
-				.result(studentCourseService.getAllStudentNotInCourse(courseId))
-				.build();
-	}
+//	@GetMapping("/studentnotincourse/{courseId}")
+//	public APIResponse<List<StudentOfCourseResponse>> getAllStudentNotInCourse(@PathVariable("courseId") String courseId){
+//		return APIResponse.<List<StudentOfCourseResponse>>builder()
+//				.result(studentCourseService.getAllStudentNotInCourse(courseId))
+//				.build();
+//	}
 }

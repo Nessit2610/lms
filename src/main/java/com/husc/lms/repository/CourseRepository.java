@@ -22,7 +22,5 @@ public interface CourseRepository extends JpaRepository<Course,String> {
 	
 	Course findByIdAndDeletedDateIsNull(String id);
 	
-	@Query("SELECT c FROM Course c JOIN c.studentCourses sc WHERE sc.student = :student")
-	List<Course> findByStudent(@Param("student") Student student);
 
 }

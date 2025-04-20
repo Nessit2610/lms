@@ -30,6 +30,8 @@ public class SecurityConfig {
 		};	
 	private final String[] PUBLIC_API = {"/account/changePassword","/auth/token","/auth/introspect","/auth/logout","/auth/refresh","/email/send","/email/verifycode","/student/create","/teacher/create"};
 	
+	private final String[] PUBLIC_GET_API = {"/test"};
+	
 	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create"};
 
 	private final String[] ADMIN_GET_API= {"/account"};
@@ -42,7 +44,8 @@ public class SecurityConfig {
 
     	httpSecurity.authorizeHttpRequests(request ->
     		request.requestMatchers(HttpMethod.POST,PUBLIC_API).permitAll()
-    		.requestMatchers(PUBLIC_WS_API).permitAll()
+    				.requestMatchers(HttpMethod.GET,PUBLIC_GET_API).permitAll()
+    				.requestMatchers(PUBLIC_WS_API).permitAll()
     				.requestMatchers(HttpMethod.POST, TEACHER_POST_API).hasAnyRole(Roles.ADMIN.name(),Roles.TEACHER.name())
     				.requestMatchers(HttpMethod.GET,ADMIN_GET_API).hasRole(Roles.ADMIN.name())
     				.anyRequest().authenticated());
