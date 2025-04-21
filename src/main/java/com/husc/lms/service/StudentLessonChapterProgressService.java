@@ -75,7 +75,7 @@ public class StudentLessonChapterProgressService {
 		StudentLessonChapterProgress slcp = slcpRepository.findByStudentAndChapter(student, chapter);
 		if (slcp == null) {
 			return StudentLessonChapterProgressResponse.builder()
-					.isCompleted(false)
+					.isCompleted(null)
 					.build();
 		}
 		return slcpMapper.toResponse(slcp);

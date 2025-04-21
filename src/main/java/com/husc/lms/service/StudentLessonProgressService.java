@@ -77,7 +77,7 @@ public class StudentLessonProgressService {
 		StudentLessonProgress slp = studentLessonProgressRepository.findByLessonAndStudent(lesson,student);
 		if(slp == null) {
 			return StudentLessonProgressResponse.builder()
-					.isCompleted(false)
+					.isCompleted(null)
 					.build();
 		}
 		return lessonProgressMapper.toStudentLessonProgressResponse(slp);
