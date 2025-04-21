@@ -1,19 +1,23 @@
 package com.husc.lms.dto.response;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CommentsOfChapterInLessonOfCourseResponse {
     private String courseId;
     private String courseTitle;
     private int totalCommentsOfCourse; // ✅ Tổng số comment của course
+    private int totalUnreadComment; // ✅ Thêm dòng này
     private List<LessonWithChapters> lessons;
 
     @Data
@@ -33,7 +37,8 @@ public class CommentsOfChapterInLessonOfCourseResponse {
         private String chapterId;
         private String chapterTitle;
         private Integer chapterOrder;
-        private int totalCommentsOfChapter; // ✅ Tổng số comment của chapter
+        private int totalCommentsOfChapter;
+        private int totalUnreadComment; // ✅ Thêm dòng này
         private List<CommentResponse> comments;
     }
 

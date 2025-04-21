@@ -34,7 +34,7 @@ public class CommentRestController {
 	
 	@PostMapping
 	public ResponseEntity<Comment> addComment(@RequestBody Comment comment){
-		return ResponseEntity.ok(commentService.saveComment(comment));
+		return ResponseEntity.ok(commentService.saveCommentWithReadStatusAndNotification(comment));
 	}
 	
 	@GetMapping("/chapter/{chapterId}")
@@ -43,11 +43,6 @@ public class CommentRestController {
 	    return ResponseEntity.ok(response);
 	}
 
-//	@GetMapping("/chapter/unreadCommentsOfCourse/{courseId}")
-//	public ResponseEntity<List<CommentChapterResponse>> getUnreadCommentsOfCourse(@PathVariable("courseId") String courseId) {
-//		List<CommentChapterResponse> response = commentService.getUnreadCommentsByCourseId(courseId);
-//		return ResponseEntity.ok(response);
-//	}
 	@GetMapping("/chapter/unreadCommentsOfCourse/{courseId}")
 	public ResponseEntity<CommentsOfChapterInLessonOfCourseResponse> getUnreadCommentsOfCourse(@PathVariable("courseId") String courseId) {
 		CommentsOfChapterInLessonOfCourseResponse response = commentService.getStructuredUnreadComments(courseId);

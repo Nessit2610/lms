@@ -40,5 +40,5 @@ public class CommentReadStatus {
     private Account account;
 
     @Column(name = "isRead")
-    private Boolean isRead = false;
+    private Boolean isRead;
 }

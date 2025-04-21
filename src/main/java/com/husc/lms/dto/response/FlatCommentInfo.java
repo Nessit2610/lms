@@ -1,15 +1,16 @@
 package com.husc.lms.dto.response;
 
 import java.time.OffsetDateTime;
-import java.util.Date;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class FlatCommentInfo {
     private String courseId;
     private String courseTitle;
