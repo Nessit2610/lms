@@ -32,8 +32,8 @@ public class CommentNotification {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "accountId")
-    private Account account;  // Chỉnh sửa để dùng Account thay vì Student
-
+    private Account account;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chapterId")
     private Chapter chapter;
