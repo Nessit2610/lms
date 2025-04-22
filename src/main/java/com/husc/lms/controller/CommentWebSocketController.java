@@ -18,7 +18,8 @@ public class CommentWebSocketController {
 	@SendTo("/topic/comments")
 	public CommentMessage handleComment(CommentMessage message) {
 	    try {
-	        commentService.handleWebSocketComment(message);
+//	        commentService.handleWebSocketComment(message);
+	        commentService.saveCommentWithReadStatusAndNotification(message);
 	        return message;
 	    } catch (Exception e) {
 	        e.printStackTrace();
