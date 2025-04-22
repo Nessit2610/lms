@@ -2,8 +2,13 @@ package com.husc.lms.entity;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.husc.lms.enums.NotificationType;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,25 +29,35 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Notification {
 
-    @Id
+	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
 
-    @JoinColumn(name = "senderAccountId")
     @ManyToOne(fetch = FetchType.EAGER)
-    private Account sender;
-    
-    @JoinColumn(name = "receiverAccountId")
-    @ManyToOne(fetch = FetchType.EAGER)
-    private Account receiver;
-    
-    private String type;
+    @JoinColumn(name = "receiveAccountId")
+    @JsonBackReference
+    private Account receiveAccount;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
-    private String content;
-
-    private Boolean isRead = false;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "commentId")
+    @JsonBackReference
+    private Comment comment;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "messageId")
+    @JsonBackReference
+    private Message message;
+    
+    // Để phân biệt loại thông báo: MESSAGE, COMMENT, SYSTEM, ...
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
+    
+    private boolean isRead;
+    
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     private Date createdAt;
 }

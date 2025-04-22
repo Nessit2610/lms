@@ -16,7 +16,9 @@ public interface StudentLessonChapterProgressRepository extends JpaRepository<St
 
 	public StudentLessonChapterProgress findByStudentAndChapter(Student student, Chapter chapter);
     boolean existsByStudentAndChapter(Student student, Chapter chapter);  // Cập nhật để dùng accountId
-    @Query("SELECT scp.student.id FROM StudentLessonChapterProgress scp WHERE scp.chapter.id = :chapterId AND scp.isCompleted = true")
+//    @Query("SELECT scp.student.id FROM StudentLessonChapterProgress scp WHERE scp.chapter.id = :chapterId AND scp.isCompleted = true")
+//    List<String> findStudentIdsByChapterCompleted(@Param("chapterId") String chapterId);
+    @Query("SELECT scp.student.id FROM StudentLessonChapterProgress scp WHERE scp.chapter.id = :chapterId")
     List<String> findStudentIdsByChapterCompleted(@Param("chapterId") String chapterId);
 
 }

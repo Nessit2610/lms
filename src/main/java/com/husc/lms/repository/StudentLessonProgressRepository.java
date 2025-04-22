@@ -18,7 +18,11 @@ public interface StudentLessonProgressRepository extends JpaRepository<StudentLe
 
 	public StudentLessonProgress findByLessonAndStudent(Lesson lesson, Student student);
 	
-	@Query("SELECT slp.student.id FROM StudentLessonProgress slp WHERE slp.lesson.id = :lessonId AND slp.isCompleted = true")
+//	@Query("SELECT slp.student.id FROM StudentLessonProgress slp WHERE slp.lesson.id = :lessonId AND slp.isCompleted = true")
+//	List<String> findStudentIdsByLessonCompleted(@Param("lessonId") String lessonId);
+	
+	
+	@Query("SELECT slp.student.id FROM StudentLessonProgress slp WHERE slp.lesson.id = :lessonId")
 	List<String> findStudentIdsByLessonCompleted(@Param("lessonId") String lessonId);
 
 }

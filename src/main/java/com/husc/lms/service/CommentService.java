@@ -4,6 +4,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -21,18 +23,19 @@ import com.husc.lms.dto.response.FlatCommentInfo;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
-import com.husc.lms.entity.CommentNotification;
 import com.husc.lms.entity.CommentReadStatus;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
+import com.husc.lms.entity.Notification;
 import com.husc.lms.entity.Student;
+import com.husc.lms.enums.NotificationType;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ChapterRepository;
-import com.husc.lms.repository.CommentNotificationRepository;
 import com.husc.lms.repository.CommentReadStatusRepository;
 import com.husc.lms.repository.CommentRepository;
 //import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.CourseRepository;
+import com.husc.lms.repository.NotificationRepository;
 import com.husc.lms.repository.StudentLessonChapterProgressRepository;
 import com.husc.lms.repository.StudentLessonProgressRepository;
 import com.husc.lms.repository.StudentRepository;
@@ -52,20 +55,18 @@ public class CommentService {
 	private final CommentReadStatusRepository commentReadStatusRepository;
 	private final StudentLessonChapterProgressRepository studentLessonChapterProgressRepository;
 	private final StudentLessonProgressRepository studentLessonProgressRepository;
-	private final CommentNotificationRepository commentNotificationRepository;
-	
-//    public Comment saveComment(Comment comment) {
-//        comment.setCreatedDate(OffsetDateTime.now());
-//        
-//        return commentRepository.save(comment);
-//    }
+	private final NotificationRepository notificationRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+
 
     @Transactional
     public void handleWebSocketComment(CommentMessage message) {
-		var context = SecurityContextHolder.getContext();
+//		var context = SecurityContextHolder.getContext();
 
-        Account account = accountRepository.findByUsername(context.getAuthentication().getName())
-            .orElseThrow(() -> new RuntimeException("Account not found"));
+//        Account account = accountRepository.findByUsername(context.getAuthentication().getName())
+//            .orElseThrow(() -> new RuntimeException("Account not found"));
+		Account account = accountRepository.findByUsername(message.getAccountId())
+				.orElseThrow(() -> new RuntimeException("Account not found"));
         Chapter chapter = chapterRepository.findById(message.getChapterId())
             .orElseThrow(() -> new RuntimeException("Chapter not found"));
         Course course = courseRepository.findById(message.getCourseId())
@@ -172,59 +173,78 @@ public class CommentService {
     }
 
     @Transactional
-    public Comment saveCommentWithReadStatusAndNotification(Comment comment) {
-        // Bước 1: Gắn ngày tạo
-        comment.setCreatedDate(OffsetDateTime.now());
+    public void saveCommentWithReadStatusAndNotification(CommentMessage commentMessage) {
+        // Lấy thông tin cần thiết từ message
+        Account account = accountRepository.findByUsername(commentMessage.getAccountId())
+            .orElseThrow(() -> new RuntimeException("Account not found"));
 
-        // Bước 2: Lưu comment trước để có ID dùng cho liên kết
+        Chapter chapter = chapterRepository.findById(commentMessage.getChapterId())
+            .orElseThrow(() -> new RuntimeException("Chapter not found"));
+
+        Course course = courseRepository.findById(commentMessage.getCourseId())
+            .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        // Tạo và lưu comment
+        Comment comment = Comment.builder()
+            .account(account)
+            .chapter(chapter)
+            .course(course)
+            .detail(commentMessage.getDetail())
+            .createdDate(OffsetDateTime.now())
+            .build();
+
         Comment savedComment = commentRepository.save(comment);
 
-        // Bước 3: Lấy chapter từ comment (giả sử bạn có comment.setChapter(chapter) từ trước)
-        Chapter chapter = savedComment.getChapter();
-        if (chapter == null) {
-            throw new IllegalArgumentException("Comment không chứa thông tin chapter.");
-        }
-
-        // Bước 4: Lấy lesson chứa chapter
+        // Lấy lesson từ chapter
         Lesson lesson = chapter.getLesson();
         if (lesson == null) {
             throw new IllegalArgumentException("Chapter không thuộc lesson nào.");
         }
 
-        // Bước 5: Tìm tất cả studentId thỏa điều kiện:
-        //  - đã hoàn thành lesson
-        //  - hoặc đã hoàn thành chapter
-
+        // Tìm các student đủ điều kiện
         List<Student> eligibleStudents = findEligibleStudents(lesson.getId(), chapter.getId());
 
-        List<CommentReadStatus> readStatuses = new ArrayList<>();
-        List<CommentNotification> notifications = new ArrayList<>();
+//        List<CommentReadStatus> readStatuses = new ArrayList<>();
+        List<Notification> notifications = new ArrayList<>();
 
         for (Student student : eligibleStudents) {
-            Account account = student.getAccount(); // giả sử có mối quan hệ giữa student và account
+            Account studentAccount = student.getAccount();
 
-            readStatuses.add(CommentReadStatus.builder()
-                .account(account)
+//            // Trạng thái đã đọc
+//            readStatuses.add(CommentReadStatus.builder()
+//                .account(studentAccount)
+//                .comment(savedComment)
+//                .isRead(false)
+//                .build()
+//            );
+
+            // Tạo thông báo
+            notifications.add(Notification.builder()
+                .receiveAccount(studentAccount) // Người nhận là sinh viên
                 .comment(savedComment)
+                .type(NotificationType.COMMENT)
+                .description(comment.getDetail())
                 .isRead(false)
-                .build()
-            );
-
-            notifications.add(CommentNotification.builder()
-                .account(account)
-                .chapter(chapter)
-                .message("Bạn có bình luận mới.")
-                .isRead(false)
-                .createdDate(new Date())
+                .createdAt(new Date())
                 .build()
             );
         }
 
-        commentReadStatusRepository.saveAll(readStatuses);
-        commentNotificationRepository.saveAll(notifications);
+        // Lưu vào DB
+//        commentReadStatusRepository.saveAll(readStatuses);
+        notificationRepository.saveAll(notifications);
 
-        return savedComment;
+        // Gửi thông báo real-time
+        for (Notification notification : notifications) {
+            String destination = "/topic/notifications/" + notification.getReceiveAccount().getUsername();
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("message", notification.getDescription());
+            payload.put("chapterId", notification.getComment().getChapter().getId());
+            payload.put("createdDate", notification.getCreatedAt());
+            messagingTemplate.convertAndSend(destination, payload);
+        }
     }
+
 
     public List<Student> findEligibleStudents(String lessonId, String chapterId) {
         List<String> studentIdsByLesson = studentLessonProgressRepository.findStudentIdsByLessonCompleted(lessonId);
@@ -237,5 +257,4 @@ public class CommentService {
         return studentRepository.findAllById(uniqueStudentIds);
     }
 
-    
 }
