@@ -3,26 +3,10 @@ package com.husc.lms.entity;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.husc.lms.enums.NotificationType;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "lms_notifications")
@@ -48,6 +32,11 @@ public class Notification {
     private Comment comment;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "commentReplyId")
+    @JsonBackReference
+    private CommentReply commentReply;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "messageId")
     @JsonBackReference
     private Message message;
@@ -63,4 +52,3 @@ public class Notification {
 
     private Date createdAt;
 }
-

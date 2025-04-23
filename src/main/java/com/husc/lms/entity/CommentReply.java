@@ -6,29 +6,16 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "lms_comment")
-public class Comment {
+@Table(name = "lms_comment_reply")
+public class CommentReply {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -36,9 +23,14 @@ public class Comment {
     private String id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "accountId")
+    @JoinColumn(name = "ownerAccountId")
     @JsonBackReference
-    private Account account;
+    private Account ownerAccount;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "replyAccountId")
+    @JsonBackReference
+    private Account replyAccount;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "chapterId")
@@ -60,12 +52,13 @@ public class Comment {
 
     @Column(name = "deletedDate")
     private OffsetDateTime deletedDate;
-    
-    @OneToMany(mappedBy = "comment")
-    @JsonManagedReference
-    private List<CommentReply> commentReplies;
 
-    @OneToMany(mappedBy = "comment")
-    @JsonManagedReference // Đánh dấu đây là đối tượng "cha", mối quan hệ sẽ được serialize
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "commentId")
+    @JsonBackReference
+    private Comment comment;
+
+    @OneToMany(mappedBy = "commentReply")
+    @JsonManagedReference
     private List<Notification> notifications;
 }

@@ -2,5 +2,6 @@ package com.husc.lms.enums;
 
 public enum NotificationType {
 	COMMENT,
-	MESSAGE
+	MESSAGE,
+	COMMENT_REPLY
 }

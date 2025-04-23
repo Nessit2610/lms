@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.OffsetDateTime;
 import java.util.List;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -16,8 +15,8 @@ import java.util.List;
 public class CommentsOfChapterInLessonOfCourseResponse {
     private String courseId;
     private String courseTitle;
-    private int totalCommentsOfCourse; // ✅ Tổng số comment của course
-    private int totalUnreadComment; // ✅ Thêm dòng này
+    private int totalCommentsOfCourse;
+    private int totalUnreadComment;
     private List<LessonWithChapters> lessons;
 
     @Data
@@ -38,7 +37,7 @@ public class CommentsOfChapterInLessonOfCourseResponse {
         private String chapterTitle;
         private Integer chapterOrder;
         private int totalCommentsOfChapter;
-        private int totalUnreadComment; // ✅ Thêm dòng này
+        private int totalUnreadComment;
         private List<CommentResponse> comments;
     }
 
@@ -47,8 +46,19 @@ public class CommentsOfChapterInLessonOfCourseResponse {
     @AllArgsConstructor
     public static class CommentResponse {
         private String username;
+        private String avatar;
+        private String detail;
+        private OffsetDateTime createdDate;
+        private List<CommentReplyResponse> commentReplies;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CommentReplyResponse {
+        private String username;
+        private String avatar;
         private String detail;
         private OffsetDateTime createdDate;
     }
 }
-
