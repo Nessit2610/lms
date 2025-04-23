@@ -64,12 +64,6 @@ public class AccountService {
 	@Autowired
 	private TeacherMapper teacherMapper;
 	
-<<<<<<< HEAD
-=======
-	@Autowired
-	private EmailService emailService;
-	
->>>>>>> 77f572f66344fbf801892edbd0e389f1ff3072f2
 	//PUBLIC
 	
 	public AccountResponse createAccountStudent(AccountRequest request) {
