@@ -230,7 +230,7 @@ public class CommentService {
             );
 
             notifications.add(Notification.builder()
-                .receiveAccount(studentAccount)
+                .account(studentAccount)
                 .comment(savedComment)
                 .type(NotificationType.COMMENT)
                 .description(comment.getDetail())
@@ -247,7 +247,7 @@ public class CommentService {
 
         // Gửi thông báo real-time
         for (Notification notification : notifications) {
-            String destination = "/topic/notifications/" + notification.getReceiveAccount().getUsername();
+            String destination = "/topic/notifications/" + notification.getAccount().getUsername();
             Map<String, Object> payload = new HashMap<>();
             payload.put("message", notification.getDescription());
             payload.put("chapterId", notification.getComment().getChapter().getId());

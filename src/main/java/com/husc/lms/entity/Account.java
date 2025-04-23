@@ -1,8 +1,11 @@
 package com.husc.lms.entity;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -14,12 +17,12 @@ import lombok.*;
 @Entity
 @Table(name = "lms_account")
 public class Account {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
-    
+
     private String username;
     private String password;
     private String email;
@@ -33,4 +36,8 @@ public class Account {
 
     @ManyToMany(fetch = FetchType.EAGER)
     private Set<Role> roles;
+
+    @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
+    @JsonManagedReference // Đánh dấu là mối quan hệ được quản lý và sẽ được serialize
+    private List<Notification> notifications;
 }

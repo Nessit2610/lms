@@ -73,7 +73,7 @@ public class NotificationService {
 
         // Lấy tất cả notification COMMENT của người dùng
         List<Notification> notifications = notificationRepository
-                .findByReceiveAccountAndType(account, NotificationType.COMMENT);
+                .findByAccountAndType(account, NotificationType.COMMENT);
 
         // Đếm số lượng chưa đọc
         int unreadCount = (int) notifications.stream()
@@ -94,6 +94,8 @@ public class NotificationService {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-        notificationRepository.setNotificationAsReadByAccount(notifications, account);
+//	        notificationRepository.setNotificationAsReadByAccount(notifications, account);
+        notificationRepository.setNotificationAsReadByAccount(notifications);
+
     }
 }
