@@ -27,6 +27,8 @@ import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.StudentCourseRepository;
 import com.husc.lms.repository.StudentRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class JoinClassRequestService {
 
@@ -57,6 +59,7 @@ public class JoinClassRequestService {
 	@Autowired
 	private StudentCourseService studentCourseService;
 	
+	@Transactional
 	public boolean pendingRequest(String courseId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
@@ -70,6 +73,9 @@ public class JoinClassRequestService {
 			throw new AppException(ErrorCode.REQUEST_EXIST);
 		}
 	
+		if(joinClassRequestRepository.existsByStudentAndCourseAndStatus(student, course, JoinClassStatus.REJECTED.name())) {
+			joinClassRequestRepository.deleteByStudentAndCourse(student, course);
+		}
 		if(student != null && course != null) {
 			JoinClassRequest joinClassRequest = JoinClassRequest.builder()
 					.student(student)

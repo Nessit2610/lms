@@ -12,11 +12,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.response.CommentChapterResponse;
+import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
+import com.husc.lms.entity.CommentReadStatus;
 import com.husc.lms.entity.Lesson;
+import com.husc.lms.entity.Notification;
 import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.LessonRepository;
+import com.husc.lms.service.CommentReadStatusService;
 import com.husc.lms.service.CommentService;
 
 import lombok.RequiredArgsConstructor;
@@ -29,27 +33,27 @@ public class CommentRestController {
 
 	private final CommentService commentService;
 	private final ChapterRepository chapterRepository;
+	private final CommentReadStatusService commentReadStatusService;
 	
-	
-	@PostMapping
-	public ResponseEntity<Comment> addComment(@RequestBody Comment comment){
-		return ResponseEntity.ok(commentService.saveComment(comment));
-	}
+//	@PostMapping
+//	public ResponseEntity<Comment> addComment(@RequestBody Comment comment){
+//		return ResponseEntity.ok(commentService.saveCommentWithReadStatusAndNotification(comment));
+//	}
 	
 	@GetMapping("/chapter/{chapterId}")
 	public ResponseEntity<List<CommentChapterResponse>> getComments(@PathVariable("chapterId") String chapterId) {
-	    Chapter chapter = chapterRepository.findById(chapterId).orElseThrow();
-	    List<Comment> comments = commentService.getCommentsByChapter(chapter);
-
-	    List<CommentChapterResponse> response = comments.stream()
-	            .map(comment -> new CommentChapterResponse(
-	                    comment.getAccount().getUsername(),
-	                    comment.getDetail(),
-	                    comment.getCreatedDate()
-	            ))
-	            .collect(Collectors.toList());
-
+	    List<CommentChapterResponse> response = commentService.getCommentsByChapterId(chapterId);
 	    return ResponseEntity.ok(response);
 	}
 
+	@GetMapping("/chapter/unreadCommentsOfCourse/{courseId}")
+	public ResponseEntity<CommentsOfChapterInLessonOfCourseResponse> getUnreadCommentsOfCourse(@PathVariable("courseId") String courseId) {
+		CommentsOfChapterInLessonOfCourseResponse response = commentService.getStructuredUnreadComments(courseId);
+		return ResponseEntity.ok(response);
+	}
+	
+	@PostMapping("/chapter/read")
+    public void setNotificationAsReadByAccount(@RequestBody List<Comment> comments) {
+		commentReadStatusService.setCommentsAsReadByAccount(comments);
+    }
 }

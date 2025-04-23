@@ -29,11 +29,13 @@ import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.dto.response.AccountResponse;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Account;
+import com.husc.lms.entity.ConfirmationCode;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.StudentMapper;
 import com.husc.lms.repository.StudentRepository;
 import com.husc.lms.repository.AccountRepository;
+import com.husc.lms.repository.ConfirmationCodeRepository;
 
 
 @Service
@@ -48,11 +50,22 @@ public class StudentService {
 	@Autowired
 	private AccountRepository accountRepository;
 
+	@Autowired
+	private ConfirmationCodeRepository codeRepository;
 	
 	@Autowired
 	private AccountService accountService;
 	
 	public StudentResponse createStudent(StudentRequest request) {
+		
+		if(accountRepository.existsByUsername(request.getEmail())) {
+			throw new AppException(ErrorCode.USER_EXISTED);
+		} 
+		
+		if(codeRepository.findByEmail(request.getEmail()) == null || codeRepository.findByEmail(request.getEmail()).isVerify() == false) {
+			throw new AppException(ErrorCode.EMAIL_NOTCONFIRM);
+		}
+		
 		AccountRequest uRequest = AccountRequest.builder()
 				.password(request.getPassword())
 				.email(request.getEmail())

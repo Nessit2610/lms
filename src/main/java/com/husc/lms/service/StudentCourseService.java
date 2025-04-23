@@ -86,13 +86,19 @@ public class StudentCourseService {
 			cr.setLessonCount(lessonRepository.countLessonsByCourse(c));
 			courseResponses.add(cr);
 		}
+		
 		return courseResponses;	}
 	
 	public List<StudentOfCourseResponse> getAllStudentOfCourse(String courseId){
 		Course course = courseRepository.findById(courseId).get();
-		List<Student> listSoC = studentCourseRepository.findByCourse(course);
+		List<Student> listSoC = studentCourseRepository.findStudentByCourse(course);
 		return listSoC.stream().map(studentMapper::tosStudentOfCourseResponse).toList();
 	}
 	
+//	public List<StudentOfCourseResponse> getAllStudentNotInCourse(String courseId){
+//		Course course = courseRepository.findById(courseId).get();
+//		List<Student> listSoC = studentRepository.findStudentsNotInCourse(course);
+//		return listSoC.stream().map(studentMapper::tosStudentOfCourseResponse).toList();
+//	}
 	
 }

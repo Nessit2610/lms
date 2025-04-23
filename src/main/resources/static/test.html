@@ -339,7 +339,6 @@
             <h2>Danh sách khóa học</h2>
             <div>
                 <button onclick="loadCourses()">Tải khóa học</button>
-                <button onclick="connect()">Kết nối WebSocket</button>
             </div>
         </div>
 
@@ -352,32 +351,82 @@
     </div>
 
     <script>
-        let stompClient = null;
+        function displayComments(chapter, comments = []) {
+            const commentsList = Array.isArray(comments) ? comments : [];
 
-        function connect() {
-            const socket = new SockJS("http://localhost:8080/lms/ws");
-            stompClient = Stomp.over(socket);
-            stompClient.connect({}, function (frame) {
-                console.log("Kết nối thành công: " + frame);
-                stompClient.subscribe("/topic/comments", function (message) {
-                    const content = JSON.parse(message.body);
-
-                    const commentList = document.getElementById(`comments-${content.chapterId}`);
-                    if (commentList) {
-                        const li = document.createElement("li");
-
-                        const createdAt = new Date(content.createdDate); // parse lại thành Date object
-                        const formattedTime = createdAt.toLocaleString(); // bạn có thể dùng .toLocaleDateString() nếu chỉ cần ngày
-
-                        li.textContent = `${content.detail} (người gửi: ${content.accountId}, lúc: ${formattedTime})`;
-                        commentList.appendChild(li);
-                    }
-
-                    const li = document.createElement("li");
-                    li.innerText = content.detail;
-                    document.getElementById("messages").appendChild(li);
-                });
+            // Sắp xếp comments theo thời gian mới nhất
+            const sortedComments = commentsList.sort((a, b) => {
+                const dateA = new Date(a.createdDate);
+                const dateB = new Date(b.createdDate);
+                return dateB - dateA;
             });
+
+            return `
+                <div class="comment-section">
+                    <div class="comment-header">
+                        <h4>Bình luận</h4>
+                        <span class="comment-count" id="comment-count-${chapter.id}">${commentsList.length}</span>
+                    </div>
+                    <div class="comment-form">
+                        <div class="comment-input-wrapper">
+                            <input type="text" 
+                                   class="comment-input" 
+                                   id="comment-${chapter.id}" 
+                                   placeholder="Viết bình luận của bạn..."
+                                   onkeypress="if(event.key === 'Enter') sendComment('${chapter.lessonId}', '${chapter.id}', '${chapter.courseId}')"
+                            />
+                            <div class="loading-spinner" id="spinner-${chapter.id}"></div>
+                        </div>
+                        <button class="send-button" 
+                                id="send-button-${chapter.id}"
+                                onclick="sendComment('${chapter.lessonId}', '${chapter.id}', '${chapter.courseId}')">
+                            Gửi
+                        </button>
+                    </div>
+                    <ul class="comments-list" id="comments-${chapter.id}">
+                        ${sortedComments.length > 0 ?
+                    sortedComments.map(comment => `
+                                <li class="comment-item">
+                                    <div class="comment-content">${comment.detail || ''}</div>
+                                    <div class="comment-metadata">
+                                        <span class="comment-author">${comment.username || 'Anonymous'}</span>
+                                        <span class="comment-time">${formatTimeAgo(comment.createdDate)}</span>
+                                    </div>
+                                </li>
+                            `).join('')
+                    :
+                    '<li class="empty-comments">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</li>'
+                }
+                    </ul>
+                </div>
+            `;
+        }
+
+        function updateCommentInUI(content) {
+            const commentsList = document.getElementById(`comments-${content.chapterId}`);
+            if (commentsList) {
+                const emptyMessage = commentsList.querySelector('.empty-comments');
+                if (emptyMessage) {
+                    emptyMessage.remove();
+                }
+
+                const newComment = document.createElement('li');
+                newComment.className = 'comment-item';
+                newComment.innerHTML = `
+                    <div class="comment-content">${content.detail}</div>
+                    <div class="comment-metadata">
+                        <span class="comment-author">${content.accountId}</span>
+                        <span class="comment-time">Vừa xong</span>
+                    </div>
+                `;
+                commentsList.insertBefore(newComment, commentsList.firstChild);
+
+                const countElement = document.getElementById(`comment-count-${content.chapterId}`);
+                if (countElement) {
+                    const currentCount = parseInt(countElement.textContent);
+                    countElement.textContent = currentCount + 1;
+                }
+            }
         }
 
         function formatTimeAgo(dateString) {
@@ -407,6 +456,49 @@
             }
         }
 
+        function reconnectWebSocket() {
+            if (window.stompClient && window.stompClient.connected) {
+                console.log("WebSocket đã được kết nối");
+                return window.stompClient;
+            }
+
+            const socket = new SockJS("http://localhost:8080/lms/ws");
+            const stompClient = Stomp.over(socket);
+
+            return new Promise((resolve, reject) => {
+                stompClient.connect({}, function (frame) {
+                    console.log("Kết nối lại WebSocket thành công:", frame);
+
+                    // Subscribe để nhận comment mới
+                    stompClient.subscribe("/topic/comments", function (message) {
+                        const content = JSON.parse(message.body);
+                        updateCommentInUI(content);
+                    });
+
+                    window.stompClient = stompClient;
+                    sessionStorage.setItem('wsConnected', 'true');
+                    resolve(stompClient);
+                }, function (error) {
+                    console.error("Lỗi kết nối WebSocket:", error);
+                    reject(error);
+                });
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async function () {
+            try {
+                // Kiểm tra xem đã từng kết nối chưa
+                if (sessionStorage.getItem('wsConnected') === 'true') {
+                    // Thử kết nối lại
+                    await reconnectWebSocket();
+                }
+
+                loadCourses();
+            } catch (error) {
+                console.error("Lỗi khởi tạo WebSocket:", error);
+            }
+        });
+
         async function sendComment(lessonId, chapterId, courseId) {
             const commentInput = document.getElementById(`comment-${chapterId}`);
             const comment = commentInput.value.trim();
@@ -428,85 +520,27 @@
                 spinner.style.display = 'block';
                 sendButton.disabled = true;
 
-                if (stompClient && stompClient.connected) {
-                    stompClient.send("/app/comment", {}, JSON.stringify({
-                        detail: comment,
-                        lessonId: lessonId,
-                        chapterId: chapterId,
-                        courseId: courseId,
-                        accountId: username
-                    }));
-
-                    const commentsList = document.getElementById(`comments-${chapterId}`);
-                    const newComment = document.createElement('li');
-                    newComment.className = 'comment-item';
-                    newComment.innerHTML = `
-                        <div class="comment-content">${comment}</div>
-                        <div class="comment-metadata">
-                            <span class="comment-author">${username}</span>
-                            <span class="comment-time">Vừa xong</span>
-                        </div>
-                    `;
-                    commentsList.insertBefore(newComment, commentsList.firstChild);
-
-                    const countElement = document.getElementById(`comment-count-${chapterId}`);
-                    const currentCount = parseInt(countElement.textContent);
-                    countElement.textContent = currentCount + 1;
-
-                    commentInput.value = '';
-                } else {
-                    throw new Error("WebSocket chưa kết nối!");
+                // Kiểm tra và kết nối lại nếu cần
+                let client = window.stompClient;
+                if (!client || !client.connected) {
+                    client = await reconnectWebSocket();
                 }
+
+                client.send("/app/comment", {}, JSON.stringify({
+                    detail: comment,
+                    lessonId: lessonId,
+                    chapterId: chapterId,
+                    courseId: courseId,
+                    accountId: username
+                }));
+
+                commentInput.value = '';
             } catch (error) {
-                alert(error.message);
+                alert("Lỗi kết nối WebSocket! Vui lòng tải lại trang.");
             } finally {
                 spinner.style.display = 'none';
                 sendButton.disabled = false;
             }
-        }
-
-        function displayComments(chapter, comments = []) {
-            const commentsList = Array.isArray(comments) ? comments : [];
-
-            return `
-                <div class="comment-section">
-                    <div class="comment-header">
-                        <h4>Bình luận</h4>
-                        <span class="comment-count" id="comment-count-${chapter.id}">${commentsList.length}</span>
-                    </div>
-                    <div class="comment-form">
-                        <div class="comment-input-wrapper">
-                            <input type="text" 
-                                   class="comment-input" 
-                                   id="comment-${chapter.id}" 
-                                   placeholder="Viết bình luận của bạn..."
-                                   onkeypress="if(event.key === 'Enter') sendComment('${chapter.lessonId}', '${chapter.id}', '${chapter.courseId}')"
-                            />
-                            <div class="loading-spinner" id="spinner-${chapter.id}"></div>
-                        </div>
-                        <button class="send-button" 
-                                id="send-button-${chapter.id}"
-                                onclick="sendComment('${chapter.lessonId}', '${chapter.id}', '${chapter.courseId}')">
-                            Gửi
-                        </button>
-                    </div>
-                    <ul class="comments-list" id="comments-${chapter.id}">
-                        ${commentsList.length > 0 ?
-                    commentsList.map(comment => `
-                                <li class="comment-item">
-                                    <div class="comment-content">${comment.detail || ''}</div>
-                                    <div class="comment-metadata">
-                                        <span class="comment-author">${comment.username || 'Anonymous'}</span>
-                                        <span class="comment-time">${comment.createdDate ? formatTimeAgo(comment.createdDate) : ''}</span>
-                                    </div>
-                                </li>
-                            `).join('')
-                    :
-                    '<li class="empty-comments">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</li>'
-                }
-                    </ul>
-                </div>
-            `;
         }
 
         async function loadCourses() {
@@ -531,77 +565,15 @@
                 data.result.forEach(course => {
                     const li = document.createElement("li");
                     li.innerHTML = `
-                        <div class="course">
-                            <strong>${course.name}</strong> - ${course.description}<br/>
-                            <em>Giảng viên:</em> ${course.teacher.fullName} (${course.teacher.email})<br/>
-                            <em>Ngành:</em> ${course.major}<br/>
-                            <em>Thời gian học:</em> ${new Date(course.startDate).toLocaleDateString()} - ${new Date(course.endDate).toLocaleDateString()}<br/>
-                            <button onclick="toggleLessons('${course.id}')">Xem bài học</button>
-                            <ul id="lessons-${course.id}" style="display:none;"></ul>
-                        </div>`;
+                    <div class="course">
+                            <strong>${course.name}</strong> - ${course.description || 'Không có mô tả'}<br/>
+                            <em>Giảng viên:</em> ${course.teacher ? `${course.teacher.fullName} (${course.teacher.email})` : 'Chưa có giảng viên'}<br/>
+                            <em>Ngành:</em> ${course.major || 'Chưa có ngành'}<br/>
+                        <em>Thời gian học:</em> ${new Date(course.startDate).toLocaleDateString()} - ${new Date(course.endDate).toLocaleDateString()}<br/>
+                            <button onclick="loadCourseDetail('${course.id}')">Xem bài học</button>
+                        <ul id="lessons-${course.id}" style="display:none;"></ul>
+                    </div>`;
                     courseList.appendChild(li);
-
-                    const lessonsUl = li.querySelector(`#lessons-${course.id}`);
-                    const sortedLessons = course.lesson.sort((a, b) => a.order - b.order);
-
-                    sortedLessons.forEach(lesson => {
-                        const lessonLi = document.createElement("li");
-                        lessonLi.innerHTML = `
-                            <div class="lesson">
-                                <strong>Bài ${lesson.order}:</strong> ${lesson.description}<br/>
-                                <div class="material">
-                                    <em>Tài liệu:</em>
-                                    ${lesson.lessonMaterial.length > 0 ? lesson.lessonMaterial.map(m => `<a href="${m.path}" target="_blank">Xem</a>`).join(', ') : 'Không có'}
-                                </div>
-                                <div class="quiz">
-                                    <em>Quiz:</em><br/>
-                                    ${lesson.lessonQuiz.length > 0 ? lesson.lessonQuiz.map(q =>
-                            `Câu hỏi: ${q.question}<br/>Tùy chọn: ${q.option}<br/>Đáp án: ${q.answer}<br/>`).join('') : 'Không có'}
-                                </div>
-                                <button onclick="toggleChapters('${lesson.id}')">Xem chương</button>
-                                <ul id="chapters-${lesson.id}" style="display:none;"></ul>
-                            </div>`;
-                        lessonsUl.appendChild(lessonLi);
-
-                        const chapterUl = lessonLi.querySelector(`#chapters-${lesson.id}`);
-
-                        if (lesson.chapter && lesson.chapter.length > 0) {
-                            const sortedChapters = lesson.chapter.sort((a, b) => a.order - b.order);
-
-                            sortedChapters.forEach((chapter) => {
-                                const chapterLi = document.createElement("li");
-                                chapterLi.innerHTML = `
-                                    <div class="chapter">
-                                        <strong>Chương ${chapter.order}:</strong> ${chapter.name || "Không có tên chương"}<br/>
-                                        <em>Đường dẫn:</em> ${chapter.path ? `<a href="${chapter.path}" target="_blank">${chapter.path}</a>` : "Không có"}<br/>
-                                    </div>
-                                `;
-
-                                fetch(`http://localhost:8080/lms/comments/chapter/${chapter.id}`, {
-                                    method: "GET",
-                                    headers: {
-                                        "Authorization": "Bearer " + token
-                                    }
-                                })
-                                    .then(response => response.json())
-                                    .then(commentsData => {
-                                        const commentsHtml = displayComments(chapter, commentsData.result || []);
-                                        chapterLi.querySelector('.chapter').insertAdjacentHTML('beforeend', commentsHtml);
-                                    })
-                                    .catch(error => {
-                                        console.error('Error loading comments:', error);
-                                        const commentsHtml = displayComments(chapter, []);
-                                        chapterLi.querySelector('.chapter').insertAdjacentHTML('beforeend', commentsHtml);
-                                    });
-
-                                chapterUl.appendChild(chapterLi);
-                            });
-                        } else {
-                            const chapterLi = document.createElement("li");
-                            chapterLi.innerHTML = `<div class="chapter"><em>Không có chương.</em></div>`;
-                            chapterUl.appendChild(chapterLi);
-                        }
-                    });
                 });
             } catch (error) {
                 console.error('Error loading courses:', error);
@@ -609,9 +581,131 @@
             }
         }
 
-        function toggleLessons(courseId) {
-            const ul = document.getElementById(`lessons-${courseId}`);
-            ul.style.display = ul.style.display === "none" ? "block" : "none";
+        async function loadCourseDetail(courseId) {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Chưa có token! Hãy đăng nhập trước.");
+                return;
+            }
+
+            try {
+                const res = await fetch(`http://localhost:8080/lms/course/${courseId}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                const data = await res.json();
+                const course = data.result;
+                const lessonsUl = document.getElementById(`lessons-${courseId}`);
+
+                lessonsUl.style.display = lessonsUl.style.display === "none" ? "block" : "none";
+
+                if (lessonsUl.style.display === "none") {
+                    return;
+                }
+
+                lessonsUl.innerHTML = "";
+
+                const lessons = Array.isArray(course.lesson) ? course.lesson : [];
+                const sortedLessons = lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+                if (sortedLessons.length === 0) {
+                    const emptyLessonLi = document.createElement("li");
+                    emptyLessonLi.innerHTML = `
+                        <div class="lesson">
+                            <em>Chưa có bài học nào.</em>
+                        </div>`;
+                    lessonsUl.appendChild(emptyLessonLi);
+                    return;
+                }
+
+                sortedLessons.forEach(lesson => {
+                    const lessonLi = document.createElement("li");
+                    lessonLi.innerHTML = `
+                        <div class="lesson">
+                            <strong>Bài ${lesson.order || '?'}:</strong> ${lesson.description || 'Không có mô tả'}<br/>
+                            <div class="material">
+                                <em>Tài liệu:</em>
+                                ${Array.isArray(lesson.lessonMaterial) && lesson.lessonMaterial.length > 0
+                            ? lesson.lessonMaterial.map(m => `<a href="${m.path}" target="_blank">Xem</a>`).join(', ')
+                            : 'Không có'}
+                            </div>
+                            <div class="quiz">
+                                <em>Quiz:</em><br/>
+                                ${Array.isArray(lesson.lessonQuiz) && lesson.lessonQuiz.length > 0
+                            ? lesson.lessonQuiz.map(q =>
+                                `Câu hỏi: ${q.question || ''}<br/>
+                                         Tùy chọn: ${q.option || ''}<br/>
+                                         Đáp án: ${q.answer || ''}<br/>`).join('')
+                            : 'Không có'}
+                            </div>
+                            <button onclick="toggleChapters('${lesson.id}')">Xem chương</button>
+                            <ul id="chapters-${lesson.id}" style="display:none;"></ul>
+                        </div>`;
+                    lessonsUl.appendChild(lessonLi);
+
+                    const chapterUl = lessonLi.querySelector(`#chapters-${lesson.id}`);
+                    const chapters = Array.isArray(lesson.chapter) ? lesson.chapter : [];
+
+                    if (chapters.length === 0) {
+                        const emptyChapterLi = document.createElement("li");
+                        emptyChapterLi.innerHTML = `<div class="chapter"><em>Không có chương.</em></div>`;
+                        chapterUl.appendChild(emptyChapterLi);
+                        return;
+                    }
+
+                    const sortedChapters = chapters.sort((a, b) => (a.order || 0) - (b.order || 0));
+
+                    sortedChapters.forEach((chapter) => {
+                        const chapterLi = document.createElement("li");
+                        chapterLi.innerHTML = `
+                                <div class="chapter">
+                                <strong>Chương ${chapter.order || '?'}:</strong> ${chapter.name || "Không có tên chương"}<br/>
+                                ${chapter.type ? `<em>Loại:</em> ${chapter.type}<br/>` : ''}
+                                    <em>Đường dẫn:</em> ${chapter.path ? `<a href="${chapter.path}" target="_blank">${chapter.path}</a>` : "Không có"}<br/>
+                                <div id="comments-container-${chapter.id}"></div>
+                            </div>
+                        `;
+
+                        // Gọi API để lấy comments cũ
+                        fetch(`http://localhost:8080/lms/comments/chapter/${chapter.id}`, {
+                            method: "GET",
+                            headers: {
+                                "Authorization": "Bearer " + token
+                            }
+                        })
+                            .then(response => response.json())
+                            .then(commentsData => {
+                                if (commentsData) {
+                                    const commentsContainer = chapterLi.querySelector(`#comments-container-${chapter.id}`);
+                                    const commentsHtml = displayComments({
+                                        id: chapter.id,
+                                        lessonId: lesson.id,
+                                        courseId: courseId
+                                    }, commentsData);
+                                    commentsContainer.innerHTML = commentsHtml;
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error loading comments for chapter:', chapter.id, error);
+                                const commentsContainer = chapterLi.querySelector(`#comments-container-${chapter.id}`);
+                                const commentsHtml = displayComments({
+                                    id: chapter.id,
+                                    lessonId: lesson.id,
+                                    courseId: courseId
+                                }, []);
+                                commentsContainer.innerHTML = commentsHtml;
+                            });
+
+                        chapterUl.appendChild(chapterLi);
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading course detail:', error);
+                alert('Có lỗi xảy ra khi tải chi tiết khóa học.');
+            }
         }
 
         function toggleChapters(lessonId) {

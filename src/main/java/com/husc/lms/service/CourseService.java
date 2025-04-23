@@ -143,6 +143,14 @@ public class CourseService {
 		return courseResponses;
 	}
 	
+	public List<CourseViewResponse> searchCourses(String courseName, String teacherName) {
+	    if (courseName != null && courseName.trim().isEmpty()) courseName = null;
+	    if (teacherName != null && teacherName.trim().isEmpty()) teacherName = null;
+
+	    return courseRepository.searchByCourseNameAndTeacherName(courseName, teacherName).stream().map(courseMapper::toCourseViewResponse).toList();
+	}
+
+	
 	public List<CourseViewResponse> getCourseOfTeacher(){
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();

@@ -27,5 +27,6 @@ public interface JoinClassRequestRepository extends JpaRepository<JoinClassReque
 
 	boolean existsByStudentAndCourseAndStatus(Student student, Course course, String status);
 
+	void deleteByStudentAndCourse(Student student, Course course);
 
 }

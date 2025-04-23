@@ -40,6 +40,12 @@ public class CourseController {
 				.build();
 	}
 	
+	@PostMapping("/search")
+	public APIResponse<List<CourseViewResponse>> searchCourse(@RequestParam("courseName") String courseName, @RequestParam("teacherName") String teacherName){
+		return APIResponse.<List<CourseViewResponse>>builder()
+				.result(courseService.searchCourses(courseName, teacherName))
+				.build();
+	}
 
 	@GetMapping("/courseofteacher")
 	public APIResponse<List<CourseViewResponse>> getCourseOfTeacher(){
