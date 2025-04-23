@@ -62,9 +62,9 @@ public class StudentController {
 	
 	@PostMapping("/create")
 	public APIResponse<StudentResponse> CreateStudent(@RequestBody @Valid StudentRequest request){
-		APIResponse<StudentResponse> apiResponse = new APIResponse<StudentResponse>();
-		apiResponse.setResult(studentService.createStudent(request));
-		return apiResponse;
+		return APIResponse.<StudentResponse>builder()
+				.result(studentService.createStudent(request))
+				.build();
 	}
 	
 	

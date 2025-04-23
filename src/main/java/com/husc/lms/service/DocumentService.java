@@ -59,7 +59,7 @@ public class DocumentService {
         default -> throw new AppException(ErrorCode.CODE_ERROR);
 		};
 		
-		Major major = majorRepository.findById(majorId).get();
+		Major major = majorRepository.findById(majorId).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
 		Document document = Document.builder()
 				.account(account)
 				.title(title)

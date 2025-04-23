@@ -30,7 +30,7 @@ public class SecurityConfig {
 		};	
 	private final String[] PUBLIC_API = {"/account/changePassword","/auth/token","/auth/introspect","/auth/logout","/auth/refresh","/email/send","/email/verifycode","/student/create","/teacher/create"};
 	
-	private final String[] PUBLIC_GET_API = {"/test"};
+	private final String[] PUBLIC_GET_API = {"/test","/major"};
 	
 	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create"};
 
