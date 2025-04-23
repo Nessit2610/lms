@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import com.husc.lms.entity.ConfirmationCode;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
+import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ConfirmationCodeRepository;
 
 @Service
@@ -29,6 +30,10 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+    
+    @Autowired
+	private AccountRepository accountRepository;
+	
     
     @Autowired
     private ConfirmationCodeRepository confirmationCodeRepository;
@@ -43,6 +48,9 @@ public class EmailService {
             helper.setSubject("Xác nhận đăng ký tài khoản - HUSC LMS");
             helper.setFrom(new InternetAddress("husclms@gmail.com", "HUSC LMS"));
 
+            if(accountRepository.existsByUsername(toEmail)) {
+    			throw new AppException(ErrorCode.USER_EXISTED);
+    		} 
 
             if (confirmationCodeRepository.existsByEmail(toEmail)) {
 				confirmationCodeRepository.deleteByEmail(toEmail);

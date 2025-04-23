@@ -45,7 +45,7 @@ import lombok.experimental.NonFinal;
 public class AuthenticationService {
 	
 	@Autowired
-	private AccountRepository userRepository;
+	private AccountRepository accountRepository;
 	
 	@Autowired
 	private InvalidatedTokenRepository invalidatedTokenRepository;
@@ -108,7 +108,7 @@ public class AuthenticationService {
 	public AuthenticationResponse Authenticate(AuthenticationRequest request){
 		
 		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-		var account = userRepository.findByUsername(request.getUsername())
+		var account = accountRepository.findByUsername(request.getUsername())
 				.orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 		
 		boolean auth =  passwordEncoder.matches(request.getPassword(), account.getPassword());
@@ -177,10 +177,10 @@ public class AuthenticationService {
 		InvalidatedToken invalidatedToken = InvalidatedToken.builder().id(jit).expiryTime(expiryTime).build();
 		invalidatedTokenRepository.save(invalidatedToken);
 		var username = signJWT.getJWTClaimsSet().getSubject();
-		var user = userRepository.findByUsername(username).orElseThrow(
+		var acccount = accountRepository.findByUsername(username).orElseThrow(
 				() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND)
 				); 
-		var token = generateToken(user);
+		var token = generateToken(acccount);
 		
 		return AuthenticationResponse.builder().token(token).authenticated(true).build();
 	
