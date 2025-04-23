@@ -44,6 +44,9 @@ public class ChapterService {
 		var context = SecurityContextHolder.getContext();
 		String nameAccount = context.getAuthentication().getName();
 		Lesson lesson = lessonRepository.findById(lessonId).get();
+		if (chapterRepository.existsByLessonAndOrderAndDeletedDateIsNull(lesson, order)) {
+	        throw new AppException(ErrorCode.CHAPTER_ORDER_DUPLICATE);
+	    }
 		Chapter chapter = Chapter.builder()
 				.name(name)
 				.order(order)
@@ -58,18 +61,35 @@ public class ChapterService {
 	}
 	
 	public ChapterResponse updateChapter(String chapterId, String name, int order, MultipartFile file, String type) {
-		var context = SecurityContextHolder.getContext();
-		String nameAccount = context.getAuthentication().getName();
-		Chapter chapter = chapterRepository.findById(chapterId).get();
-			chapter.setName(name);
-			chapter.setOrder(order);
-			chapter.setType(type);
-			chapter.setLastModifiedBy(nameAccount);
-			chapter.setLastModifiedDate(new Date());
-		chapter = chapterRepository.save(chapter);
-		uploadFile(chapterId, file, type);
-		return chapterMapper.toChapterResponse(chapter);
+	    var context = SecurityContextHolder.getContext();
+	    String nameAccount = context.getAuthentication().getName();
+
+	    Chapter chapter = chapterRepository.findById(chapterId)
+	        .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
+
+	    Lesson lesson = chapter.getLesson();
+
+	    boolean isOrderExist = chapterRepository
+	        .findByLessonAndOrderAndDeletedDateIsNull(lesson, order)
+	        .map(existing -> !existing.getId().equals(chapterId)) 
+	        .orElse(false);
+
+	    if (isOrderExist) {
+	        throw new AppException(ErrorCode.CHAPTER_ORDER_DUPLICATE); 
+	    }
+
+	    chapter.setName(name);
+	    chapter.setOrder(order);
+	    chapter.setType(type);
+	    chapter.setLastModifiedBy(nameAccount);
+	    chapter.setLastModifiedDate(new Date());
+
+	    chapter = chapterRepository.save(chapter);
+	    uploadFile(chapterId, file, type);
+
+	    return chapterMapper.toChapterResponse(chapter);
 	}
+
 
     public boolean deleteChapter(String id) {
     	var context = SecurityContextHolder.getContext();
