@@ -31,7 +31,7 @@ public class NotificationService {
 //    public void notifyStudentsOnNewComment(Chapter chapter, String commentContent) {
 //        Course course = chapter.getLesson().getCourse();
 //
-//        // Bước 1: Lấy tất cả học viên đã đăng ký khóa học
+//        // Bước 1: Lấy tất cả		 học viên đã đăng ký khóa học
 //        List<StudentCourse> studentCourses = studentCourseRepository.findByCourse(course);
 //
 //        // Bước 2: Kiểm tra ai đã học tới chapter này
@@ -68,7 +68,7 @@ public class NotificationService {
     public CommentNotificationResponse getAllUnreadCommentNotificationOfAccount() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Account account = accountRepository.findByUsername(username)
+        Account account =	 accountRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
         // Lấy tất cả notification COMMENT của người dùng
@@ -89,13 +89,16 @@ public class NotificationService {
 
     public void setNotificationAsReadByAccount(List<Notification> notifications) {
         if (notifications == null || notifications.isEmpty()) {
-            throw new IllegalArgumentException("Danh sách notification hoặc account không hợp lệ.");
+            // Nếu không có thông báo thì không làm gì cả
+            return;
         }
+
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Account account = accountRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
-//	        notificationRepository.setNotificationAsReadByAccount(notifications, account);
-        notificationRepository.setNotificationAsReadByAccount(notifications);
 
+        // Truyền cả account và danh sách notifications để xử lý chính xác
+        notificationRepository.setNotificationAsReadByAccount(notifications);
     }
+
 }

@@ -40,4 +40,11 @@ public class Account {
     @OneToMany(mappedBy = "account", fetch = FetchType.LAZY)
     @JsonManagedReference // Đánh dấu là mối quan hệ được quản lý và sẽ được serialize
     private List<Notification> notifications;
+    
+    @OneToOne(mappedBy = "account")
+    private Student student;
+
+    @OneToOne(mappedBy = "account")
+    private Teacher teacher;
+
 }

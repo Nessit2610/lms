@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.CommentMessage;
 import com.husc.lms.dto.response.CommentChapterResponse;
+import com.husc.lms.dto.response.CommentReplyResponse;
 import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
 import com.husc.lms.dto.response.FlatCommentInfo;
 import com.husc.lms.entity.Account;
@@ -82,7 +83,6 @@ public class CommentService {
 
         commentRepository.save(comment);
     }
-
     
     public List<Comment> getCommentsByChapter(Chapter chapter) {
         return commentRepository.findByChapterOrderByCreatedDateDesc(chapter);
@@ -95,17 +95,46 @@ public class CommentService {
         List<Comment> comments = getCommentsByChapter(chapter);
 
         return comments.stream()
-                .map(comment -> new CommentChapterResponse(
-                        comment.getAccount().getUsername(),
-                        comment.getDetail(),
-                        comment.getCreatedDate()
-                ))
+                .map(comment -> {
+                    List<CommentReplyResponse> replyResponses = comment.getCommentReplies().stream()
+                            .map(reply -> {
+                                Account replyAccount = reply.getReplyAccount();
+                                String avatar = null;
+
+                                if (replyAccount.getStudent() != null) {
+                                    avatar = replyAccount.getStudent().getAvatar();
+                                } else if (replyAccount.getTeacher() != null) {
+                                    avatar = replyAccount.getTeacher().getAvatar();
+                                }
+
+                                return CommentReplyResponse.builder()
+                                        .commentReplyId(reply.getId())
+                                        .username(replyAccount.getUsername())
+                                        .avatar(avatar)
+                                        .detail(reply.getDetail())
+                                        .createdDate(reply.getCreatedDate())
+                                        .build();
+                            })
+                            .collect(Collectors.toList());
+
+                    return new CommentChapterResponse(
+                            comment.getId(),
+                            comment.getAccount().getUsername(),
+                            comment.getDetail(),
+                            comment.getCreatedDate(),
+                            replyResponses
+                    );
+                })
                 .collect(Collectors.toList());
     }
+
+
+
     
     public List<CommentChapterResponse> getUnreadCommentsByCourseId(String courseId) {
     	return commentRepository.findUnreadCommentsByCourseId(courseId);
     }
+
 
     public CommentsOfChapterInLessonOfCourseResponse getStructuredUnreadComments(String courseId) {
         List<FlatCommentInfo> flatList = commentRepository.findStructuredUnreadComments(courseId);
@@ -117,7 +146,6 @@ public class CommentService {
         response.setCourseTitle(flatList.get(0).getCourseTitle());
 
         Map<String, CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters> lessonMap = new LinkedHashMap<>();
-
         int totalCommentsOfCourse = 0;
 
         for (FlatCommentInfo flat : flatList) {
@@ -133,8 +161,8 @@ public class CommentService {
             );
 
             var lesson = lessonMap.get(flat.getLessonId());
-
             var chapterList = lesson.getChapters();
+
             var chapter = chapterList.stream()
                 .filter(ch -> ch.getChapterId().equals(flat.getChapterId()))
                 .findFirst()
@@ -143,7 +171,7 @@ public class CommentService {
                         flat.getChapterId(),
                         flat.getChapterTitle(),
                         flat.getChapterOrder(),
-                        0, // totalComments tạm thời là 0
+                        0,
                         0,
                         new ArrayList<>()
                     );
@@ -151,11 +179,14 @@ public class CommentService {
                     return ch;
                 });
 
+            // ✅ Thêm avatar vào comment
             chapter.getComments().add(new CommentsOfChapterInLessonOfCourseResponse.CommentResponse(
-                flat.getUsername(),
-                flat.getDetail(),
-                flat.getCreatedDate()
-            ));
+            	    flat.getUsername(),
+            	    flat.getAvatar() != null ? flat.getAvatar() : "",  // Nếu avatar không có thì để rỗng
+            	    flat.getDetail(),
+            	    flat.getCreatedDate(),
+            	    new ArrayList<>()  // Danh sách commentReplies rỗng nếu không có reply
+            	));
 
             chapter.setTotalCommentsOfChapter(chapter.getTotalCommentsOfChapter() + 1);
         }
@@ -246,7 +277,7 @@ public class CommentService {
         notificationRepository.saveAll(notifications);
 
         // Gửi thông báo real-time
-        for (Notification notification : notifications) {
+        for (Notification	 notification : notifications) {
             String destination = "/topic/notifications/" + notification.getAccount().getUsername();
             Map<String, Object> payload = new HashMap<>();
             payload.put("message", notification.getDescription());
