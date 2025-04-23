@@ -17,7 +17,7 @@ public class StudentOfCourseResponse {
 	
 	private String fullName;
 	
-	private Major major;
+	private MajorResponse major;
     
     private String email;
     

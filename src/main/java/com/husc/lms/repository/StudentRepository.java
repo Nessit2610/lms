@@ -18,4 +18,14 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 
 	public Student findByAccount(Account account);
 
+	
+	@Query("SELECT s FROM Student s " +
+	           "WHERE (:fullName IS NULL OR LOWER(s.fullName) LIKE LOWER(CONCAT('%', :fullName, '%'))) " +
+	           "AND (:email IS NULL OR LOWER(s.email) LIKE LOWER(CONCAT('%', :email, '%'))) " +
+	           "AND (:majorName IS NULL OR LOWER(s.major.name) LIKE LOWER(CONCAT('%', :majorName, '%')))")
+    List<Student> searchStudent(
+        @Param("fullName") String fullName,
+        @Param("email") String email,
+        @Param("majorName") String majorName
+    );
 }

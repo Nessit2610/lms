@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.response.APIResponse;
+import com.husc.lms.dto.response.StudentOfCourseResponse;
 import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.entity.Student;
 import com.husc.lms.service.StudentService;
@@ -42,6 +43,15 @@ public class StudentController {
 				.build();
 	}
 	
+	@PostMapping("/search")
+	public APIResponse<List<StudentOfCourseResponse>> searchStudent(@RequestParam("fullName") String fullName,
+															@RequestParam("email") String email,
+															@RequestParam("majorName") String majorName){
+		return APIResponse.<List<StudentOfCourseResponse>>builder()
+				.result(studentService.searchStudents(fullName, email, majorName))
+				.build();
+		
+	}
 	
 	@GetMapping("/myinfo")
 	public APIResponse<StudentResponse> getStudentInfo(){

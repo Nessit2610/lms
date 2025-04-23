@@ -28,7 +28,12 @@ public enum ErrorCode {
 	EMAIL_INVALID(1015,"Email invalid", HttpStatus.BAD_REQUEST),
 	REQUEST_EXIST(1016, "Request existed", HttpStatus.BAD_REQUEST),
 	INVALID_EMAIL_DOMAIN(1017, "Email phải sử dụng tên miền @husc.edu.vn", HttpStatus.BAD_REQUEST),
-	TIME_LIMITED(1018, "Time limited", HttpStatus.BAD_REQUEST);
+	TIME_LIMITED(1018, "Time limited", HttpStatus.BAD_REQUEST),
+	STUDENT_NOT_FOUND(1019, "Không tìm thấy sinh viên", HttpStatus.NOT_FOUND),
+	TEACHER_NOT_FOUND(1020, "Không tìm thấy giảng viên", HttpStatus.NOT_FOUND),
+	LESSON_NOT_FOUND(1021, "Không tìm thấy bài học", HttpStatus.NOT_FOUND),
+	CHAPTER_NOT_FOUND(1022, "Không tìm thấy chương", HttpStatus.NOT_FOUND);
+
 	
 	
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {

@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -42,15 +43,15 @@ public class JoinClassController {
 				.build();
 	}
 	
-	@GetMapping("/studentrequest")
-	public APIResponse<List<StudentOfCourseResponse>> getAllStudentRequestOfCourse(@RequestParam("courseId") String courseId) {
+	@GetMapping("/studentrequest/{courseId}")
+	public APIResponse<List<StudentOfCourseResponse>> getAllStudentRequestOfCourse(@PathVariable("courseId") String courseId) {
 		return APIResponse.<List<StudentOfCourseResponse>>builder()
 				.result(joinClassRequestService.getAllStudentRequestOfCourse(courseId))
 				.build();
 	}
 	
-	@GetMapping("/courserequest")
-	public APIResponse<List<CourseViewResponse>> getAllCourseRequestOfStudent(@RequestParam("studentId") String studentId) {
+	@GetMapping("/courserequest/{courseId}")
+	public APIResponse<List<CourseViewResponse>> getAllCourseRequestOfStudent(@PathVariable("studentId") String studentId) {
 		return APIResponse.<List<CourseViewResponse>>builder()
 				.result(joinClassRequestService.getAllCourseRequestOfStudent(studentId))
 				.build();

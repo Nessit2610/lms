@@ -15,6 +15,9 @@ import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentCourse;
+import com.husc.lms.entity.Teacher;
+import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.CourseMapper;
 import com.husc.lms.mapper.StudentMapper;
 import com.husc.lms.repository.AccountRepository;
@@ -22,6 +25,7 @@ import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.StudentCourseRepository;
 import com.husc.lms.repository.StudentRepository;
+import com.husc.lms.repository.TeacherRepository;
 
 @Service
 public class StudentCourseService {
@@ -31,6 +35,9 @@ public class StudentCourseService {
 	
 	@Autowired
 	private StudentRepository studentRepository;
+	
+	@Autowired
+	private TeacherRepository teacherRepository;
 	
 	@Autowired
 	private AccountRepository accountRepository;
@@ -72,6 +79,28 @@ public class StudentCourseService {
 		
 	}
 	
+	public boolean deleteStudentOfCourse(String studentId, String courseId) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.USER_NOTFOUND));
+		Teacher teacher = teacherRepository.findByAccount(account);
+		if(teacher == null) {
+			throw new AppException(ErrorCode.TEACHER_NOT_FOUND);
+		}
+		Course course = courseRepository.findByIdAndTeacherAndDeletedDateIsNull(courseId,teacher);
+		Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+		if(course != null && student != null) {
+			StudentCourse studentCourse = studentCourseRepository.findByCourseAndStudentAndDeletedDateIsNull(course, student);
+			if(studentCourse != null) {
+				studentCourse.setDeletedBy(teacher.getEmail());
+				studentCourse.setDeletedDate(new Date());
+				studentCourse = studentCourseRepository.save(studentCourse);
+				return true;
+			}
+		}
+		
+		return false;
+	}
 	
 	public List<CourseViewResponse> getAllCourseOfStudent() {
 		var context = SecurityContextHolder.getContext();

@@ -27,6 +27,7 @@ import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.request.AccountRequest;
 import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.dto.response.AccountResponse;
+import com.husc.lms.dto.response.StudentOfCourseResponse;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.ConfirmationCode;
@@ -83,6 +84,15 @@ public class StudentService {
 	public List<StudentResponse> getAllStudent(){
 		return studentRepository.findAll().stream().map(studentMapper::toStudentResponse).toList();
 	}
+	
+	
+	public List<StudentOfCourseResponse> searchStudents(String fullName, String email, String majorName) {
+	    if (fullName != null && fullName.trim().isEmpty()) fullName = null;
+	    if (email != null && email.trim().isEmpty()) email = null;
+	    if (majorName != null && majorName.trim().isEmpty()) majorName = null;
+	    return studentRepository.searchStudent(fullName, email, majorName).stream().map(studentMapper::tosStudentOfCourseResponse).toList();
+	}
+
 	
 	public StudentResponse getStudentInfo() {
 		var context = SecurityContextHolder.getContext();

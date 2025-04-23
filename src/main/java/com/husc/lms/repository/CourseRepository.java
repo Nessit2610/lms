@@ -21,6 +21,7 @@ public interface CourseRepository extends JpaRepository<Course,String> {
 	List<Course> findByTeacherAndDeletedDateIsNull(Teacher teacher);
 	
 	Course findByIdAndDeletedDateIsNull(String id);
+	Course findByIdAndTeacherAndDeletedDateIsNull(String id, Teacher teacher);
 	
 	@Query("SELECT c FROM Course c " +
 	       "WHERE (:courseName IS NULL OR LOWER(c.name) LIKE LOWER(CONCAT('%', :courseName, '%'))) " +

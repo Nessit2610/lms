@@ -13,14 +13,20 @@ import com.husc.lms.entity.StudentCourse;
 
 @Repository
 public interface StudentCourseRepository extends JpaRepository<StudentCourse, String> {
-	@Query("SELECT sc.course FROM StudentCourse sc WHERE sc.student = :student")
-    List<Course> findByStudent(@Param("student") Student student);
+	@Query("SELECT sc.course FROM StudentCourse sc " +
+	       "WHERE sc.student = :student AND sc.deletedDate IS NULL")
+	List<Course> findByStudent(@Param("student") Student student);
 
-    @Query("SELECT sc.student FROM StudentCourse sc WHERE sc.course = :course")
-    List<Student> findStudentByCourse(@Param("course") Course course);
+	@Query("SELECT sc.student FROM StudentCourse sc " +
+	       "WHERE sc.course = :course AND sc.deletedDate IS NULL")
+	List<Student> findStudentByCourse(@Param("course") Course course);
+
+	@Query("SELECT COUNT(sc.student) FROM StudentCourse sc " +
+	       "WHERE sc.course = :course AND sc.deletedDate IS NULL")
+	long countStudentsByCourse(@Param("course") Course course);
+	
+	StudentCourse findByCourseAndStudentAndDeletedDateIsNull(Course course, Student student);
     
-    @Query("SELECT COUNT(sc.student) FROM StudentCourse sc WHERE sc.course = :course")
-    long countStudentsByCourse(@Param("course") Course course);
-    
-    List<StudentCourse> findByCourse(Course course);
+    List<StudentCourse> findByCourseAndDeletedDateIsNull(Course course);
+
 }
