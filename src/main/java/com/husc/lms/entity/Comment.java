@@ -1,8 +1,10 @@
 package com.husc.lms.entity;
 
 import java.time.OffsetDateTime;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -13,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,27 +29,27 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "lms_comment")
 public class Comment {
-	
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
 
-    @JoinColumn(name = "accountId")
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "accountId")
     @JsonBackReference
     private Account account;
 
-    @JoinColumn(name = "chapterId")
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "chapterId")
     @JsonBackReference
     private Chapter chapter;
 
-    @JoinColumn(name = "courseId")
     @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "courseId")
     @JsonBackReference
     private Course course;
-    
+
     private String detail;
 
     @Column(name = "createdDate")
@@ -57,4 +60,8 @@ public class Comment {
 
     @Column(name = "deletedDate")
     private OffsetDateTime deletedDate;
+
+    @OneToMany(mappedBy = "comment")
+    @JsonManagedReference // Đánh dấu đây là đối tượng "cha", mối quan hệ sẽ được serialize
+    private List<Notification> notifications;
 }

@@ -38,7 +38,7 @@ public class CommentRestController {
 //	@PostMapping
 //	public ResponseEntity<Comment> addComment(@RequestBody Comment comment){
 //		return ResponseEntity.ok(commentService.saveCommentWithReadStatusAndNotification(comment));
-//	}
+//	}	
 	
 	@GetMapping("/chapter/{chapterId}")
 	public ResponseEntity<List<CommentChapterResponse>> getComments(@PathVariable("chapterId") String chapterId) {
