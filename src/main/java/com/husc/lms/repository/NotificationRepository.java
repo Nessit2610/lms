@@ -16,9 +16,13 @@ import com.husc.lms.entity.Account;
 
 public interface NotificationRepository extends JpaRepository<Notification, String>{
 //	List<Notification> findByCreateAccount(Account createAccount);
-	List<Notification> findByReceiveAccountAndType(Account account, NotificationType type);
+	List<Notification> findByAccountAndType(Account account, NotificationType type);
+//	@Modifying
+//	@Transactional
+//	@Query("UPDATE Notification n SET n.isRead = true WHERE n IN :notifications AND n.receiveAccount = :account")
+//	void setNotificationAsReadByAccount(List<Notification> notifications, Account account);
 	@Modifying
 	@Transactional
-	@Query("UPDATE Notification n SET n.isRead = true WHERE n IN :notifications AND n.receiveAccount = :account")
-	void setNotificationAsReadByAccount(List<Notification> notifications, Account account);
+	@Query("UPDATE Notification n SET n.isRead = true WHERE n IN :notifications")
+	void setNotificationAsReadByAccount(List<Notification> notifications);
 }

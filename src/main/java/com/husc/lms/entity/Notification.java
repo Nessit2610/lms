@@ -3,6 +3,9 @@ package com.husc.lms.entity;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.husc.lms.enums.NotificationType;
 
 import jakarta.persistence.Column;
@@ -29,7 +32,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class Notification {
 
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
@@ -37,27 +40,27 @@ public class Notification {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "receiveAccountId")
     @JsonBackReference
-    private Account receiveAccount;
+    private Account account;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "commentId")
     @JsonBackReference
     private Comment comment;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "messageId")
     @JsonBackReference
     private Message message;
-    
-    // Để phân biệt loại thông báo: MESSAGE, COMMENT, SYSTEM, ...
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private NotificationType type;
-    
+
     private boolean isRead;
-    
+
     @Column(columnDefinition = "TEXT")
     private String description;
 
     private Date createdAt;
 }
+

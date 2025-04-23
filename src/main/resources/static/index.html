@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <title>Trang chính</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <style>
         .notification-bell {
@@ -202,7 +201,7 @@
                 return;
             }
 
-            const socket = new SockJS("http://localhost:8080/lms/ws");
+            const socket = new WebSocket("ws://localhost:8080/lms/ws");
             stompClient = Stomp.over(socket);
             stompClient.connect({}, function (frame) {
                 console.log("Kết nối WebSocket thành công:", frame);
