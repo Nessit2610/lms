@@ -50,7 +50,7 @@ public class JoinClassController {
 				.build();
 	}
 	
-	@GetMapping("/courserequest/{courseId}")
+	@GetMapping("/courserequest/{studentId}")
 	public APIResponse<List<CourseViewResponse>> getAllCourseRequestOfStudent(@PathVariable("studentId") String studentId) {
 		return APIResponse.<List<CourseViewResponse>>builder()
 				.result(joinClassRequestService.getAllCourseRequestOfStudent(studentId))

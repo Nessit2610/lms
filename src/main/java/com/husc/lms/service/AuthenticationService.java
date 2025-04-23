@@ -108,14 +108,14 @@ public class AuthenticationService {
 	public AuthenticationResponse Authenticate(AuthenticationRequest request){
 		
 		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-		var user = userRepository.findByUsername(request.getUsername())
-				.orElseThrow(() -> new AppException(ErrorCode.USER_NOTFOUND));
+		var account = userRepository.findByUsername(request.getUsername())
+				.orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 		
-		boolean auth =  passwordEncoder.matches(request.getPassword(), user.getPassword());
+		boolean auth =  passwordEncoder.matches(request.getPassword(), account.getPassword());
 		if(!auth) {
 			throw new AppException(ErrorCode.USER_UNAUTHENTICATED);
 		}
-		var token = generateToken(user);
+		var token = generateToken(account);
 		
 		return AuthenticationResponse.builder()
 				.token(token)
@@ -178,7 +178,7 @@ public class AuthenticationService {
 		invalidatedTokenRepository.save(invalidatedToken);
 		var username = signJWT.getJWTClaimsSet().getSubject();
 		var user = userRepository.findByUsername(username).orElseThrow(
-				() -> new AppException(ErrorCode.USER_NOTFOUND)
+				() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND)
 				); 
 		var token = generateToken(user);
 		

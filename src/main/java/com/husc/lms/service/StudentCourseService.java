@@ -37,9 +37,6 @@ public class StudentCourseService {
 	private StudentRepository studentRepository;
 	
 	@Autowired
-	private TeacherRepository teacherRepository;
-	
-	@Autowired
 	private AccountRepository accountRepository;
 	
 	@Autowired
@@ -82,17 +79,13 @@ public class StudentCourseService {
 	public boolean deleteStudentOfCourse(String studentId, String courseId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.USER_NOTFOUND));
-		Teacher teacher = teacherRepository.findByAccount(account);
-		if(teacher == null) {
-			throw new AppException(ErrorCode.TEACHER_NOT_FOUND);
-		}
-		Course course = courseRepository.findByIdAndTeacherAndDeletedDateIsNull(courseId,teacher);
+		Account account = accountRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
 		Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		if(course != null && student != null) {
 			StudentCourse studentCourse = studentCourseRepository.findByCourseAndStudentAndDeletedDateIsNull(course, student);
 			if(studentCourse != null) {
-				studentCourse.setDeletedBy(teacher.getEmail());
+				studentCourse.setDeletedBy(account.getEmail());
 				studentCourse.setDeletedDate(new Date());
 				studentCourse = studentCourseRepository.save(studentCourse);
 				return true;

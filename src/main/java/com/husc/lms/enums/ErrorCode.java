@@ -15,7 +15,7 @@ public enum ErrorCode {
 	USERNAME_INVALID(1003, "Username must be at least {min} characters",HttpStatus.BAD_REQUEST),
 	PASSWORD_INVALID(1004,"Password must be at least {min} characters",HttpStatus.BAD_REQUEST),
 	INVALID_KEY(1005,"Invalid message key",HttpStatus.BAD_REQUEST),
-	USER_NOTFOUND(1006,"User not found",HttpStatus.BAD_REQUEST),
+	ACCOUNT_NOTFOUND(1006,"Account not found",HttpStatus.BAD_REQUEST),
 	USER_UNAUTHENTICATED(1007, "Unauthenticated",HttpStatus.UNAUTHORIZED),
 	UNAUTHORIZED(1008, "You do not have permission",HttpStatus.FORBIDDEN),
 	ROLE_NOT_FOUND(1009, "Role not found", HttpStatus.BAD_REQUEST),

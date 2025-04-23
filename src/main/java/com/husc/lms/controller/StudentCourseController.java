@@ -3,11 +3,13 @@ package com.husc.lms.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.request.StudentCourseRequest;
@@ -45,6 +47,16 @@ public class StudentCourseController {
 				.result(studentCourseService.getAllStudentOfCourse(courseId))
 				.build();
 	}
+	
+	@DeleteMapping("/delete")
+	public APIResponse<Boolean> deleteStudentOfCourse(@RequestParam("courseId") String courseId,
+													@RequestParam("studentId") String studendId){
+		return APIResponse.<Boolean>builder()
+				.result(studentCourseService.deleteStudentOfCourse(studendId, courseId))
+				.build();
+	}
+	
+	
 //	@GetMapping("/studentnotincourse/{courseId}")
 //	public APIResponse<List<StudentOfCourseResponse>> getAllStudentNotInCourse(@PathVariable("courseId") String courseId){
 //		return APIResponse.<List<StudentOfCourseResponse>>builder()
