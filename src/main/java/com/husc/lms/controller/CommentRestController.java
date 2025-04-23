@@ -15,9 +15,12 @@ import com.husc.lms.dto.response.CommentChapterResponse;
 import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
+import com.husc.lms.entity.CommentReadStatus;
 import com.husc.lms.entity.Lesson;
+import com.husc.lms.entity.Notification;
 import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.LessonRepository;
+import com.husc.lms.service.CommentReadStatusService;
 import com.husc.lms.service.CommentService;
 
 import lombok.RequiredArgsConstructor;
@@ -30,7 +33,7 @@ public class CommentRestController {
 
 	private final CommentService commentService;
 	private final ChapterRepository chapterRepository;
-	
+	private final CommentReadStatusService commentReadStatusService;
 	
 //	@PostMapping
 //	public ResponseEntity<Comment> addComment(@RequestBody Comment comment){
@@ -48,4 +51,9 @@ public class CommentRestController {
 		CommentsOfChapterInLessonOfCourseResponse response = commentService.getStructuredUnreadComments(courseId);
 		return ResponseEntity.ok(response);
 	}
+	
+	@PostMapping("/chapter/read")
+    public void setNotificationAsReadByAccount(@RequestBody List<Comment> comments) {
+		commentReadStatusService.setCommentsAsReadByAccount(comments);
+    }
 }

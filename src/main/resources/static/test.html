@@ -565,14 +565,14 @@
                 data.result.forEach(course => {
                     const li = document.createElement("li");
                     li.innerHTML = `
-                        <div class="course">
+                    <div class="course">
                             <strong>${course.name}</strong> - ${course.description || 'Không có mô tả'}<br/>
                             <em>Giảng viên:</em> ${course.teacher ? `${course.teacher.fullName} (${course.teacher.email})` : 'Chưa có giảng viên'}<br/>
                             <em>Ngành:</em> ${course.major || 'Chưa có ngành'}<br/>
-                            <em>Thời gian học:</em> ${new Date(course.startDate).toLocaleDateString()} - ${new Date(course.endDate).toLocaleDateString()}<br/>
+                        <em>Thời gian học:</em> ${new Date(course.startDate).toLocaleDateString()} - ${new Date(course.endDate).toLocaleDateString()}<br/>
                             <button onclick="loadCourseDetail('${course.id}')">Xem bài học</button>
-                            <ul id="lessons-${course.id}" style="display:none;"></ul>
-                        </div>`;
+                        <ul id="lessons-${course.id}" style="display:none;"></ul>
+                    </div>`;
                     courseList.appendChild(li);
                 });
             } catch (error) {
@@ -661,10 +661,10 @@
                     sortedChapters.forEach((chapter) => {
                         const chapterLi = document.createElement("li");
                         chapterLi.innerHTML = `
-                            <div class="chapter">
+                                <div class="chapter">
                                 <strong>Chương ${chapter.order || '?'}:</strong> ${chapter.name || "Không có tên chương"}<br/>
                                 ${chapter.type ? `<em>Loại:</em> ${chapter.type}<br/>` : ''}
-                                <em>Đường dẫn:</em> ${chapter.path ? `<a href="${chapter.path}" target="_blank">${chapter.path}</a>` : "Không có"}<br/>
+                                    <em>Đường dẫn:</em> ${chapter.path ? `<a href="${chapter.path}" target="_blank">${chapter.path}</a>` : "Không có"}<br/>
                                 <div id="comments-container-${chapter.id}"></div>
                             </div>
                         `;

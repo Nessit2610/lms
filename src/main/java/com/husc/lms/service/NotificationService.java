@@ -3,27 +3,20 @@ package com.husc.lms.service;
 import java.util.Date;
 import java.util.List;
 
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.response.CommentNotificationResponse;
 import com.husc.lms.entity.Account;
-import com.husc.lms.entity.Chapter;
-import com.husc.lms.entity.Course;
+
 import com.husc.lms.entity.Notification;
-import com.husc.lms.entity.StudentCourse;
+
 import com.husc.lms.enums.NotificationType;
+
 import com.husc.lms.repository.AccountRepository;
-import com.husc.lms.repository.ChapterRepository;
-import com.husc.lms.repository.CommentReadStatusRepository;
-import com.husc.lms.repository.CommentRepository;
-import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.NotificationRepository;
 import com.husc.lms.repository.StudentCourseRepository;
 import com.husc.lms.repository.StudentLessonChapterProgressRepository;
-import com.husc.lms.repository.StudentLessonProgressRepository;
-import com.husc.lms.repository.StudentRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -94,4 +87,13 @@ public class NotificationService {
                 .build();
     }
 
+    public void setNotificationAsReadByAccount(List<Notification> notifications) {
+        if (notifications == null || notifications.isEmpty()) {
+            throw new IllegalArgumentException("Danh sách notification hoặc account không hợp lệ.");
+        }
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        Account account = accountRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+        notificationRepository.setNotificationAsReadByAccount(notifications, account);
+    }
 }
