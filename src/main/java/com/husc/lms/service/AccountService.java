@@ -127,7 +127,7 @@ public class AccountService {
 	    Account account = accountRepository.findByUsername(username).orElseThrow( () -> new AppException(ErrorCode.USER_NOTFOUND));
 
 	    if (!passwordEncoder.matches(request.getOldPassword(), account.getPassword())) {
-	        throw new AppException(ErrorCode.OLD_PASSWORD_NOT);
+	        throw new AppException(ErrorCode.OLD_PASSWORD_INCORRECT);
 	    }
 	    account.setPassword(passwordEncoder.encode(request.getNewPassword()));
 	    accountRepository.save(account);

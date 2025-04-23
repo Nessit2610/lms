@@ -12,10 +12,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class StudentRequest {
 
-	
 	@Pattern(
 		    regexp = "^[a-zA-Z0-9._%+-]+@husc\\.edu\\.vn$",
-		    message = "EMAIL_INVALID"
+		    message = "INVALID_EMAIL_DOMAIN"
 	)
 	private String email;
 	
