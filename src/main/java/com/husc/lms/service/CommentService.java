@@ -203,24 +203,34 @@ public class CommentService {
 
         // Tìm các student đủ điều kiện
         List<Student> eligibleStudents = findEligibleStudents(lesson.getId(), chapter.getId());
-
-//        List<CommentReadStatus> readStatuses = new ArrayList<>();
         List<Notification> notifications = new ArrayList<>();
+        List<CommentReadStatus> readStatuses = new ArrayList<>();
 
         for (Student student : eligibleStudents) {
             Account studentAccount = student.getAccount();
 
-//            // Trạng thái đã đọc
-//            readStatuses.add(CommentReadStatus.builder()
-//                .account(studentAccount)
-//                .comment(savedComment)
-//                .isRead(false)
-//                .build()
-//            );
+            // Nếu là người đăng comment
+            if (studentAccount.getId().equals(account.getId())) {
+                // Thêm trạng thái đã đọc
+                readStatuses.add(CommentReadStatus.builder()
+                    .account(studentAccount)
+                    .comment(savedComment)
+                    .isRead(true) // đã đọc rồi vì chính họ đăng
+                    .build()
+                );
+                continue; // Không tạo thông báo
+            }
 
-            // Tạo thông báo
+            // Những người còn lại - thêm trạng thái chưa đọc và tạo thông báo
+            readStatuses.add(CommentReadStatus.builder()
+                .account(studentAccount)
+                .comment(savedComment)
+                .isRead(false)
+                .build()
+            );
+
             notifications.add(Notification.builder()
-                .receiveAccount(studentAccount) // Người nhận là sinh viên
+                .receiveAccount(studentAccount)
                 .comment(savedComment)
                 .type(NotificationType.COMMENT)
                 .description(comment.getDetail())
@@ -230,8 +240,9 @@ public class CommentService {
             );
         }
 
+
         // Lưu vào DB
-//        commentReadStatusRepository.saveAll(readStatuses);
+        commentReadStatusRepository.saveAll(readStatuses);
         notificationRepository.saveAll(notifications);
 
         // Gửi thông báo real-time
