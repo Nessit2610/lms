@@ -2,6 +2,7 @@ package com.husc.lms.service;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -9,9 +10,13 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -25,14 +30,17 @@ import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
 import com.husc.lms.entity.CommentReadStatus;
+import com.husc.lms.entity.CommentReply;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.Notification;
 import com.husc.lms.entity.Student;
 import com.husc.lms.enums.NotificationType;
+import com.husc.lms.enums.StatusCourse;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.CommentReadStatusRepository;
+import com.husc.lms.repository.CommentReplyRepository;
 import com.husc.lms.repository.CommentRepository;
 //import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.CourseRepository;
@@ -49,6 +57,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CommentService {
 	private final CommentRepository commentRepository;
+	private final CommentReplyRepository commentReplyRepository;
 	private final ChapterRepository chapterRepository;
 	private final CourseRepository courseRepository;
 	private final AccountRepository accountRepository;
@@ -83,60 +92,143 @@ public class CommentService {
 
         commentRepository.save(comment);
     }
-    
-    public List<Comment> getCommentsByChapter(Chapter chapter) {
-        return commentRepository.findByChapterOrderByCreatedDateDesc(chapter);
-    }
-    
-    public List<CommentChapterResponse> getCommentsByChapterId(String chapterId) {
+        
+    public Page<CommentChapterResponse> getCommentsByChapterId(String chapterId, int pageNumber, int pageSize, int replyPageNumber, int replyPageSize) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Chapter not found"));
 
-        List<Comment> comments = getCommentsByChapter(chapter);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Pageable replyPageable = PageRequest.of(replyPageNumber, replyPageSize);
 
-        return comments.stream()
-                .map(comment -> {
-                    List<CommentReplyResponse> replyResponses = comment.getCommentReplies().stream()
-                            .map(reply -> {
-                                Account replyAccount = reply.getReplyAccount();
-                                String avatar = null;
+        // Lấy comments phân trang
+        Page<Comment> pagedComments = commentRepository.findByChapter(chapter, pageable);
 
-                                if (replyAccount.getStudent() != null) {
-                                    avatar = replyAccount.getStudent().getAvatar();
-                                } else if (replyAccount.getTeacher() != null) {
-                                    avatar = replyAccount.getTeacher().getAvatar();
-                                }
+        // Map comments thành CommentChapterResponse, và phân trang replies
+        return pagedComments.map(comment -> {
+            Account commentAccount = comment.getAccount();
+            String commentAvatar = "";
 
-                                return CommentReplyResponse.builder()
-                                        .commentReplyId(reply.getId())
-                                        .username(replyAccount.getUsername())
-                                        .avatar(avatar)
-                                        .detail(reply.getDetail())
-                                        .createdDate(reply.getCreatedDate())
-                                        .build();
-                            })
-                            .collect(Collectors.toList());
+            if (commentAccount.getStudent() != null) {
+                commentAvatar = commentAccount.getStudent().getAvatar();
+            } else if (commentAccount.getTeacher() != null) {
+                commentAvatar = commentAccount.getTeacher().getAvatar();
+            }
 
-                    return new CommentChapterResponse(
-                            comment.getId(),
-                            comment.getAccount().getUsername(),
-                            comment.getDetail(),
-                            comment.getCreatedDate(),
-                            replyResponses
-                    );
-                })
-                .collect(Collectors.toList());
+            // Phân trang replies
+            Page<CommentReply> pagedReplies = commentReplyRepository.findByComment(comment, replyPageable);
+
+            List<CommentReplyResponse> replyResponses = pagedReplies.getContent().stream()
+                    .map(reply -> {
+                        Account replyAccount = reply.getReplyAccount();
+                        String replyAvatar = "";
+
+                        if (replyAccount.getStudent() != null) {
+                            replyAvatar = replyAccount.getStudent().getAvatar();
+                        } else if (replyAccount.getTeacher() != null) {
+                            replyAvatar = replyAccount.getTeacher().getAvatar();
+                        }
+
+                        return CommentReplyResponse.builder()
+                                .commentReplyId(reply.getId())
+                                .username(replyAccount.getUsername())
+                                .avatar(replyAvatar)
+                                .detail(reply.getDetail())
+                                .createdDate(reply.getCreatedDate())
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+
+            return new CommentChapterResponse(
+                    comment.getId(),
+                    commentAccount.getUsername(),
+                    commentAvatar,
+                    comment.getDetail(),
+                    comment.getCreatedDate(),
+                    replyResponses
+            );
+        });
     }
 
 
 
+    
     
     public List<CommentChapterResponse> getUnreadCommentsByCourseId(String courseId) {
     	return commentRepository.findUnreadCommentsByCourseId(courseId);
     }
+    public Page<CommentChapterResponse> getUnreadCommentsByCourseId(String courseId, int pageNumber, int pageSize) {
+        Pageable pageRequest = PageRequest.of(pageNumber, pageSize);
+        
+        return commentRepository.findUnreadCommentsByCourseId(courseId, pageRequest);
+    }
 
-
-    public CommentsOfChapterInLessonOfCourseResponse getStructuredUnreadComments(String courseId) {
+//    public CommentsOfChapterInLessonOfCourseResponse getStructuredUnreadComments(String courseId) {
+//        List<FlatCommentInfo> flatList = commentRepository.findStructuredUnreadComments(courseId);
+//
+//        if (flatList.isEmpty()) return null;
+//
+//        CommentsOfChapterInLessonOfCourseResponse response = new CommentsOfChapterInLessonOfCourseResponse();
+//        response.setCourseId(flatList.get(0).getCourseId());
+//        response.setCourseTitle(flatList.get(0).getCourseTitle());
+//
+//        Map<String, CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters> lessonMap = new LinkedHashMap<>();
+//        int totalCommentsOfCourse = 0;
+//
+//        for (FlatCommentInfo flat : flatList) {
+//            totalCommentsOfCourse++;
+//
+//            lessonMap.putIfAbsent(flat.getLessonId(),
+//                new CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters(
+//                    flat.getLessonId(),
+//                    flat.getLessonId(),
+//                    flat.getLessonOrder(),
+//                    new ArrayList<>()
+//                )
+//            );
+//
+//            var lesson = lessonMap.get(flat.getLessonId());
+//            var chapterList = lesson.getChapters();
+//
+//            var chapter = chapterList.stream()
+//                .filter(ch -> ch.getChapterId().equals(flat.getChapterId()))
+//                .findFirst()
+//                .orElseGet(() -> {
+//                    var ch = new CommentsOfChapterInLessonOfCourseResponse.ChapterWithComments(
+//                        flat.getChapterId(),
+//                        flat.getChapterTitle(),
+//                        flat.getChapterOrder(),
+//                        0,
+//                        0,
+//                        new ArrayList<>()
+//                    );
+//                    chapterList.add(ch);
+//                    return ch;
+//                });
+//
+//            // ✅ Thêm avatar vào comment
+//            chapter.getComments().add(new CommentsOfChapterInLessonOfCourseResponse.CommentResponse(
+//            	    flat.getUsername(),
+//            	    flat.getAvatar() != null ? flat.getAvatar() : "",  // Nếu avatar không có thì để rỗng
+//            	    flat.getDetail(),
+//            	    flat.getCreatedDate(),
+//            	    new ArrayList<>()  // Danh sách commentReplies rỗng nếu không có reply
+//            	));
+//
+//            chapter.setTotalCommentsOfChapter(chapter.getTotalCommentsOfChapter() + 1);
+//        }
+//
+//        List<CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters> sortedLessons = new ArrayList<>(lessonMap.values());
+//        sortedLessons.sort(Comparator.comparing(CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters::getLessonOrder));
+//        for (var lesson : sortedLessons) {
+//            lesson.getChapters().sort(Comparator.comparing(CommentsOfChapterInLessonOfCourseResponse.ChapterWithComments::getChapterOrder));
+//        }
+//
+//        response.setLessons(sortedLessons);
+//        response.setTotalCommentsOfCourse(totalCommentsOfCourse);
+//
+//        return response;
+//    }
+    public CommentsOfChapterInLessonOfCourseResponse getStructuredUnreadComments(String courseId, int pageNumber, int pageSize) {
         List<FlatCommentInfo> flatList = commentRepository.findStructuredUnreadComments(courseId);
 
         if (flatList.isEmpty()) return null;
@@ -145,12 +237,14 @@ public class CommentService {
         response.setCourseId(flatList.get(0).getCourseId());
         response.setCourseTitle(flatList.get(0).getCourseTitle());
 
+        int totalCommentsOfCourse = flatList.size();
+        int fromIndex = pageNumber * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalCommentsOfCourse);
+        List<FlatCommentInfo> paginatedFlatList = flatList.subList(fromIndex, toIndex);
+
         Map<String, CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters> lessonMap = new LinkedHashMap<>();
-        int totalCommentsOfCourse = 0;
 
-        for (FlatCommentInfo flat : flatList) {
-            totalCommentsOfCourse++;
-
+        for (FlatCommentInfo flat : paginatedFlatList) {
             lessonMap.putIfAbsent(flat.getLessonId(),
                 new CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters(
                     flat.getLessonId(),
@@ -179,14 +273,13 @@ public class CommentService {
                     return ch;
                 });
 
-            // ✅ Thêm avatar vào comment
             chapter.getComments().add(new CommentsOfChapterInLessonOfCourseResponse.CommentResponse(
-            	    flat.getUsername(),
-            	    flat.getAvatar() != null ? flat.getAvatar() : "",  // Nếu avatar không có thì để rỗng
-            	    flat.getDetail(),
-            	    flat.getCreatedDate(),
-            	    new ArrayList<>()  // Danh sách commentReplies rỗng nếu không có reply
-            	));
+                flat.getUsername(),
+                flat.getAvatar() != null ? flat.getAvatar() : "",
+                flat.getDetail(),
+                flat.getCreatedDate(),
+                new ArrayList<>()
+            ));
 
             chapter.setTotalCommentsOfChapter(chapter.getTotalCommentsOfChapter() + 1);
         }
@@ -198,10 +291,11 @@ public class CommentService {
         }
 
         response.setLessons(sortedLessons);
-        response.setTotalCommentsOfCourse(totalCommentsOfCourse);
+        response.setTotalCommentsOfCourse(totalCommentsOfCourse); // ✅ Tổng số comment vẫn là của toàn bộ
 
         return response;
     }
+
 
     @Transactional
     public void saveCommentWithReadStatusAndNotification(CommentMessage commentMessage) {

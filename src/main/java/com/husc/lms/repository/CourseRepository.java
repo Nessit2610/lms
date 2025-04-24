@@ -10,7 +10,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.Course;
-import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Teacher;
 
 @Repository
