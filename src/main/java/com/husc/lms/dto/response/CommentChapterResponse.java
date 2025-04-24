@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 public class CommentChapterResponse {
 	private String commentId;
     private String username;
+    private String avatar;
     private String detail;
     private OffsetDateTime createdDate;
     private List<CommentReplyResponse> commentReplyResponses;
