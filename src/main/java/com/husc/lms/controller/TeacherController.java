@@ -46,9 +46,9 @@ public class TeacherController {
 
 	@PostMapping("/create")
 	public APIResponse<TeacherResponse> CreateStudent(@RequestBody TeacherRequest request){
-		APIResponse<TeacherResponse> apiResponse = new APIResponse<TeacherResponse>();
-		apiResponse.setResult(teacherService.createTeacher(request));
-		return apiResponse;
+		return APIResponse.<TeacherResponse>builder()
+				.result(teacherService.createTeacher(request))
+				.build();
 	}
 	
 	

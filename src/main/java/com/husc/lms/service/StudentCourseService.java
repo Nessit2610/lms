@@ -13,15 +13,18 @@ import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.response.StudentOfCourseResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
+import com.husc.lms.entity.JoinClassRequest;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentCourse;
 import com.husc.lms.entity.Teacher;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.JoinClassStatus;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.CourseMapper;
 import com.husc.lms.mapper.StudentMapper;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.CourseRepository;
+import com.husc.lms.repository.JoinClassRequestRepository;
 import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.StudentCourseRepository;
 import com.husc.lms.repository.StudentRepository;
@@ -30,6 +33,9 @@ import com.husc.lms.repository.TeacherRepository;
 @Service
 public class StudentCourseService {
 
+	@Autowired
+	private JoinClassRequestRepository joinClassRequestRepository;
+	
 	@Autowired
 	private StudentCourseRepository studentCourseRepository;
 	
@@ -83,6 +89,11 @@ public class StudentCourseService {
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
 		Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		if(course != null && student != null) {
+			if(joinClassRequestRepository.existsByStudentAndCourseAndStatus(student, course, JoinClassStatus.APPROVED.name())) {
+				JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
+				joinClassRequest.setStatus(JoinClassStatus.REJECTED.name());
+				joinClassRequestRepository.save(joinClassRequest);
+			}
 			StudentCourse studentCourse = studentCourseRepository.findByCourseAndStudentAndDeletedDateIsNull(course, student);
 			if(studentCourse != null) {
 				studentCourse.setDeletedBy(account.getEmail());

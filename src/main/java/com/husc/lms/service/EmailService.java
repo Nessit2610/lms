@@ -41,15 +41,20 @@ public class EmailService {
     @Transactional
     public void sendConfirmationEmail(String toEmail) throws UnsupportedEncodingException {
         try {
+        	
+        	if (!isHuscEmail(toEmail)) {
+        	    throw new AppException(ErrorCode.INVALID_EMAIL_DOMAIN);
+        	}
+
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-
+            
             helper.setTo(toEmail);
             helper.setSubject("Xác nhận đăng ký tài khoản - HUSC LMS");
             helper.setFrom(new InternetAddress("husclms@gmail.com", "HUSC LMS"));
 
             if(accountRepository.existsByUsername(toEmail)) {
-    			throw new AppException(ErrorCode.USER_EXISTED);
+    			throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
     		} 
 
             if (confirmationCodeRepository.existsByEmail(toEmail)) {
@@ -78,6 +83,12 @@ public class EmailService {
         int code = 100000 + random.nextInt(900000); // 6 chữ số
         return String.valueOf(code);
     }
+    
+    public boolean isHuscEmail(String email) {
+        String regex = "^[a-zA-Z0-9._%+-]+@husc\\.edu\\.vn$";
+        return email != null && email.matches(regex);
+    }
+
 
     private String buildHtmlContent(String confirmationCode) {
         return """
