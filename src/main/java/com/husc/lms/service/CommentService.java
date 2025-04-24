@@ -66,7 +66,7 @@ public class CommentService {
 
 //        Account account = accountRepository.findByUsername(context.getAuthentication().getName())
 //            .orElseThrow(() -> new RuntimeException("Account not found"));
-		Account account = accountRepository.findByUsername(message.getAccountId())
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(message.getAccountId())
 				.orElseThrow(() -> new RuntimeException("Account not found"));
         Chapter chapter = chapterRepository.findById(message.getChapterId())
             .orElseThrow(() -> new RuntimeException("Chapter not found"));
@@ -206,7 +206,7 @@ public class CommentService {
     @Transactional
     public void saveCommentWithReadStatusAndNotification(CommentMessage commentMessage) {
         // Lấy thông tin cần thiết từ message
-        Account account = accountRepository.findByUsername(commentMessage.getAccountId())
+        Account account = accountRepository.findByUsernameAndDeletedDateIsNull(commentMessage.getAccountId())
             .orElseThrow(() -> new RuntimeException("Account not found"));
 
         Chapter chapter = chapterRepository.findById(commentMessage.getChapterId())

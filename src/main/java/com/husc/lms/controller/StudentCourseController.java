@@ -1,11 +1,10 @@
 package com.husc.lms.controller;
 
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,16 +34,19 @@ public class StudentCourseController {
 	}
 	
 	@GetMapping("/mycourse")
-	public APIResponse<List<CourseViewResponse>> getAllCourseOfStudent(){
-		return APIResponse.<List<CourseViewResponse>>builder()
-				.result(studentCourseService.getAllCourseOfStudent())
+	public APIResponse<Page<CourseViewResponse>> getAllCourseOfStudent(@RequestParam("pageNumber") int pageNumber,
+																	@RequestParam("pageSize") int pageSize){
+		return APIResponse.<Page<CourseViewResponse>>builder()
+				.result(studentCourseService.getAllCourseOfStudent(pageNumber,pageSize))
 				.build();
 	}
 	
-	@GetMapping("/studentofcourse/{courseId}")
-	public APIResponse<List<StudentOfCourseResponse>> getAllStudentOfCourse(@PathVariable("courseId") String courseId){
-		return APIResponse.<List<StudentOfCourseResponse>>builder()
-				.result(studentCourseService.getAllStudentOfCourse(courseId))
+	@GetMapping("/studentofcourse")
+	public APIResponse<Page<StudentOfCourseResponse>> getAllStudentOfCourse(@RequestParam("courseId") String courseId,
+																			@RequestParam("pageNumber") int pageNumber,
+																			@RequestParam("pageSize") int pageSize){
+		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+				.result(studentCourseService.getAllStudentOfCourse(courseId,pageNumber,pageSize))
 				.build();
 	}
 	

@@ -68,7 +68,7 @@ public class NotificationService {
     public CommentNotificationResponse getAllUnreadCommentNotificationOfAccount() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Account account =	 accountRepository.findByUsername(username)
+        Account account =	 accountRepository.findByUsernameAndDeletedDateIsNull(username)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
         // Lấy tất cả notification COMMENT của người dùng
@@ -94,7 +94,7 @@ public class NotificationService {
         }
 
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        Account account = accountRepository.findByUsername(username)
+        Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
         // Truyền cả account và danh sách notifications để xử lý chính xác

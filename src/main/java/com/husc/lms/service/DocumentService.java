@@ -51,7 +51,7 @@ public class DocumentService {
 	public DocumentResponse createDocument(String title, String description, String status, String majorId, MultipartFile file, String type) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		
 		String statuss = switch (status) {
         case "PRIVATE" -> DocumentStatus.PRIVATE.name();
@@ -80,7 +80,7 @@ public class DocumentService {
 	public boolean deleteDocument(String id) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Document document = documentRepository.findByIdAndAccount(id,account);
 		if(document != null) {
 			documentRepository.deleteById(id);
@@ -104,7 +104,7 @@ public class DocumentService {
 	public List<DocumentResponse> getAllMyDocument(){
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		List<Document> documents = documentRepository.findByAccount(account);
 		List<DocumentResponse> documentResponses = new ArrayList<DocumentResponse>();
 		for(Document d : documents) {
@@ -120,7 +120,7 @@ public class DocumentService {
 	public boolean setStatus(String id, String status) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Document document = documentRepository.findByIdAndAccount(id,account);
 		String statuss = switch (status) {
         case "PRIVATE" -> DocumentStatus.PRIVATE.name();

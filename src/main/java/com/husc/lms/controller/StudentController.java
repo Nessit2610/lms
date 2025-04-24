@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,11 +45,13 @@ public class StudentController {
 	}
 	
 	@PostMapping("/search")
-	public APIResponse<List<StudentOfCourseResponse>> searchStudent(@RequestParam("fullName") String fullName,
+	public APIResponse<Page<StudentOfCourseResponse>> searchStudent(@RequestParam("fullName") String fullName,
 															@RequestParam("email") String email,
-															@RequestParam("majorName") String majorName){
-		return APIResponse.<List<StudentOfCourseResponse>>builder()
-				.result(studentService.searchStudents(fullName, email, majorName))
+															@RequestParam("majorName") String majorName,
+															@RequestParam("pageNumber") int pageNumber,
+															@RequestParam("pageSize") int pageSize){
+		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+				.result(studentService.searchStudents(fullName, email, majorName,pageNumber,pageSize))
 				.build();
 		
 	}

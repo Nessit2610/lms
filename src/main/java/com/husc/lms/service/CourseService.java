@@ -8,11 +8,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -72,7 +76,7 @@ public class CourseService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Teacher teacher = teacherRepository.findByAccount(account);
 		
 		String status = switch (request.getStatus()) {
@@ -130,42 +134,78 @@ public class CourseService {
 		return false;
 	}
 	
-	public List<CourseViewResponse> getAllPublicCourse(){
-		List<Course> courses = courseRepository.findByStatusInAndDeletedDateIsNull(Arrays.asList(StatusCourse.PUBLIC.name(), StatusCourse.REQUEST.name()));
+	public Page<CourseViewResponse> getAllPublicCourse(int pageNumber , int pageSize){
+		
+		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
+	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	    
+	    Pageable pageable = PageRequest.of(page, size);
+		Page<Course> courses = courseRepository.findByStatusInAndDeletedDateIsNull(Arrays.asList(StatusCourse.PUBLIC.name(), StatusCourse.REQUEST.name()), pageable);
 
-		List<CourseViewResponse> courseResponses = new ArrayList<CourseViewResponse>();
-		for(Course c : courses) {
-			CourseViewResponse cr = courseMapper.toCourseViewResponse(c);
-			cr.setStudentCount(studentCourseRepository.countStudentsByCourse(c));
-			cr.setLessonCount(lessonRepository.countLessonsByCourse(c));
-			courseResponses.add(cr);
-		}
-		return courseResponses;
+		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {
+	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
+	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
+	        cr.setLessonCount(lessonRepository.countLessonsByCourse(course));
+	        return cr;
+	    });
+		
+		return courseResponsePage;
 	}
 	
-	public List<CourseViewResponse> searchCourses(String courseName, String teacherName) {
+	public Page<CourseViewResponse> getAllPublicCourseForStudent(int pageNumber , int pageSize){
+		
+		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
+		int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+		
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Course> courses = courseRepository.findByStatusInAndDeletedDateIsNull(Arrays.asList(StatusCourse.PUBLIC.name(), StatusCourse.REQUEST.name()), pageable);
+		
+		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {
+			CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
+			cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
+			cr.setLessonCount(lessonRepository.countLessonsByCourse(course));
+			return cr;
+		});
+		
+		return courseResponsePage;
+	}
+	
+	public Page<CourseViewResponse> searchCourses(String courseName, String teacherName, int pageNumber , int pageSize) {
 	    if (courseName != null && courseName.trim().isEmpty()) courseName = null;
 	    if (teacherName != null && teacherName.trim().isEmpty()) teacherName = null;
 
-	    return courseRepository.searchByCourseNameAndTeacherName(courseName, teacherName).stream().map(courseMapper::toCourseViewResponse).toList();
+	    int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
+	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	    
+	    Pageable pageable = PageRequest.of(page, size);
+	    
+	    Page<Course> cPage = courseRepository.searchByCourseNameAndTeacherName(courseName, teacherName,pageable);
+	    
+	    return cPage.map(courseMapper::toCourseViewResponse);
 	}
 
 	
-	public List<CourseViewResponse> getCourseOfTeacher(){
+	public Page<CourseViewResponse> getCourseOfTeacher(int pageNumber , int pageSize){
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Teacher teacher = teacherRepository.findByAccount(account);
-		List<Course> courses = courseRepository.findByTeacherAndDeletedDateIsNull(teacher);
-		List<CourseViewResponse> courseResponses = new ArrayList<CourseViewResponse>();
-		for(Course c : courses) {
-			CourseViewResponse cr = courseMapper.toCourseViewResponse(c);
-			cr.setStudentCount(studentCourseRepository.countStudentsByCourse(c));
-			cr.setLessonCount(lessonRepository.countLessonsByCourse(c));
-			courseResponses.add(cr);
-		}
-		return courseResponses;
+		
+		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
+	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	    
+	    Pageable pageable = PageRequest.of(page, size);
+		
+		
+		Page<Course> courses = courseRepository.findByTeacherAndDeletedDateIsNull(teacher, pageable);
+		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {
+	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
+	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
+	        cr.setLessonCount(lessonRepository.countLessonsByCourse(course));
+	        return cr;
+	    });
+		
+		return courseResponsePage;
 	}
 	
 	public String uploadPhoto(String id, MultipartFile file) {

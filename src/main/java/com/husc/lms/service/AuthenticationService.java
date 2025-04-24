@@ -93,7 +93,7 @@ public class AuthenticationService {
 				.build();
 		
 		Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-		
+
 		JWSObject jwsObject = new JWSObject(header,payload);
 		
 		try {
@@ -108,7 +108,7 @@ public class AuthenticationService {
 	public AuthenticationResponse Authenticate(AuthenticationRequest request){
 		
 		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-		var account = accountRepository.findByUsername(request.getUsername())
+		var account = accountRepository.findByUsernameAndDeletedDateIsNull(request.getUsername())
 				.orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 		
 		boolean auth =  passwordEncoder.matches(request.getPassword(), account.getPassword());
@@ -177,7 +177,7 @@ public class AuthenticationService {
 		InvalidatedToken invalidatedToken = InvalidatedToken.builder().id(jit).expiryTime(expiryTime).build();
 		invalidatedTokenRepository.save(invalidatedToken);
 		var username = signJWT.getJWTClaimsSet().getSubject();
-		var acccount = accountRepository.findByUsername(username).orElseThrow(
+		var acccount = accountRepository.findByUsernameAndDeletedDateIsNull(username).orElseThrow(
 				() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND)
 				); 
 		var token = generateToken(acccount);

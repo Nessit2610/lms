@@ -50,10 +50,10 @@ public class CommentReplyService {
     @Transactional
     public void saveCommentReplyWithReadStatusAndNotification(CommentReplyMessage message) {
         // Lấy các entity cần thiết
-        Account ownerAccount = accountRepository.findByUsername(message.getOwnerAccountId())
+        Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getOwnerAccountId())
             .orElseThrow(() -> new RuntimeException("Owner account not found"));
 
-        Account replyAccount = accountRepository.findByUsername(message.getReplyAccountId())
+        Account replyAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getReplyAccountId())
             .orElseThrow(() -> new RuntimeException("Reply account not found"));
 
         Chapter chapter = chapterRepository.findById(message.getChapterId())

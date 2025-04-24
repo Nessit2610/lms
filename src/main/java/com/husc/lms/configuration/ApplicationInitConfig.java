@@ -38,7 +38,7 @@ public class ApplicationInitConfig {
     ApplicationRunner applicationRunner(AccountRepository accountRepository, RoleRepository roleRepository) {
         log.info("Initializing application.....");
         return args -> {
-            if (accountRepository.findByUsername(ADMIN_USER_NAME).isEmpty()) {
+            if (accountRepository.findByUsernameAndDeletedDateIsNull(ADMIN_USER_NAME).isEmpty()) {
             	
                 roleRepository.save(Role.builder()
                         .name(PredefinedRole.STUDENT_ROLE)

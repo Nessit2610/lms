@@ -3,6 +3,8 @@ package com.husc.lms.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -23,9 +25,10 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 	           "WHERE (:fullName IS NULL OR LOWER(s.fullName) LIKE LOWER(CONCAT('%', :fullName, '%'))) " +
 	           "AND (:email IS NULL OR LOWER(s.email) LIKE LOWER(CONCAT('%', :email, '%'))) " +
 	           "AND (:majorName IS NULL OR LOWER(s.major.name) LIKE LOWER(CONCAT('%', :majorName, '%')))")
-    List<Student> searchStudent(
+    Page<Student> searchStudent(
         @Param("fullName") String fullName,
         @Param("email") String email,
-        @Param("majorName") String majorName
+        @Param("majorName") String majorName,
+        Pageable pageable
     );
 }

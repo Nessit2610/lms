@@ -14,7 +14,7 @@ import com.husc.lms.entity.Account;
 public interface AccountRepository extends JpaRepository<Account, String>{
 
 	public boolean existsByUsername(String username);
-	public Optional<Account> findByUsername(String username); 
+	public Optional<Account> findByUsernameAndDeletedDateIsNull(String username);
 	
 	@Query("SELECT r.name FROM Account a JOIN a.roles r WHERE a.id = :id")
 	List<String> findRoleNamesByAccountId(@Param("id") String accountId);

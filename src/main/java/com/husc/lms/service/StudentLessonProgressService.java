@@ -36,7 +36,7 @@ public class StudentLessonProgressService {
 	public StudentLessonProgressResponse saveProgressLesson(String lessonId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Student student = studentRepository.findByAccount(account);
 		Lesson lesson = lessonRepository.findById(lessonId).get();
 		StudentLessonProgress slp = StudentLessonProgress.builder()
@@ -55,7 +55,7 @@ public class StudentLessonProgressService {
 	public StudentLessonProgressResponse setCompletedLesson(String lessonId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Student student = studentRepository.findByAccount(account);
 		Lesson lesson = lessonRepository.findById(lessonId).get();
 		StudentLessonProgress slp = studentLessonProgressRepository.findByLessonAndStudent(lesson,student);
@@ -71,7 +71,7 @@ public class StudentLessonProgressService {
 	public StudentLessonProgressResponse getLessonProgress(String lessonId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Student student = studentRepository.findByAccount(account);
 		Lesson lesson = lessonRepository.findById(lessonId).get();
 		StudentLessonProgress slp = studentLessonProgressRepository.findByLessonAndStudent(lesson,student);

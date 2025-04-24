@@ -2,6 +2,8 @@ package com.husc.lms.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,11 +17,11 @@ import com.husc.lms.entity.StudentCourse;
 public interface StudentCourseRepository extends JpaRepository<StudentCourse, String> {
 	@Query("SELECT sc.course FROM StudentCourse sc " +
 	       "WHERE sc.student = :student AND sc.deletedDate IS NULL")
-	List<Course> findByStudent(@Param("student") Student student);
+	Page<Course> findCourseByStudent(@Param("student") Student student, Pageable pageable);
 
 	@Query("SELECT sc.student FROM StudentCourse sc " +
 	       "WHERE sc.course = :course AND sc.deletedDate IS NULL")
-	List<Student> findStudentByCourse(@Param("course") Course course);
+	Page<Student> findStudentByCourse(@Param("course") Course course, Pageable pageable);
 
 	@Query("SELECT COUNT(sc.student) FROM StudentCourse sc " +
 	       "WHERE sc.course = :course AND sc.deletedDate IS NULL")

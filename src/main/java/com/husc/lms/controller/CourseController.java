@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,23 +35,28 @@ public class CourseController {
 	private CourseService courseService;
 	
 	@GetMapping
-	public APIResponse<List<CourseViewResponse>> getAllPublicCourse(){
-		return APIResponse.<List<CourseViewResponse>>builder()
-				.result(courseService.getAllPublicCourse())
+	public APIResponse<Page<CourseViewResponse>> getAllPublicCourse(@RequestParam("pageNumber") int pageNumber,
+																	@RequestParam("pageSize") int pageSize){
+		return APIResponse.<Page<CourseViewResponse>>builder()
+				.result(courseService.getAllPublicCourse(pageNumber,pageSize))
 				.build();
 	}
 	
 	@PostMapping("/search")
-	public APIResponse<List<CourseViewResponse>> searchCourse(@RequestParam("courseName") String courseName, @RequestParam("teacherName") String teacherName){
-		return APIResponse.<List<CourseViewResponse>>builder()
-				.result(courseService.searchCourses(courseName, teacherName))
+	public APIResponse<Page<CourseViewResponse>> searchCourse(@RequestParam("courseName") String courseName, 
+															@RequestParam("teacherName") String teacherName,
+															@RequestParam("pageNumber") int pageNumber,
+															@RequestParam("pageSize") int pageSize){
+		return APIResponse.<Page<CourseViewResponse>>builder()
+				.result(courseService.searchCourses(courseName, teacherName,pageNumber,pageSize))
 				.build();
 	}
 
 	@GetMapping("/courseofteacher")
-	public APIResponse<List<CourseViewResponse>> getCourseOfTeacher(){
-		return APIResponse.<List<CourseViewResponse>>builder()
-				.result(courseService.getCourseOfTeacher())
+	public APIResponse<Page<CourseViewResponse>> getCourseOfTeacher(@RequestParam("pageNumber") int pageNumber,
+																	@RequestParam("pageSize") int pageSize){
+		return APIResponse.<Page<CourseViewResponse>>builder()
+				.result(courseService.getCourseOfTeacher(pageNumber,pageSize))
 				.build();
 	}
 	

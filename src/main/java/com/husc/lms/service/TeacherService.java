@@ -63,7 +63,7 @@ public class TeacherService {
 	public TeacherInfoResponse getTeacherInfo() {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Teacher teacher = teacherRepository.findByAccount(account);
 		return teacherMapper.toTeacherInfoResponse(teacher);
 	}

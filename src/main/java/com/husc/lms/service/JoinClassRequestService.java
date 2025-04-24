@@ -64,9 +64,13 @@ public class JoinClassRequestService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Student student = studentRepository.findByAccount(account);
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
+		
+		if(course.getStatus().contains(StatusCourse.PRIVATE.name())) {
+			throw new AppException(ErrorCode.CAN_NOT_REQUEST);
+		}
 		
 		if(joinClassRequestRepository.existsByStudentAndCourseAndStatus(student, course, JoinClassStatus.PENDING.name())
 		|| joinClassRequestRepository.existsByStudentAndCourseAndStatus(student, course, JoinClassStatus.APPROVED.name())) {

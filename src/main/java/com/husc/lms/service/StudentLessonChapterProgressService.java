@@ -38,7 +38,7 @@ public class StudentLessonChapterProgressService {
 	public StudentLessonChapterProgressResponse saveChapterProgress(String chapterId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Student student = studentRepository.findByAccount(account);
 		Chapter chapter = chapterRepository.findById(chapterId).get();
 		StudentLessonChapterProgress slcp = StudentLessonChapterProgress.builder()
@@ -54,7 +54,7 @@ public class StudentLessonChapterProgressService {
 	public StudentLessonChapterProgressResponse setCompleteChapter(String chapterId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Student student = studentRepository.findByAccount(account);
 		Chapter chapter = chapterRepository.findById(chapterId).get();
 		StudentLessonChapterProgress slcp = slcpRepository.findByStudentAndChapter(student, chapter);
@@ -69,7 +69,7 @@ public class StudentLessonChapterProgressService {
 	public StudentLessonChapterProgressResponse getChapterProgress(String chapterId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Student student = studentRepository.findByAccount(account);
 		Chapter chapter = chapterRepository.findById(chapterId).get();
 		StudentLessonChapterProgress slcp = slcpRepository.findByStudentAndChapter(student, chapter);

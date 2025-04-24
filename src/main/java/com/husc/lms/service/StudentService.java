@@ -1,27 +1,22 @@
 package com.husc.lms.service;
 
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import javax.imageio.ImageIO;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.request.AccountRequest;
@@ -30,7 +25,6 @@ import com.husc.lms.dto.response.AccountResponse;
 import com.husc.lms.dto.response.StudentOfCourseResponse;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Account;
-import com.husc.lms.entity.ConfirmationCode;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.StudentMapper;
@@ -86,18 +80,23 @@ public class StudentService {
 	}
 	
 	
-	public List<StudentOfCourseResponse> searchStudents(String fullName, String email, String majorName) {
+	public Page<StudentOfCourseResponse> searchStudents(String fullName, String email, String majorName, int pageNumber, int pageSize) {
 	    if (fullName != null && fullName.trim().isEmpty()) fullName = null;
 	    if (email != null && email.trim().isEmpty()) email = null;
 	    if (majorName != null && majorName.trim().isEmpty()) majorName = null;
-	    return studentRepository.searchStudent(fullName, email, majorName).stream().map(studentMapper::tosStudentOfCourseResponse).toList();
+	    
+	    int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
+	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	    Pageable pageable = PageRequest.of(page, size);
+	    
+	    return studentRepository.searchStudent(fullName, email, majorName, pageable).map(studentMapper::tosStudentOfCourseResponse);
 	}
 
 	
 	public StudentResponse getStudentInfo() {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Student student = studentRepository.findByAccount(account);
 		return studentMapper.toStudentResponse(student);
 		

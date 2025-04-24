@@ -25,7 +25,7 @@ public class CommentReadStatusService {
         }
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Account account = accountRepository.findByUsername(username)
+        Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
         commentReadStatusRepository.setCommentsAsReadByAccount(comments, account);
     }

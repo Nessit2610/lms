@@ -1,10 +1,12 @@
 package com.husc.lms.service;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +18,6 @@ import com.husc.lms.entity.Course;
 import com.husc.lms.entity.JoinClassRequest;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentCourse;
-import com.husc.lms.entity.Teacher;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.JoinClassStatus;
 import com.husc.lms.exception.AppException;
@@ -28,7 +29,6 @@ import com.husc.lms.repository.JoinClassRequestRepository;
 import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.StudentCourseRepository;
 import com.husc.lms.repository.StudentRepository;
-import com.husc.lms.repository.TeacherRepository;
 
 @Service
 public class StudentCourseService {
@@ -85,7 +85,7 @@ public class StudentCourseService {
 	public boolean deleteStudentOfCourse(String studentId, String courseId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
 		Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		if(course != null && student != null) {
@@ -106,32 +106,37 @@ public class StudentCourseService {
 		return false;
 	}
 	
-	public List<CourseViewResponse> getAllCourseOfStudent() {
+	public Page<CourseViewResponse> getAllCourseOfStudent(int pageNumber, int pageSize) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsername(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 		Student student = studentRepository.findByAccount(account);
-		List<Course> courses = studentCourseRepository.findByStudent(student);
-		List<CourseViewResponse> courseResponses = new ArrayList<CourseViewResponse>();
-		for(Course c : courses) {
-			CourseViewResponse cr = courseMapper.toCourseViewResponse(c);
-			cr.setStudentCount(studentCourseRepository.countStudentsByCourse(c));
-			cr.setLessonCount(lessonRepository.countLessonsByCourse(c));
-			courseResponses.add(cr);
-		}
 		
-		return courseResponses;	}
-	
-	public List<StudentOfCourseResponse> getAllStudentOfCourse(String courseId){
-		Course course = courseRepository.findById(courseId).get();
-		List<Student> listSoC = studentCourseRepository.findStudentByCourse(course);
-		return listSoC.stream().map(studentMapper::tosStudentOfCourseResponse).toList();
+		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
+	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	    
+	    Pageable pageable = PageRequest.of(page, size);
+	    
+		Page<Course> coursePage = studentCourseRepository.findCourseByStudent(student,pageable);
+		Page<CourseViewResponse> courseResponsePage = coursePage.map(course -> {
+	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
+	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
+	        cr.setLessonCount(lessonRepository.countLessonsByCourse(course));
+	        return cr;
+	    });
+		
+		return courseResponsePage;	
 	}
 	
-//	public List<StudentOfCourseResponse> getAllStudentNotInCourse(String courseId){
-//		Course course = courseRepository.findById(courseId).get();
-//		List<Student> listSoC = studentRepository.findStudentsNotInCourse(course);
-//		return listSoC.stream().map(studentMapper::tosStudentOfCourseResponse).toList();
-//	}
-	
+	public Page<StudentOfCourseResponse> getAllStudentOfCourse(String courseId, int pageNumber, int pageSize){
+		
+		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
+	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	    
+	    Pageable pageable = PageRequest.of(page, size);
+	    
+		Course course = courseRepository.findById(courseId).get();
+		Page<Student> listSoC = studentCourseRepository.findStudentByCourse(course, pageable);
+		return listSoC.map(studentMapper::tosStudentOfCourseResponse);
+	}
 }

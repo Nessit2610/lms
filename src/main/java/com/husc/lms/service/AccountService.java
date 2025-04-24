@@ -124,7 +124,7 @@ public class AccountService {
 	    var context = SecurityContextHolder.getContext();
 	    String username = context.getAuthentication().getName();
 
-	    Account account = accountRepository.findByUsername(username).orElseThrow( () -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username).orElseThrow( () -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 
 	    if (!passwordEncoder.matches(request.getOldPassword(), account.getPassword())) {
 	        throw new AppException(ErrorCode.OLD_PASSWORD_INCORRECT);
