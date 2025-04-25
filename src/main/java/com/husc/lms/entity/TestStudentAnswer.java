@@ -1,9 +1,5 @@
 package com.husc.lms.entity;
 
-import java.time.OffsetDateTime;
-import java.util.Date;
-import java.util.List;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,34 +8,35 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "lms_test_student_answer")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity
-@Table(name = "lms_group")
-public class Group {
-	@Id
+public class TestStudentAnswer {
+    @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
-	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "teacherId")
-	private Teacher teacher;
-	
-	@OneToMany(fetch = FetchType.LAZY)
-	private List<Post> post;
-	
-	@OneToMany(fetch = FetchType.LAZY)
-	private List<StudentGroup> studentGroups;
-	
-	private Date createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resultId")
+    private TestStudentResult result;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "questionId")
+    private TestQuestion question;
+
+    // VD: "A", hoặc "A,B" nếu là multiple choice
+    private String answer;
+
+    // Tự động tính đúng hay sai
+    private boolean isCorrect;
 }

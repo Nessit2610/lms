@@ -1,9 +1,9 @@
 package com.husc.lms.entity;
 
-import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -19,27 +19,33 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+@Entity
+@Table(name = "lms_test_student_result")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity
-@Table(name = "lms_group")
-public class Group {
+public class TestStudentResult {
 	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
-	
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "teacherId")
-	private Teacher teacher;
-	
-	@OneToMany(fetch = FetchType.LAZY)
-	private List<Post> post;
-	
-	@OneToMany(fetch = FetchType.LAZY)
-	private List<StudentGroup> studentGroups;
-	
-	private Date createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "studentId")
+    private Student student;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "testId")
+    private TestInGroup test;
+
+    private int totalCorrect; // số câu đúng
+
+    private double score; // điểm
+
+    private Date submittedAt;
+
+    @OneToMany(mappedBy = "result", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TestStudentAnswer> answers;
+
 }
