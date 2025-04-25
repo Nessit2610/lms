@@ -22,5 +22,5 @@ public class StudentRequest {
     
     private String fullName;
 
-    private String majorID;
+    private String majorId;
 }

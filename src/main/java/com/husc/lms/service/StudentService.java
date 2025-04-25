@@ -67,7 +67,7 @@ public class StudentService {
 			throw new AppException(ErrorCode.EMAIL_NOTCONFIRM);
 		}
 		
-		Major major = majorRepository.findById(request.getMajorID()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
+		Major major = majorRepository.findById(request.getMajorId()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
 		
 		AccountRequest uRequest = AccountRequest.builder()
 				.password(request.getPassword())
