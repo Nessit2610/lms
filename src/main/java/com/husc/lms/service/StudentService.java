@@ -25,12 +25,14 @@ import com.husc.lms.dto.response.AccountResponse;
 import com.husc.lms.dto.response.StudentOfCourseResponse;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Account;
+import com.husc.lms.entity.Major;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.StudentMapper;
 import com.husc.lms.repository.StudentRepository;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ConfirmationCodeRepository;
+import com.husc.lms.repository.MajorRepository;
 
 
 @Service
@@ -48,6 +50,10 @@ public class StudentService {
 	@Autowired
 	private ConfirmationCodeRepository codeRepository;
 	
+	
+	@Autowired
+	private MajorRepository majorRepository;
+	
 	@Autowired
 	private AccountService accountService;
 	
@@ -61,6 +67,8 @@ public class StudentService {
 			throw new AppException(ErrorCode.EMAIL_NOTCONFIRM);
 		}
 		
+		Major major = majorRepository.findById(request.getMajorID()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
+		
 		AccountRequest uRequest = AccountRequest.builder()
 				.password(request.getPassword())
 				.email(request.getEmail())
@@ -70,6 +78,7 @@ public class StudentService {
 		
 		Student student = studentMapper.toStudent(request);
 				student.setAccount(account);
+				student.setMajor(major);
 		student = studentRepository.save(student);
 		
 		return studentMapper.toStudentResponse(student);
