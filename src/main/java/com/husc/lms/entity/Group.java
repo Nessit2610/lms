@@ -1,6 +1,5 @@
 package com.husc.lms.entity;
 
-import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -30,6 +29,10 @@ public class Group {
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
     private String id;
+	
+	private String name;
+	
+	private String description;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "teacherId")
