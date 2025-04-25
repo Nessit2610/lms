@@ -138,11 +138,7 @@ public class CourseService {
 	}
 	
 	public Page<CourseViewResponse> getAllPublicCourse(int pageNumber , int pageSize){
-		
-		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
-	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
-	    
-	    Pageable pageable = PageRequest.of(page, size);
+	    Pageable pageable = PageRequest.of(pageNumber, pageSize);
 		Page<Course> courses = courseRepository.findByStatusInAndDeletedDateIsNull(Arrays.asList(StatusCourse.PUBLIC.name(), StatusCourse.REQUEST.name()), pageable);
 
 		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {

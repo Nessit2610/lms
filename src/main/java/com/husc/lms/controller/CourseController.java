@@ -35,8 +35,8 @@ public class CourseController {
 	private CourseService courseService;
 	
 	@GetMapping
-	public APIResponse<Page<CourseViewResponse>> getAllPublicCourse(@RequestParam("pageNumber") int pageNumber,
-																	@RequestParam("pageSize") int pageSize){
+	public APIResponse<Page<CourseViewResponse>> getAllPublicCourse(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+	        														@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<CourseViewResponse>>builder()
 				.result(courseService.getAllPublicCourse(pageNumber,pageSize))
 				.build();
