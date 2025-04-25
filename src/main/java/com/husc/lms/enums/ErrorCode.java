@@ -36,7 +36,8 @@ public enum ErrorCode {
 	CHAPTER_ORDER_DUPLICATE(1023, "Thứ tự chương đã tồn tại trong bài học", HttpStatus.BAD_REQUEST),
 	EMAIL_ALREADY_USED(1024, "Email đã được sử dụng", HttpStatus.BAD_REQUEST),
 	CAN_NOT_REQUEST(1025, "Không thể đăng ký khóa học", HttpStatus.BAD_REQUEST),
-	TOKEN_INVALID(1026, "Token không hợp lệ", HttpStatus.BAD_REQUEST);
+	TOKEN_INVALID(1026, "Token không hợp lệ", HttpStatus.BAD_REQUEST),
+	GROUP_NOT_FOUND(1027, "Không tìm thấy nhóm", HttpStatus.NOT_FOUND);
 
 	
 	
