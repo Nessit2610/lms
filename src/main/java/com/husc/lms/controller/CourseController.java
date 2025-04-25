@@ -42,6 +42,14 @@ public class CourseController {
 				.build();
 	}
 	
+	@GetMapping("/courseofmajorfirst")
+	public APIResponse<Page<CourseViewResponse>> getAllPublicCourseSortByMajor(@RequestParam("pageNumber") int pageNumber,
+																				@RequestParam("pageSize") int pageSize){
+		return APIResponse.<Page<CourseViewResponse>>builder()
+				.result(courseService.getAllPublicCourseSortByMajor(pageNumber,pageSize))
+				.build();
+	}
+	
 	@PostMapping("/search")
 	public APIResponse<Page<CourseViewResponse>> searchCourse(@RequestParam("courseName") String courseName, 
 															@RequestParam("teacherName") String teacherName,

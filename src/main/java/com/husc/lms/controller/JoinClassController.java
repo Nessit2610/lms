@@ -3,6 +3,7 @@ package com.husc.lms.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -43,17 +44,21 @@ public class JoinClassController {
 				.build();
 	}
 	
-	@GetMapping("/studentrequest/{courseId}")
-	public APIResponse<List<StudentOfCourseResponse>> getAllStudentRequestOfCourse(@PathVariable("courseId") String courseId) {
-		return APIResponse.<List<StudentOfCourseResponse>>builder()
-				.result(joinClassRequestService.getAllStudentRequestOfCourse(courseId))
+	@GetMapping("/studentrequest")
+	public APIResponse<Page<StudentOfCourseResponse>> getAllStudentRequestOfCourse(@RequestParam("courseId") String courseId,
+																					@RequestParam("pageNumber") int pageNumber,
+																					@RequestParam("pageSize") int pageSize) {
+		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+				.result(joinClassRequestService.getAllStudentRequestOfCourse(courseId,pageNumber,pageSize))
 				.build();
 	}
 	
-	@GetMapping("/courserequest/{studentId}")
-	public APIResponse<List<CourseViewResponse>> getAllCourseRequestOfStudent(@PathVariable("studentId") String studentId) {
-		return APIResponse.<List<CourseViewResponse>>builder()
-				.result(joinClassRequestService.getAllCourseRequestOfStudent(studentId))
+	@GetMapping("/courserequest")
+	public APIResponse<Page<CourseViewResponse>> getAllCourseRequestOfStudent(@RequestParam("studentId") String studentId,
+																				@RequestParam("pageNumber") int pageNumber,
+																				@RequestParam("pageSize") int pageSize) {
+		return APIResponse.<Page<CourseViewResponse>>builder()
+				.result(joinClassRequestService.getAllCourseRequestOfStudent(studentId,pageNumber,pageSize))
 				.build();
 	}
 	

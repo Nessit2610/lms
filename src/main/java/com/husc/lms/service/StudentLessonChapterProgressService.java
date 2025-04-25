@@ -1,5 +1,6 @@
 package com.husc.lms.service;
 
+import java.text.DecimalFormat;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentLessonChapterProgress;
+import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.StudentLessonChapterProgressMapper;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ChapterRepository;
@@ -81,5 +84,21 @@ public class StudentLessonChapterProgressService {
 		return slcpMapper.toResponse(slcp);
 	}
 	
-	
+	public double getPercentComplete(String courseId) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Student student = studentRepository.findByAccount(account);
+		long totalChapter = chapterRepository.countChaptersByCourseId(courseId);
+		if (totalChapter == 0) {
+	        return 0.0;
+	    }
+		long totalChapterComplete = slcpRepository.countCompletedChapters(student.getId(), courseId);
+		double percentComplete = ((double)totalChapterComplete/totalChapter)*100;
+		
+		DecimalFormat df = new DecimalFormat("#.##");
+		double roundedPercent = Double.parseDouble(df.format(percentComplete));
+
+		return roundedPercent;
+	}
 }

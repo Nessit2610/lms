@@ -3,8 +3,12 @@ package com.husc.lms.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -121,20 +125,31 @@ public class JoinClassRequestService {
 		return false;
 	}
 	
-	public List<StudentOfCourseResponse> getAllStudentRequestOfCourse(String courseId){
-		List<Student> students = joinClassRequestRepository.findAllStudentsByCourseIdAndStatus(courseId,JoinClassStatus.PENDING.name());
-		return students.stream().map(studentMapper::tosStudentOfCourseResponse).toList();
+	public Page<StudentOfCourseResponse> getAllStudentRequestOfCourse(String courseId, int pageNumber, int pageSize){
+		
+		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
+	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	    
+	    Pageable pageable = PageRequest.of(page, size);
+	    
+		Page<Student> students = joinClassRequestRepository.findAllStudentsByCourseIdAndStatus(courseId,JoinClassStatus.PENDING.name(),pageable);
+		return students.map(studentMapper::tosStudentOfCourseResponse);
 	}
 	
-	public List<CourseViewResponse> getAllCourseRequestOfStudent(String studentId){
-		List<Course> courses = joinClassRequestRepository.findAllCoursesByStudentIdAndStatus(studentId, JoinClassStatus.PENDING.name());
-		List<CourseViewResponse> courseResponses = new ArrayList<CourseViewResponse>();
-		for(Course c : courses) {
-			CourseViewResponse cr = courseMapper.toCourseViewResponse(c);
-			cr.setStudentCount(studentCourseRepository.countStudentsByCourse(c));
-			cr.setLessonCount(lessonRepository.countLessonsByCourse(c));
-			courseResponses.add(cr);
-		}
+	public Page<CourseViewResponse> getAllCourseRequestOfStudent(String studentId,int pageNumber, int pageSize){
+		
+		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
+	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	    
+	    Pageable pageable = PageRequest.of(page, size);
+		
+		Page<Course> courses = joinClassRequestRepository.findAllCoursesByStudentIdAndStatus(studentId, JoinClassStatus.PENDING.name(),pageable);
+		Page<CourseViewResponse> courseResponses = courses.map(course -> {
+	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
+	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
+	        cr.setLessonCount(lessonRepository.countLessonsByCourse(course));
+	        return cr;
+	    });
 		return courseResponses;	
 	} 
 }

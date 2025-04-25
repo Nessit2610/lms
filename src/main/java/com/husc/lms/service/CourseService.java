@@ -42,6 +42,7 @@ import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.StudentCourseRepository;
+import com.husc.lms.repository.StudentRepository;
 import com.husc.lms.repository.TeacherRepository;
 
 @Service
@@ -61,6 +62,9 @@ public class CourseService {
 	
 	@Autowired
 	private AccountRepository accountRepository;
+	
+	@Autowired
+	private StudentRepository studentRepository;
 	
 	@Autowired
 	private LessonService lessonService;
@@ -152,13 +156,20 @@ public class CourseService {
 		return courseResponsePage;
 	}
 	
-	public Page<CourseViewResponse> getAllPublicCourseForStudent(int pageNumber , int pageSize){
+	public Page<CourseViewResponse> getAllPublicCourseSortByMajor(int pageNumber , int pageSize){
+		
+		
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Student student = studentRepository.findByAccount(account);
 		
 		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
 		int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
 		
 		Pageable pageable = PageRequest.of(page, size);
-		Page<Course> courses = courseRepository.findByStatusInAndDeletedDateIsNull(Arrays.asList(StatusCourse.PUBLIC.name(), StatusCourse.REQUEST.name()), pageable);
+		
+		Page<Course> courses = courseRepository.findAllOrderByMatchingMajorFirst(student.getMajor().getName(), pageable);
 		
 		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {
 			CourseViewResponse cr = courseMapper.toCourseViewResponse(course);

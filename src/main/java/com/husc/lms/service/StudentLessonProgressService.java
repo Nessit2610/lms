@@ -14,6 +14,7 @@ import com.husc.lms.entity.StudentLessonProgress;
 import com.husc.lms.mapper.StudentLessonProgressMapper;
 import com.husc.lms.mapper.StudentLessonProgressMapperImpl;
 import com.husc.lms.repository.AccountRepository;
+import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.StudentLessonProgressRepository;
 import com.husc.lms.repository.StudentRepository;
@@ -82,5 +83,4 @@ public class StudentLessonProgressService {
 		}
 		return lessonProgressMapper.toStudentLessonProgressResponse(slp);
 	}
-	
 }

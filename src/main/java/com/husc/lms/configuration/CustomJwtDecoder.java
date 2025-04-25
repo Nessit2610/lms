@@ -14,6 +14,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.stereotype.Component;
 
 import com.husc.lms.dto.request.IntrospectRequest;
+import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
 
@@ -35,7 +37,7 @@ public class CustomJwtDecoder implements JwtDecoder {
                     IntrospectRequest.builder().token(token).build());
 
             if (!response.isValid()) {
-            	throw new JwtException("Token invalid");
+            	throw new AppException(ErrorCode.TOKEN_INVALID);
             }
         } catch (JOSEException | ParseException e) {
             throw new JwtException(e.getMessage());

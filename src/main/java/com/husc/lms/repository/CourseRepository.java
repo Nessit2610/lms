@@ -36,7 +36,14 @@ public interface CourseRepository extends JpaRepository<Course,String> {
 	);
 
 
-	@Query("SELECT c FROM Course c ORDER BY CASE WHEN c.major = :major THEN 0 ELSE 1 END")
-	Page<Course> findAllOrderByMatchingMajorFirst(@Param("major") String major, Pageable pageable);
+	@Query("SELECT c FROM Course c " +
+	       "WHERE c.deletedDate IS NULL " +
+	       "AND (c.status = 'PUBLIC' OR c.status = 'REQUEST') " +
+	       "ORDER BY CASE WHEN c.major = :major THEN 0 ELSE 1 END")
+	Page<Course> findAllOrderByMatchingMajorFirst(
+	    @Param("major") String major,
+	    Pageable pageable
+	);
+
 
 }

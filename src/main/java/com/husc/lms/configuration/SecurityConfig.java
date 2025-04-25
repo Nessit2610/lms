@@ -7,6 +7,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+import org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,6 +26,7 @@ import com.husc.lms.enums.Roles;
 
 @Configuration
 @EnableWebSecurity
+@EnableSpringDataWebSupport(pageSerializationMode = PageSerializationMode.VIA_DTO)
 public class SecurityConfig {
 	private final String[] PUBLIC_WS_API = {
 		    "/ws/**"

@@ -20,4 +20,16 @@ public interface StudentLessonChapterProgressRepository extends JpaRepository<St
     @Query("SELECT scp.student.id FROM StudentLessonChapterProgress scp WHERE scp.chapter.id = :chapterId")
     List<String> findStudentIdsByChapterCompleted(@Param("chapterId") String chapterId);
 
+    
+    @Query("SELECT COUNT(p) FROM StudentLessonChapterProgress p " +
+	       "WHERE p.student.id = :studentId " +
+	       "AND p.chapter.lesson.course.id = :courseId " +
+	       "AND p.isCompleted = true " +
+	       "AND p.deletedDate IS NULL")
+	long countCompletedChapters(
+	    @Param("studentId") String studentId,
+	    @Param("courseId") String courseId
+	);
+
+    
 }

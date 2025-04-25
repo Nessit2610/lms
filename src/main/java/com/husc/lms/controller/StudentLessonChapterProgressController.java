@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.response.APIResponse;
@@ -38,6 +39,13 @@ public class StudentLessonChapterProgressController {
 	public APIResponse<StudentLessonChapterProgressResponse> getProgress(@PathVariable("chapterId") String id) {
 		return APIResponse.<StudentLessonChapterProgressResponse>builder()
 				.result(slcpService.getChapterProgress(id))
+				.build();
+	}
+	
+	@GetMapping("/getpercent")
+	public APIResponse<Double> getPercentComplete(@RequestParam("courseId") String courseId){
+		return APIResponse.<Double>builder()
+				.result(slcpService.getPercentComplete(courseId))
 				.build();
 	}
 }
