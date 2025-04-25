@@ -26,6 +26,14 @@ public class EmailController {
 				.message("Email sending")
 				.build();
 	}
+	@PostMapping("/forgotpassword")
+	public APIResponse<Void> sendPasswordEmail(@RequestParam("email") String email) throws UnsupportedEncodingException{
+		emailService.sendPasswordEmail(email);
+		return APIResponse.<Void>builder()
+				.code(200)
+				.message("Email sending")
+				.build();
+	}
 	
 	@PostMapping("/verifycode")
 	public APIResponse<Boolean> verifyCode(@RequestParam("email") String email,
