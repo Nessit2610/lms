@@ -35,10 +35,10 @@ public class Group {
 	@JoinColumn(name = "teacherId")
 	private Teacher teacher;
 	
-	@OneToMany(fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "group" ,fetch = FetchType.LAZY)
 	private List<Post> post;
 	
-	@OneToMany(fetch = FetchType.LAZY)
+	@OneToMany(mappedBy = "group" ,fetch = FetchType.LAZY)
 	private List<StudentGroup> studentGroups;
 	
 	private Date createdAt;
