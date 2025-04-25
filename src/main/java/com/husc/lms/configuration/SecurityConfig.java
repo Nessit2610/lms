@@ -38,7 +38,7 @@ public class SecurityConfig {
 	private final String[] PUBLIC_API_V2 = {"/email/**"};
 	
 	
-	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create"};
+	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create","/group/create"};
 
 	private final String[] ADMIN_GET_API= {"/account"};
 	
