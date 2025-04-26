@@ -176,7 +176,7 @@ public class CommentReplyService {
 
         // Trả về DTO
         return CommentReplyResponse.builder()
-        	.parentCommentId(commentReply.getComment().getId())
+        	.parentCommentId(savedReply.getComment().getId())
             .commentReplyId(savedReply.getId())
             .usernameOwner(ownerAccount.getUsername())
             .fullnameOwner(fullnameOwner)

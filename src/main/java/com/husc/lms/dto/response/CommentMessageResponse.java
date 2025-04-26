@@ -15,11 +15,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CommentMessageResponse {
-//	private String chapterId;
-//    private String courseId;
-//    private String accountId;
-//    private String detail;
-//    private OffsetDateTime createdDate;
 	private String chapterId;
 	private String courseId;
 	private String commentId;
