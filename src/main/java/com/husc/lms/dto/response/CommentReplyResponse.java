@@ -12,9 +12,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CommentReplyResponse {
+	private String usernameOwner;
+	private String fullnameOwner;
 	private String commentReplyId;
-    private String username;
-    private String avatar;
+    private String usernameReply;
+    private String fullnameReply;
+    private String avatarReply;
     private String detail;
     private OffsetDateTime createdDate;
 }

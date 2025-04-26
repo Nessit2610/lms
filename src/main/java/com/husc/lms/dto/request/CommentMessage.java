@@ -14,7 +14,7 @@ public class CommentMessage {
 	
     private String chapterId;
     private String courseId;
-    private String accountId;
+    private String username;
     private String detail;
     private OffsetDateTime createdDate;
 }

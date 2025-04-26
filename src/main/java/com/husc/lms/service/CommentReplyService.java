@@ -9,6 +9,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.CommentReplyMessage;
+import com.husc.lms.dto.response.CommentReplyResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
@@ -47,13 +48,67 @@ public class CommentReplyService {
 	private final NotificationRepository notificationRepository;
     private final SimpMessagingTemplate messagingTemplate;
 	
+//    @Transactional
+//    public void saveCommentReplyWithReadStatusAndNotification(CommentReplyMessage message) {
+//        // Lấy các entity cần thiết
+//        Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getOwnerAccountId())
+//            .orElseThrow(() -> new RuntimeException("Owner account not found"));
+//
+//        Account replyAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getReplyAccountId())
+//            .orElseThrow(() -> new RuntimeException("Reply account not found"));
+//
+//        Chapter chapter = chapterRepository.findById(message.getChapterId())
+//            .orElseThrow(() -> new RuntimeException("Chapter not found"));
+//
+//        Course course = courseRepository.findById(message.getCourseId())
+//            .orElseThrow(() -> new RuntimeException("Course not found"));
+//
+//        // Sử dụng parentCommentId thay vì commentId
+//        Comment parentComment = commentRepository.findById(message.getParentCommentId())
+//            .orElseThrow(() -> new RuntimeException("Parent comment not found"));
+//
+//        // Tạo đối tượng CommentReply
+//        CommentReply commentReply = CommentReply.builder()
+//            .ownerAccount(ownerAccount)
+//            .replyAccount(replyAccount)
+//            .chapter(chapter)
+//            .course(course)
+//            .detail(message.getDetail())
+//            .createdDate(OffsetDateTime.now())
+//            .comment(parentComment)
+//            .build();
+//
+//        CommentReply savedReply = commentReplyRepository.save(commentReply);
+//
+//        // Tạo thông báo nếu người được reply khác với người reply
+//        if (!replyAccount.getId().equals(ownerAccount.getId())) {
+//            Notification notification = Notification.builder()
+//                .account(replyAccount)
+//                .commentReply(savedReply)
+//                .type(NotificationType.COMMENT_REPLY)
+//                .description(message.getDetail())
+//                .isRead(false)
+//                .createdAt(new Date())
+//                .build();
+//
+//            notificationRepository.save(notification);
+//
+//            // Gửi real-time notification
+//            String destination = "/topic/notifications/" + replyAccount.getUsername();
+//            Map<String, Object> payload = new HashMap<>();
+//            payload.put("message", notification.getDescription());
+//            payload.put("chapterId", chapter.getId());
+//            payload.put("createdDate", notification.getCreatedAt());
+//            messagingTemplate.convertAndSend(destination, payload);
+//        }
+//    }
     @Transactional
-    public void saveCommentReplyWithReadStatusAndNotification(CommentReplyMessage message) {
+    public CommentReplyResponse saveCommentReplyWithReadStatusAndNotification(CommentReplyMessage message) {
         // Lấy các entity cần thiết
-        Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getOwnerAccountId())
+        Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getOwnerUsername())
             .orElseThrow(() -> new RuntimeException("Owner account not found"));
 
-        Account replyAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getReplyAccountId())
+        Account replyAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getReplyUsername())
             .orElseThrow(() -> new RuntimeException("Reply account not found"));
 
         Chapter chapter = chapterRepository.findById(message.getChapterId())
@@ -62,11 +117,10 @@ public class CommentReplyService {
         Course course = courseRepository.findById(message.getCourseId())
             .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // Sử dụng parentCommentId thay vì commentId
         Comment parentComment = commentRepository.findById(message.getParentCommentId())
             .orElseThrow(() -> new RuntimeException("Parent comment not found"));
 
-        // Tạo đối tượng CommentReply
+        // Tạo CommentReply
         CommentReply commentReply = CommentReply.builder()
             .ownerAccount(ownerAccount)
             .replyAccount(replyAccount)
@@ -100,5 +154,37 @@ public class CommentReplyService {
             payload.put("createdDate", notification.getCreatedAt());
             messagingTemplate.convertAndSend(destination, payload);
         }
+
+        // Xử lý lấy avatar và full name của người reply
+        String fullnameReply = "";
+        String avatarReply = "";
+        if (replyAccount.getStudent() != null) {
+            fullnameReply = replyAccount.getStudent().getFullName();
+            avatarReply = replyAccount.getStudent().getAvatar();
+        } else if (replyAccount.getTeacher() != null) {
+            fullnameReply = replyAccount.getTeacher().getFullName();
+            avatarReply = replyAccount.getTeacher().getAvatar();
+        }
+
+        // Xử lý lấy full name của người được reply
+        String fullnameOwner = "";
+        if (ownerAccount.getStudent() != null) {
+            fullnameOwner = ownerAccount.getStudent().getFullName();
+        } else if (ownerAccount.getTeacher() != null) {
+            fullnameOwner = ownerAccount.getTeacher().getFullName();
+        }
+
+        // Trả về DTO
+        return CommentReplyResponse.builder()
+            .commentReplyId(savedReply.getId())
+            .usernameOwner(ownerAccount.getUsername())
+            .fullnameOwner(fullnameOwner)
+            .usernameReply(replyAccount.getUsername())
+            .fullnameReply(fullnameReply)
+            .avatarReply(avatarReply)
+            .detail(savedReply.getDetail())
+            .createdDate(savedReply.getCreatedDate())
+            .build();
     }
+
 }

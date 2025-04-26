@@ -6,6 +6,8 @@ import org.springframework.stereotype.Controller;
 
 import com.husc.lms.dto.request.CommentMessage;
 import com.husc.lms.dto.request.CommentReplyMessage;
+import com.husc.lms.dto.response.CommentMessageResponse;
+import com.husc.lms.dto.response.CommentReplyResponse;
 import com.husc.lms.service.CommentReplyService;
 import com.husc.lms.service.CommentService;
 
@@ -17,13 +19,26 @@ public class CommentWebSocketController {
 	private final CommentService commentService;
 	private final CommentReplyService commentReplyService;
 
+//	@MessageMapping("/comment")
+//	@SendTo("/topic/comments")
+//	public CommentMessage handleComment(CommentMessage message) {
+//	    try {
+////	        commentService.handleWebSocketComment(message);
+//	        commentService.saveCommentWithReadStatusAndNotification(message);
+//	        return message;
+//	    } catch (Exception e) {
+//	        e.printStackTrace();
+//	        return null;
+//	    }
+//	}
+	
 	@MessageMapping("/comment")
 	@SendTo("/topic/comments")
-	public CommentMessage handleComment(CommentMessage message) {
+	public CommentMessageResponse handleComment(CommentMessage message) {
 	    try {
 //	        commentService.handleWebSocketComment(message);
-	        commentService.saveCommentWithReadStatusAndNotification(message);
-	        return message;
+//	        commentService.saveCommentWithReadStatusAndNotification(message);
+	        return commentService.saveCommentWithReadStatusAndNotification(message);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        return null;
@@ -32,10 +47,9 @@ public class CommentWebSocketController {
 
 	@MessageMapping("/comment-reply")
 	@SendTo("/topic/comment-replies")
-	public CommentReplyMessage handleCommentReply(CommentReplyMessage message) {
+	public CommentReplyResponse handleCommentReply(CommentReplyMessage message) {
 	    try {
-	        commentReplyService.saveCommentReplyWithReadStatusAndNotification(message);
-	        return message;
+	        return commentReplyService.saveCommentReplyWithReadStatusAndNotification(message);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        return null;

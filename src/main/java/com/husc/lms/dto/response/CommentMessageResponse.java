@@ -3,6 +3,8 @@ package com.husc.lms.dto.response;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+import com.husc.lms.dto.request.CommentMessage;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,23 +14,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CommentChapterResponse {
-	private String commentId;
+public class CommentMessageResponse {
+//	private String chapterId;
+//    private String courseId;
+//    private String accountId;
+//    private String detail;
+//    private OffsetDateTime createdDate;
+	private String chapterId;
     private String username;
-    private String fullname;
     private String avatar;
     private String detail;
     private OffsetDateTime createdDate;
     private List<CommentReplyResponse> commentReplyResponses;
-    
-    
-	public CommentChapterResponse(String commentId, String username, String detail, OffsetDateTime createdDate) {
-		super();
-		this.commentId = commentId;
-		this.username = username;
-		this.detail = detail;
-		this.createdDate = createdDate;
-	}
-    
-    
 }
