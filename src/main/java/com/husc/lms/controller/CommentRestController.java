@@ -68,8 +68,6 @@ public class CommentRestController {
 	            .build();
 	}
 
-
-	
 	@GetMapping("/chapter/unreadCommentsOfCourse/{courseId}")
 	public APIResponse<CommentsOfChapterInLessonOfCourseResponse> getUnreadCommentsOfCourse(
 	        @PathVariable("courseId") String courseId,

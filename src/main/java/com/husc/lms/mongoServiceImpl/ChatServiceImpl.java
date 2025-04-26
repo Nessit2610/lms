@@ -5,8 +5,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.husc.lms.entity.Account;
 import com.husc.lms.mongoEntity.ChatBox;
 import com.husc.lms.mongoEntity.ChatBoxMember;
 import com.husc.lms.mongoEntity.ChatMessage;
@@ -14,6 +18,7 @@ import com.husc.lms.mongoRepository.ChatBoxMemberRepository;
 import com.husc.lms.mongoRepository.ChatBoxRepository;
 import com.husc.lms.mongoRepository.ChatMessageRepository;
 import com.husc.lms.mongoService.ChatService;
+import com.husc.lms.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +29,7 @@ public class ChatServiceImpl implements ChatService{
 	private final ChatBoxRepository chatBoxRepo;
     private final ChatBoxMemberRepository memberRepo;
     private final ChatMessageRepository messageRepo;
+    private final AccountRepository accountRepo;
 
 	
 	@Override
@@ -68,4 +74,23 @@ public class ChatServiceImpl implements ChatService{
         return messageRepo.save(msg);
     }
 
+	@Override
+	public Page<ChatBox> getOneToOneChatBoxesForAccount(Pageable pageable) {
+		var context = SecurityContextHolder.getContext();
+		String username = context.getAuthentication().getName();
+
+		
+		Account currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(username).orElseThrow();
+		
+		List<ChatBoxMember> memberships = memberRepo.findByAccountId(currentAccount.getId());
+        List<String> chatBoxIds = memberships.stream()
+                                             .map(ChatBoxMember::getChatBoxId)
+                                             .distinct()
+                                             .toList();
+        	
+		return chatBoxRepo.findByIdInAndIsGroupFalse(chatBoxIds, pageable);
+	}
+
+	
+	
 }

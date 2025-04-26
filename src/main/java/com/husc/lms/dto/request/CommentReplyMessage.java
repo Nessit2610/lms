@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CommentReplyMessage {
-    private String ownerAccountId;
-    private String replyAccountId;
+    private String ownerUsername;
+    private String replyUsername;
     private String chapterId;
     private String courseId;
     private String parentCommentId;

@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.CommentMessage;
 import com.husc.lms.dto.response.CommentChapterResponse;
+import com.husc.lms.dto.response.CommentMessageResponse;
 import com.husc.lms.dto.response.CommentReplyResponse;
 import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
 import com.husc.lms.dto.response.FlatCommentInfo;
@@ -71,11 +73,8 @@ public class CommentService {
 
     @Transactional
     public void handleWebSocketComment(CommentMessage message) {
-//		var context = SecurityContextHolder.getContext();
 
-//        Account account = accountRepository.findByUsername(context.getAuthentication().getName())
-//            .orElseThrow(() -> new RuntimeException("Account not found"));
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(message.getAccountId())
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsername())
 				.orElseThrow(() -> new RuntimeException("Account not found"));
         Chapter chapter = chapterRepository.findById(message.getChapterId())
             .orElseThrow(() -> new RuntimeException("Chapter not found"));
@@ -93,65 +92,73 @@ public class CommentService {
         commentRepository.save(comment);
     }
         
-    public Page<CommentChapterResponse> getCommentsByChapterId(String chapterId, int pageNumber, int pageSize, int replyPageNumber, int replyPageSize) {
+    public Page<CommentChapterResponse> getCommentsByChapterId(
+            String chapterId, int pageNumber, int pageSize, int replyPageNumber, int replyPageSize) {
+
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Chapter not found"));
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Pageable replyPageable = PageRequest.of(replyPageNumber, replyPageSize);
 
-        // Lấy comments phân trang
         Page<Comment> pagedComments = commentRepository.findByChapter(chapter, pageable);
 
-        // Map comments thành CommentChapterResponse, và phân trang replies
         return pagedComments.map(comment -> {
             Account commentAccount = comment.getAccount();
+            String usernameOwner = commentAccount.getUsername();
             String commentAvatar = "";
+            String fullnameOwner = "";
 
             if (commentAccount.getStudent() != null) {
-                commentAvatar = commentAccount.getStudent().getAvatar();
+                commentAvatar = Optional.ofNullable(commentAccount.getStudent().getAvatar()).orElse("");
+                fullnameOwner = commentAccount.getStudent().getFullName();
             } else if (commentAccount.getTeacher() != null) {
-                commentAvatar = commentAccount.getTeacher().getAvatar();
+                commentAvatar = Optional.ofNullable(commentAccount.getTeacher().getAvatar()).orElse("");
+                fullnameOwner = commentAccount.getTeacher().getFullName();
             }
 
-            // Phân trang replies
             Page<CommentReply> pagedReplies = commentReplyRepository.findByComment(comment, replyPageable);
 
-            List<CommentReplyResponse> replyResponses = pagedReplies.getContent().stream()
-                    .map(reply -> {
-                        Account replyAccount = reply.getReplyAccount();
-                        String replyAvatar = "";
+            List<CommentReplyResponse> replyResponses = new ArrayList<>();
 
-                        if (replyAccount.getStudent() != null) {
-                            replyAvatar = replyAccount.getStudent().getAvatar();
-                        } else if (replyAccount.getTeacher() != null) {
-                            replyAvatar = replyAccount.getTeacher().getAvatar();
-                        }
+            for (CommentReply reply : pagedReplies.getContent()) {
+                Account replyAccount = reply.getReplyAccount();
+                String replyAvatar = "";
+                String replyFullname = "";
 
-                        return CommentReplyResponse.builder()
-                                .commentReplyId(reply.getId())
-                                .username(replyAccount.getUsername())
-                                .avatar(replyAvatar)
-                                .detail(reply.getDetail())
-                                .createdDate(reply.getCreatedDate())
-                                .build();
-                    })
-                    .collect(Collectors.toList());
+                if (replyAccount.getStudent() != null) {
+                    replyAvatar = Optional.ofNullable(replyAccount.getStudent().getAvatar()).orElse("");
+                    replyFullname = replyAccount.getStudent().getFullName();
+                } else if (replyAccount.getTeacher() != null) {
+                    replyAvatar = Optional.ofNullable(replyAccount.getTeacher().getAvatar()).orElse("");
+                    replyFullname = replyAccount.getTeacher().getFullName();
+                }
 
-            return new CommentChapterResponse(
-                    comment.getId(),
-                    commentAccount.getUsername(),
-                    commentAvatar,
-                    comment.getDetail(),
-                    comment.getCreatedDate(),
-                    replyResponses
-            );
+                CommentReplyResponse replyResponse = CommentReplyResponse.builder()
+                        .commentReplyId(reply.getId())
+                        .usernameOwner(usernameOwner)
+                        .fullnameOwner(fullnameOwner)
+                        .usernameReply(replyAccount.getUsername())
+                        .avatarReply(replyAvatar)
+                        .fullnameReply(replyFullname)
+                        .detail(reply.getDetail())
+                        .createdDate(reply.getCreatedDate())
+                        .build();
+
+                replyResponses.add(replyResponse);
+            }
+
+            return CommentChapterResponse.builder()
+                    .commentId(comment.getId())
+                    .username(usernameOwner)
+                    .fullname(fullnameOwner)
+                    .avatar(commentAvatar)
+                    .detail(comment.getDetail())
+                    .createdDate(comment.getCreatedDate())
+                    .commentReplyResponses(replyResponses)
+                    .build();
         });
     }
-
-
-
-    
     
     public List<CommentChapterResponse> getUnreadCommentsByCourseId(String courseId) {
     	return commentRepository.findUnreadCommentsByCourseId(courseId);
@@ -162,72 +169,6 @@ public class CommentService {
         return commentRepository.findUnreadCommentsByCourseId(courseId, pageRequest);
     }
 
-//    public CommentsOfChapterInLessonOfCourseResponse getStructuredUnreadComments(String courseId) {
-//        List<FlatCommentInfo> flatList = commentRepository.findStructuredUnreadComments(courseId);
-//
-//        if (flatList.isEmpty()) return null;
-//
-//        CommentsOfChapterInLessonOfCourseResponse response = new CommentsOfChapterInLessonOfCourseResponse();
-//        response.setCourseId(flatList.get(0).getCourseId());
-//        response.setCourseTitle(flatList.get(0).getCourseTitle());
-//
-//        Map<String, CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters> lessonMap = new LinkedHashMap<>();
-//        int totalCommentsOfCourse = 0;
-//
-//        for (FlatCommentInfo flat : flatList) {
-//            totalCommentsOfCourse++;
-//
-//            lessonMap.putIfAbsent(flat.getLessonId(),
-//                new CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters(
-//                    flat.getLessonId(),
-//                    flat.getLessonId(),
-//                    flat.getLessonOrder(),
-//                    new ArrayList<>()
-//                )
-//            );
-//
-//            var lesson = lessonMap.get(flat.getLessonId());
-//            var chapterList = lesson.getChapters();
-//
-//            var chapter = chapterList.stream()
-//                .filter(ch -> ch.getChapterId().equals(flat.getChapterId()))
-//                .findFirst()
-//                .orElseGet(() -> {
-//                    var ch = new CommentsOfChapterInLessonOfCourseResponse.ChapterWithComments(
-//                        flat.getChapterId(),
-//                        flat.getChapterTitle(),
-//                        flat.getChapterOrder(),
-//                        0,
-//                        0,
-//                        new ArrayList<>()
-//                    );
-//                    chapterList.add(ch);
-//                    return ch;
-//                });
-//
-//            // ✅ Thêm avatar vào comment
-//            chapter.getComments().add(new CommentsOfChapterInLessonOfCourseResponse.CommentResponse(
-//            	    flat.getUsername(),
-//            	    flat.getAvatar() != null ? flat.getAvatar() : "",  // Nếu avatar không có thì để rỗng
-//            	    flat.getDetail(),
-//            	    flat.getCreatedDate(),
-//            	    new ArrayList<>()  // Danh sách commentReplies rỗng nếu không có reply
-//            	));
-//
-//            chapter.setTotalCommentsOfChapter(chapter.getTotalCommentsOfChapter() + 1);
-//        }
-//
-//        List<CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters> sortedLessons = new ArrayList<>(lessonMap.values());
-//        sortedLessons.sort(Comparator.comparing(CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters::getLessonOrder));
-//        for (var lesson : sortedLessons) {
-//            lesson.getChapters().sort(Comparator.comparing(CommentsOfChapterInLessonOfCourseResponse.ChapterWithComments::getChapterOrder));
-//        }
-//
-//        response.setLessons(sortedLessons);
-//        response.setTotalCommentsOfCourse(totalCommentsOfCourse);
-//
-//        return response;
-//    }
     public CommentsOfChapterInLessonOfCourseResponse getStructuredUnreadComments(String courseId, int pageNumber, int pageSize) {
         List<FlatCommentInfo> flatList = commentRepository.findStructuredUnreadComments(courseId);
 
@@ -296,11 +237,10 @@ public class CommentService {
         return response;
     }
 
-
     @Transactional
-    public void saveCommentWithReadStatusAndNotification(CommentMessage commentMessage) {
+    public CommentMessageResponse saveCommentWithReadStatusAndNotification(CommentMessage commentMessage) {
         // Lấy thông tin cần thiết từ message
-        Account account = accountRepository.findByUsernameAndDeletedDateIsNull(commentMessage.getAccountId())
+        Account account = accountRepository.findByUsernameAndDeletedDateIsNull(commentMessage.getUsername())
             .orElseThrow(() -> new RuntimeException("Account not found"));
 
         Chapter chapter = chapterRepository.findById(commentMessage.getChapterId())
@@ -334,25 +274,20 @@ public class CommentService {
         for (Student student : eligibleStudents) {
             Account studentAccount = student.getAccount();
 
-            // Nếu là người đăng comment
             if (studentAccount.getId().equals(account.getId())) {
-                // Thêm trạng thái đã đọc
                 readStatuses.add(CommentReadStatus.builder()
                     .account(studentAccount)
                     .comment(savedComment)
-                    .isRead(true) // đã đọc rồi vì chính họ đăng
-                    .build()
-                );
-                continue; // Không tạo thông báo
+                    .isRead(true)
+                    .build());
+                continue;
             }
 
-            // Những người còn lại - thêm trạng thái chưa đọc và tạo thông báo
             readStatuses.add(CommentReadStatus.builder()
                 .account(studentAccount)
                 .comment(savedComment)
                 .isRead(false)
-                .build()
-            );
+                .build());
 
             notifications.add(Notification.builder()
                 .account(studentAccount)
@@ -361,17 +296,15 @@ public class CommentService {
                 .description(comment.getDetail())
                 .isRead(false)
                 .createdAt(new Date())
-                .build()
-            );
+                .build());
         }
-
 
         // Lưu vào DB
         commentReadStatusRepository.saveAll(readStatuses);
         notificationRepository.saveAll(notifications);
 
         // Gửi thông báo real-time
-        for (Notification	 notification : notifications) {
+        for (Notification notification : notifications) {
             String destination = "/topic/notifications/" + notification.getAccount().getUsername();
             Map<String, Object> payload = new HashMap<>();
             payload.put("message", notification.getDescription());
@@ -379,6 +312,20 @@ public class CommentService {
             payload.put("createdDate", notification.getCreatedAt());
             messagingTemplate.convertAndSend(destination, payload);
         }
+
+        // ✅ Trả về CommentMessageResponse
+        return new CommentMessageResponse(
+            chapter.getId(),
+            account.getUsername(),
+            account.getStudent() != null && account.getStudent().getAvatar() != null
+            ? account.getStudent().getAvatar()
+            : (account.getTeacher() != null && account.getTeacher().getAvatar() != null
+                ? account.getTeacher().getAvatar()
+                : ""),
+            comment.getDetail(),
+            comment.getCreatedDate(),
+            List.of()
+        );
     }
 
 
