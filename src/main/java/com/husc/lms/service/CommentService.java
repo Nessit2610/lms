@@ -316,7 +316,14 @@ public class CommentService {
         // ✅ Trả về CommentMessageResponse
         return new CommentMessageResponse(
             chapter.getId(),
+            course.getId(),
+            comment.getId(),
             account.getUsername(),
+            account.getStudent() != null && account.getStudent().getFullName() != null
+            ? account.getStudent().getFullName()
+            : (account.getTeacher() != null && account.getTeacher().getFullName() != null
+                ? account.getTeacher().getFullName()
+                : ""),
             account.getStudent() != null && account.getStudent().getAvatar() != null
             ? account.getStudent().getAvatar()
             : (account.getTeacher() != null && account.getTeacher().getAvatar() != null

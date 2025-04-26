@@ -21,7 +21,10 @@ public class CommentMessageResponse {
 //    private String detail;
 //    private OffsetDateTime createdDate;
 	private String chapterId;
+	private String courseId;
+	private String commentId;
     private String username;
+    private String fullname;
     private String avatar;
     private String detail;
     private OffsetDateTime createdDate;
