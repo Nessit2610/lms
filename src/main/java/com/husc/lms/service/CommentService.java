@@ -19,7 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.CommentMessage;
@@ -101,7 +100,7 @@ public class CommentService {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Pageable replyPageable = PageRequest.of(replyPageNumber, replyPageSize);
 
-        Page<Comment> pagedComments = commentRepository.findByChapter(chapter, pageable);
+        Page<Comment> pagedComments = commentRepository.findByChapterOrderByCreatedDateDesc(chapter, pageable);
 
         return pagedComments.map(comment -> {
             Account commentAccount = comment.getAccount();
@@ -315,9 +314,9 @@ public class CommentService {
 
         // ✅ Trả về CommentMessageResponse
         return new CommentMessageResponse(
-            chapter.getId(),
-            course.getId(),
-            comment.getId(),
+    		savedComment.getChapter().getId(),
+    		savedComment.getCourse().getId(),
+    		savedComment.getId(),
             account.getUsername(),
             account.getStudent() != null && account.getStudent().getFullName() != null
             ? account.getStudent().getFullName()
