@@ -51,8 +51,8 @@ public class CourseController {
 	}
 	
 	@GetMapping("/search")
-	public APIResponse<Page<CourseViewResponse>> searchCourse(@RequestParam("courseName") String courseName, 
-															@RequestParam("teacherName") String teacherName,
+	public APIResponse<Page<CourseViewResponse>> searchCourse(@RequestParam(value= "courseName", required = false) String courseName, 
+															@RequestParam(value = "teacherName",required = false) String teacherName,
 															@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
     														@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<CourseViewResponse>>builder()
