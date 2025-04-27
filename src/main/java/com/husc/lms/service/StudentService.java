@@ -133,7 +133,7 @@ public class StudentService {
 			Files.copy(image.getInputStream(), fileStorageLocation.resolve(id + fileExtension.apply(image.getOriginalFilename())),StandardCopyOption.REPLACE_EXISTING);
 			return "/lms/student/image/" + filename;
 		} catch (Exception e) {
-			throw new RuntimeException("Unable to save image");
+			throw new RuntimeException("Unable to save image"); 
 		}
 	};
 

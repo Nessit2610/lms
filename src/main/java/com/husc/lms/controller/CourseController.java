@@ -50,11 +50,11 @@ public class CourseController {
 				.build();
 	}
 	
-	@PostMapping("/search")
+	@GetMapping("/search")
 	public APIResponse<Page<CourseViewResponse>> searchCourse(@RequestParam("courseName") String courseName, 
 															@RequestParam("teacherName") String teacherName,
-															@RequestParam("pageNumber") int pageNumber,
-															@RequestParam("pageSize") int pageSize){
+															@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+    														@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<CourseViewResponse>>builder()
 				.result(courseService.searchCourses(courseName, teacherName,pageNumber,pageSize))
 				.build();

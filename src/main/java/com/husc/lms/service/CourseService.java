@@ -177,13 +177,8 @@ public class CourseService {
 	}
 	
 	public Page<CourseViewResponse> searchCourses(String courseName, String teacherName, int pageNumber , int pageSize) {
-	    if (courseName != null && courseName.trim().isEmpty()) courseName = null;
-	    if (teacherName != null && teacherName.trim().isEmpty()) teacherName = null;
-
-	    int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
-	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
-	    
-	    Pageable pageable = PageRequest.of(page, size);
+	   
+	    Pageable pageable = PageRequest.of(pageNumber, pageSize);
 	    
 	    Page<Course> cPage = courseRepository.searchByCourseNameAndTeacherName(courseName, teacherName,pageable);
 	    
