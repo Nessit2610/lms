@@ -26,5 +26,5 @@ public class CourseRequest {
 
     private Date endDate;
 
-    private String major;
+    private String majorId;
 }

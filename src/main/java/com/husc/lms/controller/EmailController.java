@@ -26,6 +26,7 @@ public class EmailController {
 				.message("Email sending")
 				.build();
 	}
+	
 	@PostMapping("/forgotpassword")
 	public APIResponse<Void> sendPasswordEmail(@RequestParam("email") String email) throws UnsupportedEncodingException{
 		emailService.sendPasswordEmail(email);

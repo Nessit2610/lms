@@ -30,6 +30,7 @@ import com.husc.lms.dto.update.CourseUpdateRequest;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
+import com.husc.lms.entity.Major;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Teacher;
 import com.husc.lms.enums.ErrorCode;
@@ -40,6 +41,7 @@ import com.husc.lms.mapperImpl.CourseMapperImplCustom;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.LessonRepository;
+import com.husc.lms.repository.MajorRepository;
 import com.husc.lms.repository.StudentCourseRepository;
 import com.husc.lms.repository.StudentRepository;
 import com.husc.lms.repository.TeacherRepository;
@@ -69,6 +71,9 @@ public class CourseService {
 	private LessonService lessonService;
 	
 	@Autowired
+	private MajorRepository majorRepository;
+	
+	@Autowired
 	private StudentCourseRepository studentCourseRepository;
 	
 	@Autowired
@@ -79,8 +84,10 @@ public class CourseService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 		Teacher teacher = teacherRepository.findByAccount(account);
+		
+		Major major = majorRepository.findById(request.getMajorId()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
 		
 		String status = switch (request.getStatus()) {
         case "PRIVATE" -> StatusCourse.PRIVATE.name();
@@ -93,6 +100,7 @@ public class CourseService {
 				course.setTeacher(teacher);
 				course.setCreatedBy(name);
 				course.setStatus(status);
+				course.setMajor(major.getName());
 				course.setCreatedDate(new Date());	
 		course = courseRepository.save(course);		
 		

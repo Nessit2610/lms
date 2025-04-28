@@ -93,6 +93,10 @@ public class EmailService {
     			throw new AppException(ErrorCode.INVALID_EMAIL_DOMAIN);
     		}
     		
+    		if(!accountRepository.existsByUsername(toEmail)) {
+    			throw new AppException(ErrorCode.ACCOUNT_NOTFOUND);
+    		}
+    		
     		MimeMessage message = mailSender.createMimeMessage();
     		MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
     		helper.setTo(toEmail);
