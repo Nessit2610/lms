@@ -48,8 +48,8 @@ public class StudentController {
 	public APIResponse<Page<StudentOfCourseResponse>> searchStudent(@RequestParam("fullName") String fullName,
 															@RequestParam("email") String email,
 															@RequestParam("majorName") String majorName,
-															@RequestParam("pageNumber") int pageNumber,
-															@RequestParam("pageSize") int pageSize){
+															@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+    														@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<StudentOfCourseResponse>>builder()
 				.result(studentService.searchStudents(fullName, email, majorName,pageNumber,pageSize))
 				.build();

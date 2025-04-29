@@ -46,8 +46,8 @@ public class JoinClassController {
 	
 	@GetMapping("/studentrequest")
 	public APIResponse<Page<StudentOfCourseResponse>> getAllStudentRequestOfCourse(@RequestParam("courseId") String courseId,
-																					@RequestParam("pageNumber") int pageNumber,
-																					@RequestParam("pageSize") int pageSize) {
+																					@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																					@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) {
 		return APIResponse.<Page<StudentOfCourseResponse>>builder()
 				.result(joinClassRequestService.getAllStudentRequestOfCourse(courseId,pageNumber,pageSize))
 				.build();
@@ -55,8 +55,8 @@ public class JoinClassController {
 	
 	@GetMapping("/courserequest")
 	public APIResponse<Page<CourseViewResponse>> getAllCourseRequestOfStudent(@RequestParam("studentId") String studentId,
-																				@RequestParam("pageNumber") int pageNumber,
-																				@RequestParam("pageSize") int pageSize) {
+																			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) {
 		return APIResponse.<Page<CourseViewResponse>>builder()
 				.result(joinClassRequestService.getAllCourseRequestOfStudent(studentId,pageNumber,pageSize))
 				.build();

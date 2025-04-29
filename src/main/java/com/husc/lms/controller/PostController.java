@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,15 @@ public class PostController {
 	public APIResponse<Boolean> deletePost(@RequestParam("postId") String postId){
 		return APIResponse.<Boolean>builder()
 				.result(postService.deletePost(postId))
+				.build();
+	}
+	
+	@GetMapping
+	public APIResponse<Page<PostResponse>> getAllPostInGroup(@RequestParam("groupId") String groupId ,
+															@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+															@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){ 
+		return APIResponse.<Page<PostResponse>>builder()
+				.result(postService.getAllPostInGroup(groupId, pageNumber, pageSize))
 				.build();
 	}
 	

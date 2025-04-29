@@ -34,8 +34,8 @@ public class StudentCourseController {
 	}
 	
 	@GetMapping("/mycourse")
-	public APIResponse<Page<CourseViewResponse>> getAllCourseOfStudent(@RequestParam("pageNumber") int pageNumber,
-																	@RequestParam("pageSize") int pageSize){
+	public APIResponse<Page<CourseViewResponse>> getAllCourseOfStudent(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																		@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<CourseViewResponse>>builder()
 				.result(studentCourseService.getAllCourseOfStudent(pageNumber,pageSize))
 				.build();
@@ -43,8 +43,8 @@ public class StudentCourseController {
 	
 	@GetMapping("/studentofcourse")
 	public APIResponse<Page<StudentOfCourseResponse>> getAllStudentOfCourse(@RequestParam("courseId") String courseId,
-																			@RequestParam("pageNumber") int pageNumber,
-																			@RequestParam("pageSize") int pageSize){
+																			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<StudentOfCourseResponse>>builder()
 				.result(studentCourseService.getAllStudentOfCourse(courseId,pageNumber,pageSize))
 				.build();
