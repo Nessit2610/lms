@@ -9,14 +9,20 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.CommentReplyMessage;
+import com.husc.lms.dto.request.CommentReplyUpdateMessage;
+import com.husc.lms.dto.request.CommentUpdateMessage;
 import com.husc.lms.dto.response.CommentReplyResponse;
+import com.husc.lms.dto.response.CommentReplyUpdateMessageResponse;
+import com.husc.lms.dto.response.CommentUpdateMessageResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
 import com.husc.lms.entity.CommentReply;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Notification;
+import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.NotificationType;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.CommentReadStatusRepository;
@@ -187,5 +193,59 @@ public class CommentReplyService {
             .createdDate(savedReply.getCreatedDate())
             .build();
     }
+
+	public CommentReplyUpdateMessageResponse updateCommentReply(CommentReplyUpdateMessage message) {
+		CommentReply changeCommentReply = commentReplyRepository.findById(message.getCommentReplyId())
+		        .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+
+	    Account replyAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameReply())
+	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+
+	    if (!changeCommentReply.getOwnerAccount().equals(replyAccount)) {
+	        throw new AppException(ErrorCode.OWNER_NOT_MATCH); // hoặc tạo error code phù hợp
+	    }
+
+	    changeCommentReply.setDetail(message.getNewDetail());
+	    changeCommentReply.setUpdateDateAt(OffsetDateTime.now());
+	    commentReplyRepository.save(changeCommentReply);
+
+	    return CommentReplyUpdateMessageResponse.builder()
+	        .parentCommentId(changeCommentReply.getId())
+	        .usernameOwner(changeCommentReply.getOwnerAccount().getUsername())
+	        .fullnameOwner(changeCommentReply.getOwnerAccount().getStudent() != null
+	                    ? changeCommentReply.getOwnerAccount().getStudent().getFullName()
+	                    : changeCommentReply.getOwnerAccount().getTeacher() != null
+	                        ? changeCommentReply.getOwnerAccount().getTeacher().getFullName()
+	                        : null)
+	        .commentReplyId(changeCommentReply.getId())
+	        .usernameReply(changeCommentReply.getReplyAccount().getUsername())
+	        .fullnameReply(changeCommentReply.getReplyAccount().getStudent() != null
+                    ? changeCommentReply.getReplyAccount().getStudent().getFullName()
+                    : changeCommentReply.getReplyAccount().getTeacher() != null
+                        ? changeCommentReply.getReplyAccount().getTeacher().getFullName()
+                        : null)
+	        .newDetail(changeCommentReply.getDetail())
+	        .updateDate(changeCommentReply.getUpdateDateAt())
+	        .build();
+	}
+
+	public Boolean deleteCommentReply(CommentReplyUpdateMessage message) {
+		CommentReply deleteCommentReply = commentReplyRepository.findById(message.getCommentReplyId())
+		        .filter(comment -> comment.getDeletedDate() == null)
+		        .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+
+	    Account replyAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameReply())
+	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+
+	    if (!deleteCommentReply.getReplyAccount().getId().equals(replyAccount.getId())) {
+	        throw new AppException(ErrorCode.OWNER_NOT_MATCH);
+	    }
+
+	    deleteCommentReply.setDeletedBy(message.getUsernameReply());
+	    deleteCommentReply.setDeletedDate(OffsetDateTime.now());
+
+	    commentReplyRepository.save(deleteCommentReply);
+	    return true;
+	}
 
 }

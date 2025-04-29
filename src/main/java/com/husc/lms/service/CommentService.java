@@ -22,9 +22,11 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.CommentMessage;
+import com.husc.lms.dto.request.CommentUpdateMessage;
 import com.husc.lms.dto.response.CommentChapterResponse;
 import com.husc.lms.dto.response.CommentMessageResponse;
 import com.husc.lms.dto.response.CommentReplyResponse;
+import com.husc.lms.dto.response.CommentUpdateMessageResponse;
 import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
 import com.husc.lms.dto.response.FlatCommentInfo;
 import com.husc.lms.entity.Account;
@@ -36,8 +38,10 @@ import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.Notification;
 import com.husc.lms.entity.Student;
+import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.NotificationType;
 import com.husc.lms.enums.StatusCourse;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.CommentReadStatusRepository;
@@ -100,8 +104,8 @@ public class CommentService {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
         Pageable replyPageable = PageRequest.of(replyPageNumber, replyPageSize);
 
-        Page<Comment> pagedComments = commentRepository.findByChapterOrderByCreatedDateDesc(chapter, pageable);
-
+//        Page<Comment> pagedComments = commentRepository.findByChapterOrderByCreatedDateDesc(chapter, pageable);
+        Page<Comment> pagedComments = commentRepository.findByChapterAndDeletedDateIsNullOrderByCreatedDateDesc(chapter, pageable);
         return pagedComments.map(comment -> {
             Account commentAccount = comment.getAccount();
             String usernameOwner = commentAccount.getUsername();
@@ -345,5 +349,71 @@ public class CommentService {
 
         return studentRepository.findAllById(uniqueStudentIds);
     }
+
+	public CommentUpdateMessageResponse updateComment(CommentUpdateMessage message) {
+		Comment changeComment = commentRepository.findById(message.getCommentId())
+		        .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+
+	    Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameOwner())
+	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+
+	    if (!changeComment.getAccount().equals(ownerAccount)) {
+	        throw new AppException(ErrorCode.OWNER_NOT_MATCH); // hoặc tạo error code phù hợp
+	    }
+
+	    changeComment.setDetail(message.getNewDetail());
+	    changeComment.setUpdateDateAt(OffsetDateTime.now());
+	    commentRepository.save(changeComment);
+
+	    return CommentUpdateMessageResponse.builder()
+	        .commentId(changeComment.getId())
+	        .courseId(changeComment.getCourse().getId())
+	        .chapterId(changeComment.getChapter().getId())
+	        .newDetail(changeComment.getDetail())
+	        .updateDate(changeComment.getUpdateDateAt())
+	        .usernameOwner(changeComment.getAccount().getUsername())
+	        .avatarOwner(changeComment.getAccount().getStudent() != null
+	                    ? changeComment.getAccount().getStudent().getAvatar()
+	                    : changeComment.getAccount().getTeacher() != null
+	                        ? changeComment.getAccount().getTeacher().getAvatar()
+	                        : null)
+	        .fullnameOwner(changeComment.getAccount().getStudent() != null
+	                    ? changeComment.getAccount().getStudent().getFullName()
+	                    : changeComment.getAccount().getTeacher() != null
+	                        ? changeComment.getAccount().getTeacher().getFullName()
+	                        : null)
+	        .build();
+	}
+
+	public Boolean deleteComment(CommentUpdateMessage message) {
+	    Comment deleteComment = commentRepository.findById(message.getCommentId())
+	        .filter(comment -> comment.getDeletedDate() == null)
+	        .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+
+	    Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameOwner())
+	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+
+	    if (!deleteComment.getAccount().getId().equals(ownerAccount.getId())) {
+	        throw new AppException(ErrorCode.OWNER_NOT_MATCH);
+	    }
+
+	    OffsetDateTime now = OffsetDateTime.now();
+	    deleteComment.setDeletedBy(message.getUsernameOwner());
+	    deleteComment.setDeletedDate(now);
+
+	    // Xử lý soft delete tất cả các comment replies nếu có
+	    if (deleteComment.getCommentReplies() != null) {
+	        deleteComment.getCommentReplies().forEach(reply -> {
+	            if (reply.getDeletedDate() == null) {
+	                reply.setDeletedBy(message.getUsernameOwner());
+	                reply.setDeletedDate(now);
+	            }
+	        });
+	    }
+
+	    commentRepository.save(deleteComment); // save sẽ cascade nếu được cấu hình
+	    return true;
+	}
+
 
 }

@@ -54,6 +54,9 @@ public class Comment {
 
     @Column(name = "createdDate")
     private OffsetDateTime createdDate;
+    
+    @Column(name = "updateDateAt")
+    private OffsetDateTime updateDateAt;
 
     @Column(name = "deletedBy")
     private String deletedBy;

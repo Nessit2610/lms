@@ -41,8 +41,9 @@ public enum ErrorCode {
 	INVALID_FILE_TYPE(1029, "Định dạng file không hợp lệ", HttpStatus.BAD_REQUEST),
 	UNSUPPORTED_FILE_TYPE(1030, "Loại file không hỗ trợ", HttpStatus.BAD_REQUEST),
 	GROUP_NOT_FOUND(1031, "Không tìm thấy nhóm", HttpStatus.NOT_FOUND),
-	POST_NOT_FOUND(1022, "Không tìm thấy bài đăng", HttpStatus.NOT_FOUND);
-
+	POST_NOT_FOUND(1022, "Không tìm thấy bài đăng", HttpStatus.NOT_FOUND),
+	COMMENT_NOT_FOUND(1023, "Không tìm thấy bình luận", HttpStatus.NOT_FOUND),
+	OWNER_NOT_MATCH(1024, "Bạn không phải chủ nhân bình luận. Không thể sửa", HttpStatus.INTERNAL_SERVER_ERROR);
 	
 	
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {

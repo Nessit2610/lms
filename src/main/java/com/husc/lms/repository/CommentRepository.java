@@ -27,7 +27,8 @@ public interface CommentRepository extends JpaRepository<Comment, String>{
             + "AND c.deletedDate IS NULL")
     Page<CommentChapterResponse> findUnreadCommentsByCourseId(@Param("courseId") String courseId, Pageable pageable);
     Page<Comment> findByChapterOrderByCreatedDateDesc(Chapter chapter, Pageable pageable);
-    
+    Page<Comment> findByChapterAndDeletedDateIsNullOrderByCreatedDateDesc(Chapter chapter, Pageable pageable);
+
 //    @Query("""
 //    	    SELECT new com.husc.lms.dto.response.FlatCommentInfo(
 //    	        c.course.id,
