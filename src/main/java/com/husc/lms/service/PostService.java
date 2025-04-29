@@ -9,13 +9,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,6 +67,23 @@ public class PostService {
 		
 	}
 	
+	public Boolean deletePost(String postId) {
+		Post post = postRepository.findById(postId).orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+		if(post != null) {
+			postRepository.deleteById(postId);
+			return true;
+		}
+		return false;
+	}
+	
+	public Page<PostResponse> getAllPostInGroup(String groupId ,int pageNumber , int pageSize){
+		Pageable pageable = PageRequest.of(pageNumber, pageSize);
+		Group group = groupRepository.findById(groupId).orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+		Page<Post> posts = postRepository.findByGroup(group, pageable);
+		return posts.map(postMapper::toPostResponse);
+	}
+	
+	
 	public String uploadFile(String id, MultipartFile file, String type) {
 	    if (file == null || file.isEmpty()) {
 	        throw new RuntimeException("File is empty");
@@ -105,6 +127,8 @@ public class PostService {
         default -> throw new RuntimeException("Invalid folder: " + folder);
     };
 
+    validateFileExtension(type, extension);
+    
     try {
         Path storagePath = Paths.get(baseDir).toAbsolutePath().normalize();
         if (!Files.exists(storagePath)) {
@@ -162,4 +186,30 @@ public class PostService {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                 .body(data);
     }
+	
+	private void validateFileExtension(String type, String extension) {
+	    Set<String> imageExtensions = Set.of(".jpg", ".jpeg", ".png", ".gif");
+	    Set<String> videoExtensions = Set.of(".mp4", ".avi", ".mov");
+	    Set<String> fileExtensions = Set.of(".pdf", ".doc", ".docx", ".txt");
+
+	    switch (type.toLowerCase()) {
+	        case "image" -> {
+	            if (!imageExtensions.contains(extension)) {
+	                throw new AppException(ErrorCode.INVALID_IMAGE_TYPE);
+	            }
+	        }
+	        case "video" -> {
+	            if (!videoExtensions.contains(extension)) {
+	                throw new AppException(ErrorCode.INVALID_VIDEO_TYPE);
+	            }
+	        }
+	        case "file" -> {
+	            if (!fileExtensions.contains(extension)) {
+	                throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+	            }
+	        }
+	        default -> throw new AppException(ErrorCode.UNSUPPORTED_FILE_TYPE);
+	    }
+	}
+
 }

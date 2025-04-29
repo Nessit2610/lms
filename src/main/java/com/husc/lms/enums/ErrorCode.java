@@ -40,7 +40,8 @@ public enum ErrorCode {
 	INVALID_VIDEO_TYPE(1028, "Định dạng video không hợp lệ", HttpStatus.BAD_REQUEST),
 	INVALID_FILE_TYPE(1029, "Định dạng file không hợp lệ", HttpStatus.BAD_REQUEST),
 	UNSUPPORTED_FILE_TYPE(1030, "Loại file không hỗ trợ", HttpStatus.BAD_REQUEST),
-	GROUP_NOT_FOUND(1031, "Không tìm thấy nhóm", HttpStatus.NOT_FOUND);
+	GROUP_NOT_FOUND(1031, "Không tìm thấy nhóm", HttpStatus.NOT_FOUND),
+	POST_NOT_FOUND(1022, "Không tìm thấy bài đăng", HttpStatus.NOT_FOUND);
 
 	
 	
