@@ -59,6 +59,8 @@ public class ChapterService {
 		if (chapterRepository.existsByLessonAndOrderAndDeletedDateIsNull(lesson, order)) {
 	        throw new AppException(ErrorCode.CHAPTER_ORDER_DUPLICATE);
 	    }
+		String extension = fileExtension.apply(file.getOriginalFilename());
+		validateFileExtension(type, extension);
 		Chapter chapter = Chapter.builder()
 				.name(name)
 				.order(order)
@@ -157,6 +159,8 @@ public class ChapterService {
 
 	private final TriFunction<String, String, MultipartFile, String> generalFileUploadFunction = (id, type, file) -> {
     String extension = fileExtension.apply(file.getOriginalFilename());
+    validateFileExtension(type, extension);
+
     String filename = id + extension;
 
     String folder = getFolderFromType(type);
@@ -167,7 +171,6 @@ public class ChapterService {
         default -> throw new RuntimeException("Invalid folder: " + folder);
     };
 
-    validateFileExtension(type, extension);
     
     try {
         Path storagePath = Paths.get(baseDir).toAbsolutePath().normalize();

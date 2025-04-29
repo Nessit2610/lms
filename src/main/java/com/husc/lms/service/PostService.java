@@ -117,8 +117,9 @@ public class PostService {
 
 	private final TriFunction<String, String, MultipartFile, String> generalFileUploadFunction = (id, type, file) -> {
     String extension = fileExtension.apply(file.getOriginalFilename());
+    validateFileExtension(type, extension);
+    
     String filename = id + extension;
-
     String folder = getFolderFromType(type);
     String baseDir = switch (folder) {
         case "images" -> Constant.PHOTO_DIRECTORY;
@@ -127,7 +128,6 @@ public class PostService {
         default -> throw new RuntimeException("Invalid folder: " + folder);
     };
 
-    validateFileExtension(type, extension);
     
     try {
         Path storagePath = Paths.get(baseDir).toAbsolutePath().normalize();

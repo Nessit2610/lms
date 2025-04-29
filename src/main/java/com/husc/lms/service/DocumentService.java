@@ -180,6 +180,8 @@ public class DocumentService {
 
 	private final TriFunction<String, String, MultipartFile, String> generalFileUploadFunction = (id, type, file) -> {
     String extension = fileExtension.apply(file.getOriginalFilename());
+    validateFileExtension(type, extension);
+
     String filename = id + extension;
 
     String folder = getFolderFromType(type);
@@ -190,7 +192,6 @@ public class DocumentService {
         default -> throw new RuntimeException("Invalid folder: " + folder);
     };
 
-    validateFileExtension(type, extension);
     
     try {
         Path storagePath = Paths.get(baseDir).toAbsolutePath().normalize();
