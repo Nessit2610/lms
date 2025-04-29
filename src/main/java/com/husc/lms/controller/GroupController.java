@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.husc.lms.dto.request.GroupRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.GroupViewResponse;
+import com.husc.lms.dto.update.GroupUpdate;
 import com.husc.lms.service.GroupService;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 
@@ -26,4 +28,10 @@ public class GroupController {
 				.build();
 	}
 	
+	@PutMapping("/update")
+	public APIResponse<GroupViewResponse> updateGroup(@RequestBody GroupUpdate request){
+		return APIResponse.<GroupViewResponse>builder()
+				.result(groupService.updateGroup(request))
+				.build();
+	}
 }

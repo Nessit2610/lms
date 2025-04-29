@@ -9,9 +9,12 @@ import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.GroupRequest;
 import com.husc.lms.dto.response.GroupViewResponse;
+import com.husc.lms.dto.update.GroupUpdate;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Teacher;
+import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.GroupMapper;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.GroupRepository;
@@ -43,6 +46,26 @@ public class GroupService {
 			  group.setTeacher(teacher);
 			  group.setCreatedAt(new Date());
 		group =groupRepository.save(group);
+		
+		return groupMapper.toGroupViewResponse(group);
+		
+	}
+	public GroupViewResponse updateGroup(GroupUpdate request) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
+		Teacher teacher = teacherRepository.findByAccount(account);
+		
+		Group group = groupRepository.findByIdAndTeacher(request.getGroupId(), teacher);
+		if(group == null) {
+			throw new AppException(ErrorCode.GROUP_NOT_FOUND);
+		}
+		
+		group.setName(request.getName());
+		group.setDescription(request.getDescription());
+		group =groupRepository.save(group);
+		
 		
 		return groupMapper.toGroupViewResponse(group);
 		
