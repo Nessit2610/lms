@@ -61,6 +61,8 @@ public class DocumentService {
 	private DocumentMapper documentMapper;
 	
 	public DocumentResponse createDocument(String title, String description, String status, String majorId, MultipartFile file, String type) {
+		String extension = fileExtension.apply(file.getOriginalFilename());
+		validateFileExtension(type, extension);
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();

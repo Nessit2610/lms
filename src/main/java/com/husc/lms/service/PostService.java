@@ -54,6 +54,8 @@ public class PostService {
 	
 	public PostResponse createPost(String groupId, String title, MultipartFile file, String type, String text) {
 		Group group = groupRepository.findById(groupId).orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+		String extension = fileExtension.apply(file.getOriginalFilename());
+		validateFileExtension(type, extension);
 		Post post = Post.builder()
 				.group(group)
 				.title(title)

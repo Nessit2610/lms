@@ -51,6 +51,8 @@ public class LessonMaterialService {
 	
 	
 	public LessonMaterialResponse createMaterial(String lessonid, MultipartFile file, String type) {
+		String extension = fileExtension.apply(file.getOriginalFilename());
+		validateFileExtension(type, extension);
 		var context = SecurityContextHolder.getContext();
 		String nameAccount = context.getAuthentication().getName();
 		Lesson lesson = lessonRepository.findById(lessonid).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
