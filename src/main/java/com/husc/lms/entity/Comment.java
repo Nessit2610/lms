@@ -64,11 +64,11 @@ public class Comment {
     @Column(name = "deletedDate")
     private OffsetDateTime deletedDate;
     
-    @OneToMany(mappedBy = "comment")
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<CommentReply> commentReplies;
 
-    @OneToMany(mappedBy = "comment")
-    @JsonManagedReference // Đánh dấu đây là đối tượng "cha", mối quan hệ sẽ được serialize
+    @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
     private List<Notification> notifications;
 }
