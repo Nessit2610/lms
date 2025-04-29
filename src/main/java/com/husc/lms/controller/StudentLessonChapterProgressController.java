@@ -43,9 +43,9 @@ public class StudentLessonChapterProgressController {
 	}
 	
 	@GetMapping("/getpercent")
-	public APIResponse<Double> getPercentComplete(@RequestParam("courseId") String courseId){
+	public APIResponse<Double> getPercentComplete(@RequestParam("courseId") String courseId,@RequestParam("studentId") String studentId){
 		return APIResponse.<Double>builder()
-				.result(slcpService.getPercentComplete(courseId))
+				.result(slcpService.getPercentComplete(courseId,studentId))
 				.build();
 	}
 }

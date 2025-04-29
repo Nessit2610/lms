@@ -84,11 +84,8 @@ public class StudentLessonChapterProgressService {
 		return slcpMapper.toResponse(slcp);
 	}
 	
-	public double getPercentComplete(String courseId) {
-		var context = SecurityContextHolder.getContext();
-		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
-		Student student = studentRepository.findByAccount(account);
+	public double getPercentComplete(String courseId, String studentId) {
+		Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		long totalChapter = chapterRepository.countChaptersByCourseId(courseId);
 		if (totalChapter == 0) {
 	        return 0.0;
