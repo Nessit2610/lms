@@ -6,8 +6,13 @@ import org.springframework.stereotype.Controller;
 
 import com.husc.lms.dto.request.CommentMessage;
 import com.husc.lms.dto.request.CommentReplyMessage;
+import com.husc.lms.dto.request.CommentReplyUpdateMessage;
+import com.husc.lms.dto.request.CommentUpdateMessage;
+import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CommentMessageResponse;
 import com.husc.lms.dto.response.CommentReplyResponse;
+import com.husc.lms.dto.response.CommentReplyUpdateMessageResponse;
+import com.husc.lms.dto.response.CommentUpdateMessageResponse;
 import com.husc.lms.service.CommentReplyService;
 import com.husc.lms.service.CommentService;
 
@@ -17,42 +22,44 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CommentWebSocketController {
 	private final CommentService commentService;
-	private final CommentReplyService commentReplyService;
-
-//	@MessageMapping("/comment")
-//	@SendTo("/topic/comments")
-//	public CommentMessage handleComment(CommentMessage message) {
-//	    try {
-////	        commentService.handleWebSocketComment(message);
-//	        commentService.saveCommentWithReadStatusAndNotification(message);
-//	        return message;
-//	    } catch (Exception e) {
-//	        e.printStackTrace();
-//	        return null;
-//	    }
-//	}
 	
 	@MessageMapping("/comment")
 	@SendTo("/topic/comments")
-	public CommentMessageResponse handleComment(CommentMessage message) {
+	public APIResponse<CommentMessageResponse> handleComment(CommentMessage message) {
 	    try {
-//	        commentService.handleWebSocketComment(message);
-//	        commentService.saveCommentWithReadStatusAndNotification(message);
-	        return commentService.saveCommentWithReadStatusAndNotification(message);
+	        return APIResponse.<CommentMessageResponse>builder()
+					.result(commentService.saveCommentWithReadStatusAndNotification(message))
+					.build();
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        return null;
 	    }
 	}
 
-	@MessageMapping("/comment-reply")
-	@SendTo("/topic/comment-replies")
-	public CommentReplyResponse handleCommentReply(CommentReplyMessage message) {
+	@MessageMapping("/comment/update")
+	@SendTo("/topic/comments")
+	public APIResponse<CommentUpdateMessageResponse> updateComment(CommentUpdateMessage message) {
 	    try {
-	        return commentReplyService.saveCommentReplyWithReadStatusAndNotification(message);
+	        return APIResponse.<CommentUpdateMessageResponse>builder()
+					.result(commentService.updateComment(message))
+					.build();
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	        return null;
 	    }
 	}
+	
+	@MessageMapping("/comment/delete")
+	@SendTo("/topic/comments")
+	public APIResponse<Boolean> deleteComment(CommentUpdateMessage message) {
+	    try {
+	        return APIResponse.<Boolean>builder()
+	            .result(commentService.deleteComment(message))
+	            .build();
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return null;
+	    }
+	}
+	
 }
