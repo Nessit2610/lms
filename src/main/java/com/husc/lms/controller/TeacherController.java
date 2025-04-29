@@ -24,7 +24,7 @@ import com.husc.lms.dto.response.TeacherResponse;
 import com.husc.lms.service.TeacherService;
 
 @RestController
-@RequestMapping(("/teacher"))
+@RequestMapping("/teacher")
 public class TeacherController {
 
 	@Autowired

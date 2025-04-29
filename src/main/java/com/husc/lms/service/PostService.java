@@ -1,6 +1,9 @@
 package com.husc.lms.service;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -10,25 +13,27 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 
+import com.husc.lms.configuration.LimitedInputStream;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.constant.TriFunction;
 import com.husc.lms.dto.response.PostResponse;
-import com.husc.lms.entity.Account;
-import com.husc.lms.entity.Document;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Post;
-import com.husc.lms.entity.Teacher;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.PostMapper;
-import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.GroupRepository;
 import com.husc.lms.repository.PostRepository;
-import com.husc.lms.repository.TeacherRepository;
 
 @Service
 public class PostService {
@@ -115,4 +120,46 @@ public class PostService {
         throw new RuntimeException("Could not save file: " + filename, e);
     	}
 	};
+	
+	public ResponseEntity<Resource> streamVideo(String filename, String rangeHeader) throws IOException {
+        File videoFile = Paths.get(Constant.VIDEO_DIRECTORY + filename).toFile();
+        long fileLength = videoFile.length();
+
+        if (rangeHeader == null) {
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
+                    .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileLength))
+                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                    .body(new FileSystemResource(videoFile));
+        }
+
+        long start, end;
+        String[] ranges = rangeHeader.replace("bytes=", "").split("-");
+        start = Long.parseLong(ranges[0]);
+        end = ranges.length > 1 && !ranges[1].isEmpty() ? Long.parseLong(ranges[1]) : fileLength - 1;
+
+        long contentLength = end - start + 1;
+        InputStream inputStream = new FileInputStream(videoFile);
+        inputStream.skip(start);
+        InputStreamResource inputStreamResource = new InputStreamResource(new LimitedInputStream(inputStream, contentLength));
+
+        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(contentLength))
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileLength)
+                .body(inputStreamResource);
+    }
+	
+	public ResponseEntity<byte[]> getFile(String filename) throws IOException {
+        Path path = Paths.get(Constant.FILE_DIRECTORY + filename);
+        byte[] data = Files.readAllBytes(path);
+
+        String mimeType = Files.probeContentType(path); // Lấy content-type tự động
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(mimeType != null ? mimeType : MediaType.APPLICATION_OCTET_STREAM_VALUE))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                .body(data);
+    }
 }

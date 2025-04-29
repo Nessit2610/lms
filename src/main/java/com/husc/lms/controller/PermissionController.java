@@ -26,7 +26,7 @@ public class PermissionController {
 	@Autowired
 	private PermissionService permissionService;
 
-	@PostMapping()
+	@PostMapping("/create")
 	public APIResponse<PermissionResponse> create(@RequestBody PermissionRequest request){
 		return APIResponse.<PermissionResponse>builder()
 				.result(permissionService.create(request))

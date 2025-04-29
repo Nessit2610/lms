@@ -81,51 +81,14 @@ public class ChapterController {
 	
 	@GetMapping("/videos/{filename}")
 	public ResponseEntity<Resource> streamVideo(
-	        @PathVariable String filename,
-	        @RequestHeader(value = "Range", required = false) String rangeHeader) throws IOException {
-
-	    File videoFile = Paths.get(Constant.VIDEO_DIRECTORY + filename).toFile();
-	    long fileLength = videoFile.length();
-
-	    // Không có Range: trả toàn bộ video
-	    if (rangeHeader == null) {
-	        return ResponseEntity.ok()
-	                .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
-	                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileLength))
-	                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-	                .body(new FileSystemResource(videoFile));
-	    }
-
-	    // Có Range: xử lý Partial Content
-	    long start, end;
-	    String[] ranges = rangeHeader.replace("bytes=", "").split("-");
-	    start = Long.parseLong(ranges[0]);
-	    end = ranges.length > 1 && !ranges[1].isEmpty() ? Long.parseLong(ranges[1]) : fileLength - 1;
-
-	    long contentLength = end - start + 1;
-	    InputStream inputStream = new FileInputStream(videoFile);
-	    inputStream.skip(start);
-	    InputStreamResource inputStreamResource = new InputStreamResource(new LimitedInputStream(inputStream, contentLength));
-
-	    return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-	            .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
-	            .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(contentLength))
-	            .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-	            .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileLength)
-	            .body(inputStreamResource);
-	}
+            @PathVariable String filename,
+            @RequestHeader(value = "Range", required = false) String rangeHeader) throws IOException {
+        return chapterService.streamVideo(filename, rangeHeader);
+    }
 
 	@GetMapping("/files/{filename}")
 	public ResponseEntity<byte[]> getFile(@PathVariable String filename) throws IOException {
-	    Path path = Paths.get(Constant.FILE_DIRECTORY + filename);
-	    byte[] data = Files.readAllBytes(path);
-
-	    String mimeType = Files.probeContentType(path); // Lấy content-type tự động
-	    
-	    return ResponseEntity.ok()
-	            .contentType(MediaType.parseMediaType(mimeType != null ? mimeType : MediaType.APPLICATION_OCTET_STREAM_VALUE))
-	            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-	            .body(data);
+	    return chapterService.getFile(filename);
 	}
 	
 	@GetMapping(path = "/images/{filename}", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE })

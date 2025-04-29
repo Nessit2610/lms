@@ -1,6 +1,9 @@
 package com.husc.lms.service;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -9,13 +12,22 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.husc.lms.configuration.LimitedInputStream;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.constant.TriFunction;
 import com.husc.lms.dto.response.DocumentResponse;
@@ -178,6 +190,8 @@ public class DocumentService {
         default -> throw new RuntimeException("Invalid folder: " + folder);
     };
 
+    validateFileExtension(type, extension);
+    
     try {
         Path storagePath = Paths.get(baseDir).toAbsolutePath().normalize();
         if (!Files.exists(storagePath)) {
@@ -193,4 +207,72 @@ public class DocumentService {
         throw new RuntimeException("Could not save file: " + filename, e);
     	}
 	};
+	
+	public ResponseEntity<Resource> streamVideo(String filename, String rangeHeader) throws IOException {
+        File videoFile = Paths.get(Constant.VIDEO_DIRECTORY + filename).toFile();
+        long fileLength = videoFile.length();
+
+        if (rangeHeader == null) {
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
+                    .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileLength))
+                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                    .body(new FileSystemResource(videoFile));
+        }
+
+        long start, end;
+        String[] ranges = rangeHeader.replace("bytes=", "").split("-");
+        start = Long.parseLong(ranges[0]);
+        end = ranges.length > 1 && !ranges[1].isEmpty() ? Long.parseLong(ranges[1]) : fileLength - 1;
+
+        long contentLength = end - start + 1;
+        InputStream inputStream = new FileInputStream(videoFile);
+        inputStream.skip(start);
+        InputStreamResource inputStreamResource = new InputStreamResource(new LimitedInputStream(inputStream, contentLength));
+
+        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
+                .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
+                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(contentLength))
+                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
+                .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileLength)
+                .body(inputStreamResource);
+    }
+	
+	public ResponseEntity<byte[]> getFile(String filename) throws IOException {
+        Path path = Paths.get(Constant.FILE_DIRECTORY + filename);
+        byte[] data = Files.readAllBytes(path);
+
+        String mimeType = Files.probeContentType(path); // Lấy content-type tự động
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(mimeType != null ? mimeType : MediaType.APPLICATION_OCTET_STREAM_VALUE))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
+                .body(data);
+    }
+	
+	private void validateFileExtension(String type, String extension) {
+	    Set<String> imageExtensions = Set.of(".jpg", ".jpeg", ".png", ".gif");
+	    Set<String> videoExtensions = Set.of(".mp4", ".avi", ".mov");
+	    Set<String> fileExtensions = Set.of(".pdf", ".doc", ".docx", ".txt");
+
+	    switch (type.toLowerCase()) {
+	        case "image" -> {
+	            if (!imageExtensions.contains(extension)) {
+	                throw new AppException(ErrorCode.INVALID_IMAGE_TYPE);
+	            }
+	        }
+	        case "video" -> {
+	            if (!videoExtensions.contains(extension)) {
+	                throw new AppException(ErrorCode.INVALID_VIDEO_TYPE);
+	            }
+	        }
+	        case "file" -> {
+	            if (!fileExtensions.contains(extension)) {
+	                throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+	            }
+	        }
+	        default -> throw new AppException(ErrorCode.UNSUPPORTED_FILE_TYPE);
+	    }
+	}
+
 }

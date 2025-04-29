@@ -25,7 +25,7 @@ public class RoleController {
 	@Autowired
 	private RoleService roleService;
 	
-	@PostMapping
+	@PostMapping("/create")
 	public APIResponse<RoleResponse> create(@RequestBody RoleRequest request){
 		return APIResponse.<RoleResponse>builder()
 				.result(roleService.create(request))

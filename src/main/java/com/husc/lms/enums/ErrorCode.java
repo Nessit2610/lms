@@ -12,8 +12,7 @@ public enum ErrorCode {
 	NOTFOUND_API(404,"API not exist",HttpStatus.BAD_REQUEST),
 	USER_EXISTED(1001,"User Existed",HttpStatus.BAD_REQUEST),
 	UNCATEGORIZED_EXCEPTION(1002,"Uncategorized error",HttpStatus.INTERNAL_SERVER_ERROR),
-	USERNAME_INVALID(1003, "Username must be at least {min} characters",HttpStatus.BAD_REQUEST),
-	PASSWORD_INVALID(1004,"Password must be at least {min} characters",HttpStatus.BAD_REQUEST),
+	PASSWORD_INVALID(1004,"Password must be at least 8 characters",HttpStatus.BAD_REQUEST),
 	INVALID_KEY(1005,"Invalid message key",HttpStatus.BAD_REQUEST),
 	ACCOUNT_NOTFOUND(1006,"Account not found",HttpStatus.BAD_REQUEST),
 	USER_UNAUTHENTICATED(1007, "Unauthenticated",HttpStatus.UNAUTHORIZED),
@@ -37,7 +36,11 @@ public enum ErrorCode {
 	EMAIL_ALREADY_USED(1024, "Email đã được sử dụng", HttpStatus.BAD_REQUEST),
 	CAN_NOT_REQUEST(1025, "Không thể đăng ký khóa học", HttpStatus.BAD_REQUEST),
 	TOKEN_INVALID(1026, "Token không hợp lệ", HttpStatus.BAD_REQUEST),
-	GROUP_NOT_FOUND(1027, "Không tìm thấy nhóm", HttpStatus.NOT_FOUND);
+	INVALID_IMAGE_TYPE(1027, "Định dạng ảnh không hợp lệ", HttpStatus.BAD_REQUEST),
+	INVALID_VIDEO_TYPE(1028, "Định dạng video không hợp lệ", HttpStatus.BAD_REQUEST),
+	INVALID_FILE_TYPE(1029, "Định dạng file không hợp lệ", HttpStatus.BAD_REQUEST),
+	UNSUPPORTED_FILE_TYPE(1030, "Loại file không hỗ trợ", HttpStatus.BAD_REQUEST),
+	GROUP_NOT_FOUND(1031, "Không tìm thấy nhóm", HttpStatus.NOT_FOUND);
 
 	
 	
