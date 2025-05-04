@@ -95,7 +95,18 @@ public class StudentGroupService {
 
 	    return studentGroups.map(sg -> {
 	        Student s = sg.getStudent();
-	        return studentMapper.tosStudentOfCourseResponse(s);
+	        return studentMapper.toStudentOfCourseResponse(s);
+	    });
+	}
+
+	public Page<StudentOfCourseResponse> searchStudentsInGroup(String groupId, String keyword, int page, int size) {
+		Group group = groupRepository.findById(groupId).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
+	    Pageable pageable = PageRequest.of(page, size);
+	    Page<StudentGroup> studentGroups = studentGroupRepository.searchByFullNameOrEmail(group, keyword, pageable);
+
+	    return studentGroups.map(sg -> {
+	        Student s = sg.getStudent();
+	        return studentMapper.toStudentOfCourseResponse(s); 
 	    });
 	}
 

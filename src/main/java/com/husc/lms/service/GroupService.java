@@ -1,8 +1,12 @@
 package com.husc.lms.service;
 
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.provisioning.GroupManager;
 import org.springframework.stereotype.Service;
@@ -71,5 +75,16 @@ public class GroupService {
 		
 	}
 	
-	
+	public Page<GroupViewResponse> getGroupOfTeacher(int page, int size){
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(()-> new AppException(ErrorCode.CODE_ERROR.ACCOUNT_NOTFOUND));
+		Teacher teacher = teacherRepository.findByAccount(account);
+		
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Group> groups = groupRepository.findByTeacher(teacher, pageable);
+		
+		return groups.map(groupMapper::toGroupViewResponse);
+	}
 }

@@ -61,6 +61,9 @@ public class StudentCourseService {
 		Course course = courseRepository.findById(request.getCourseId()).get();
 		for(String id : request.getStudentIds()) {
 			Student student = studentRepository.findById(id).get();
+			if(studentCourseRepository.existsByStudentAndCourse(student, course)) {
+				throw new AppException(ErrorCode.STUDENT_ALREADY_IN_COURSE);
+			}
 			StudentCourse studentCourse = StudentCourse.builder()
 					.registrationDate(new Date())
 					.createdDate(new Date())
@@ -72,6 +75,9 @@ public class StudentCourseService {
 	}
 	
 	public void addStudentToCourse(Student student , Course course) {
+		if(studentCourseRepository.existsByStudentAndCourse(student, course)) {
+			throw new AppException(ErrorCode.STUDENT_ALREADY_IN_COURSE);
+		}
 		StudentCourse studentCourse = StudentCourse.builder()
 				.registrationDate(new Date())
 				.createdDate(new Date())
@@ -106,14 +112,11 @@ public class StudentCourseService {
 		return false;
 	}
 	
-	public Page<CourseViewResponse> getAllCourseOfStudent(int pageNumber, int pageSize) {
+	public Page<CourseViewResponse> getAllCourseOfStudent(int page, int size) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 		Student student = studentRepository.findByAccount(account);
-		
-		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
-	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
 	    
 	    Pageable pageable = PageRequest.of(page, size);
 	    
@@ -128,15 +131,24 @@ public class StudentCourseService {
 		return courseResponsePage;	
 	}
 	
-	public Page<StudentOfCourseResponse> getAllStudentOfCourse(String courseId, int pageNumber, int pageSize){
+	public Page<StudentOfCourseResponse> getAllStudentOfCourse(String courseId, int page, int size){
 		
-		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
-	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
-	    
 	    Pageable pageable = PageRequest.of(page, size);
 	    
 		Course course = courseRepository.findById(courseId).get();
 		Page<Student> listSoC = studentCourseRepository.findStudentByCourse(course, pageable);
-		return listSoC.map(studentMapper::tosStudentOfCourseResponse);
+		return listSoC.map(studentMapper::toStudentOfCourseResponse);
 	}
+	public Page<StudentOfCourseResponse> searchStudentInCourse(String courseId,String keyword, int page, int size){
+		
+		Pageable pageable = PageRequest.of(page, size);
+		
+		Course course = courseRepository.findById(courseId).get();
+		Page<Student> listSoC = studentCourseRepository.searchStudentsInCourse(course, keyword, pageable);
+		return listSoC.map(studentMapper::toStudentOfCourseResponse);
+	}
+	
+	
+	
+	
 }

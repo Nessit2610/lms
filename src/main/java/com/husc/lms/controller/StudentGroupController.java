@@ -53,6 +53,15 @@ public class StudentGroupController {
 				.result(studentGroupService.getStudentsOfGroup(groupId, pageNumber, pageSize))
 				.build();
 	}
+	@GetMapping("/seachstudent")
+	public APIResponse<Page<StudentOfCourseResponse>> seachStudentsInGroup(@RequestParam("groupId") String groupId ,
+																			@RequestParam("keyword") String keyword,
+																			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) {
+		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+				.result(studentGroupService.searchStudentsInGroup(groupId, keyword, pageNumber, pageSize))
+				.build();
+	}
 	
 	
 }

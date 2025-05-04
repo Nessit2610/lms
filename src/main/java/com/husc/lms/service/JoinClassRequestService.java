@@ -133,7 +133,7 @@ public class JoinClassRequestService {
 	    Pageable pageable = PageRequest.of(page, size);
 	    
 		Page<Student> students = joinClassRequestRepository.findAllStudentsByCourseIdAndStatus(courseId,JoinClassStatus.PENDING.name(),pageable);
-		return students.map(studentMapper::tosStudentOfCourseResponse);
+		return students.map(studentMapper::toStudentOfCourseResponse);
 	}
 	
 	public Page<CourseViewResponse> getAllCourseRequestOfStudent(String studentId,int pageNumber, int pageSize){

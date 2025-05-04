@@ -98,7 +98,7 @@ public class StudentService {
 	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
 	    Pageable pageable = PageRequest.of(page, size);
 	    
-	    return studentRepository.searchStudent(fullName, email, majorName, pageable).map(studentMapper::tosStudentOfCourseResponse);
+	    return studentRepository.searchStudent(fullName, email, majorName, pageable).map(studentMapper::toStudentOfCourseResponse);
 	}
 
 	

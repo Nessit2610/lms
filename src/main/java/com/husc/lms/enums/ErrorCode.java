@@ -43,7 +43,10 @@ public enum ErrorCode {
 	GROUP_NOT_FOUND(1031, "Không tìm thấy nhóm", HttpStatus.NOT_FOUND),
 	POST_NOT_FOUND(1022, "Không tìm thấy bài đăng", HttpStatus.NOT_FOUND),
 	COMMENT_NOT_FOUND(1023, "Không tìm thấy bình luận", HttpStatus.NOT_FOUND),
-	OWNER_NOT_MATCH(1024, "Bạn không phải chủ nhân bình luận. Không thể sửa", HttpStatus.INTERNAL_SERVER_ERROR);
+	OWNER_NOT_MATCH(1024, "Bạn không phải chủ nhân bình luận. Không thể sửa", HttpStatus.INTERNAL_SERVER_ERROR),
+	QUESTION_NOT_FOUND(1025, "Không tìm thấy câu hỏi", HttpStatus.NOT_FOUND),
+	TEST_NOT_FOUND(1026, "Không tìm thấy bài kiểm tra", HttpStatus.NOT_FOUND),
+	STUDENT_ALREADY_IN_COURSE(1026, "Sinh viên này đã tham gia vào lớp học", HttpStatus.BAD_REQUEST);
 	
 	
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {

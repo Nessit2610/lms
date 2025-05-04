@@ -47,5 +47,10 @@ public class TestInGroupService {
 		return testInGroupMapper.toTestInGroupResponse(testInGroup);
 		
 	}
+	public TestInGroupResponse getById(String id) {
+		TestInGroup testInGroup = testInGroupRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+		return testInGroupMapper.toTestInGroupResponse(testInGroup);
+	}
+	
 	
 }

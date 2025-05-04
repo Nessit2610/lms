@@ -14,6 +14,6 @@ public interface StudentMapper {
 	
 	public StudentResponse toStudentResponse(Student student);
 	
-	public StudentOfCourseResponse tosStudentOfCourseResponse(Student student);
+	public StudentOfCourseResponse toStudentOfCourseResponse(Student student);
 	
 }

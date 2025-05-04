@@ -30,5 +30,20 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, St
 	StudentCourse findByCourseAndStudentAndDeletedDateIsNull(Course course, Student student);
     
     List<StudentCourse> findByCourseAndDeletedDateIsNull(Course course);
+    
+    @Query("""
+	    SELECT sc.student FROM StudentCourse sc
+	    WHERE sc.course = :course
+	    AND sc.deletedDate IS NULL
+	    AND (
+	        LOWER(sc.student.fullName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+	        OR LOWER(sc.student.email) LIKE LOWER(CONCAT('%', :keyword, '%'))
+	    )
+	""")
+	Page<Student> searchStudentsInCourse(@Param("course") Course course,
+	                                     @Param("keyword") String keyword,
+	                                     Pageable pageable);
+
+    boolean existsByStudentAndCourse(Student student, Course course);
 
 }

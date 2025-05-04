@@ -50,6 +50,16 @@ public class StudentCourseController {
 				.build();
 	}
 	
+	@GetMapping("/searchstudent")
+	public APIResponse<Page<StudentOfCourseResponse>> searchStudentInCourse(@RequestParam("courseId") String courseId,
+																			@RequestParam("keyword") String keyword,
+																			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+				.result(studentCourseService.searchStudentInCourse(courseId,keyword,pageNumber,pageSize))
+				.build();
+	}
+	
 	@DeleteMapping("/delete")
 	public APIResponse<Boolean> deleteStudentOfCourse(@RequestParam("courseId") String courseId,
 													@RequestParam("studentId") String studendId){
