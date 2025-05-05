@@ -44,7 +44,7 @@ public class StudentController {
 				.build();
 	}
 	
-	@PostMapping("/search")
+	@GetMapping("/search")
 	public APIResponse<Page<StudentOfCourseResponse>> searchStudent(@RequestParam("fullName") String fullName,
 															@RequestParam("email") String email,
 															@RequestParam("majorName") String majorName,
