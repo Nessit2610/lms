@@ -46,7 +46,7 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, St
 	                                     @Param("keyword") String keyword,
 	                                     Pageable pageable);
 
-    boolean existsByStudentAndCourseDeletedDateIsNull(Student student, Course course);
-    boolean existsByStudentAndCourseDeletedDateIsNotNull(Student student, Course course);
+    boolean existsByStudentAndCourseAndDeletedDateIsNull(Student student, Course course);
+    boolean existsByStudentAndCourseAndDeletedDateIsNotNull(Student student, Course course);
 
 }
