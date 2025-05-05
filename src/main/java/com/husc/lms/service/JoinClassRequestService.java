@@ -93,6 +93,7 @@ public class JoinClassRequestService {
 						.createdAt(new Date())
 						.build();
 				joinClassRequestRepository.save(joinClassRequest);
+				studentCourseService.addStudentToCourse(student, course);
 				return true;
 			}
 			else {
