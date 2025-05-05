@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class GroupViewResponse {
 	
+	private String id;
+	
 	private String name;
 	
 	private String description;

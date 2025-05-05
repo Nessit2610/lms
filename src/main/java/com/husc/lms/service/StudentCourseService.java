@@ -57,13 +57,43 @@ public class StudentCourseService {
 	@Autowired
 	private StudentMapper studentMapper;
 	
-	public void addListStudentToCourse(StudentCourseRequest request) {
+	public Boolean addListStudentToCourse(StudentCourseRequest request) {
 		Course course = courseRepository.findById(request.getCourseId()).get();
 		for(String id : request.getStudentIds()) {
 			Student student = studentRepository.findById(id).get();
-			if(studentCourseRepository.existsByStudentAndCourse(student, course)) {
+			if(studentCourseRepository.existsByStudentAndCourseDeletedDateIsNull(student, course)) {
 				throw new AppException(ErrorCode.STUDENT_ALREADY_IN_COURSE);
 			}
+			else if(studentCourseRepository.existsByStudentAndCourseDeletedDateIsNotNull(student, course)) {
+				StudentCourse studentCourseExisted =studentCourseRepository.findByCourseAndStudentAndDeletedDateIsNotNull(course, student);
+				studentCourseExisted.setDeletedBy(null);
+				studentCourseExisted.setDeletedDate(null);
+				studentCourseRepository.save(studentCourseExisted);
+			}
+			else {
+				StudentCourse studentCourse = StudentCourse.builder()
+						.registrationDate(new Date())
+						.createdDate(new Date())
+						.student(student)
+						.course(course)
+						.build();
+				studentCourseRepository.save(studentCourse);
+			}
+		}
+		return true;
+	}
+	
+	public Boolean addStudentToCourse(Student student , Course course) {
+		if(studentCourseRepository.existsByStudentAndCourseDeletedDateIsNull(student, course)) {
+			throw new AppException(ErrorCode.STUDENT_ALREADY_IN_COURSE);
+		}
+		else if(studentCourseRepository.existsByStudentAndCourseDeletedDateIsNotNull(student, course)) {
+			StudentCourse studentCourseExisted =studentCourseRepository.findByCourseAndStudentAndDeletedDateIsNotNull(course, student);
+			studentCourseExisted.setDeletedBy(null);
+			studentCourseExisted.setDeletedDate(null);
+			studentCourseRepository.save(studentCourseExisted);
+		}
+		else {
 			StudentCourse studentCourse = StudentCourse.builder()
 					.registrationDate(new Date())
 					.createdDate(new Date())
@@ -72,20 +102,8 @@ public class StudentCourseService {
 					.build();
 			studentCourseRepository.save(studentCourse);
 		}
-	}
-	
-	public void addStudentToCourse(Student student , Course course) {
-		if(studentCourseRepository.existsByStudentAndCourse(student, course)) {
-			throw new AppException(ErrorCode.STUDENT_ALREADY_IN_COURSE);
-		}
-		StudentCourse studentCourse = StudentCourse.builder()
-				.registrationDate(new Date())
-				.createdDate(new Date())
-				.student(student)
-				.course(course)
-				.build();
-		studentCourseRepository.save(studentCourse);
 		
+		return true;
 	}
 	
 	public boolean deleteStudentOfCourse(String studentId, String courseId) {

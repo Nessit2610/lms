@@ -28,6 +28,8 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, St
 	long countStudentsByCourse(@Param("course") Course course);
 	
 	StudentCourse findByCourseAndStudentAndDeletedDateIsNull(Course course, Student student);
+	
+	StudentCourse findByCourseAndStudentAndDeletedDateIsNotNull(Course course, Student student);
     
     List<StudentCourse> findByCourseAndDeletedDateIsNull(Course course);
     
@@ -44,6 +46,7 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, St
 	                                     @Param("keyword") String keyword,
 	                                     Pageable pageable);
 
-    boolean existsByStudentAndCourse(Student student, Course course);
+    boolean existsByStudentAndCourseDeletedDateIsNull(Student student, Course course);
+    boolean existsByStudentAndCourseDeletedDateIsNotNull(Student student, Course course);
 
 }
