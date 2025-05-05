@@ -46,6 +46,15 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, St
 	                                     @Param("keyword") String keyword,
 	                                     Pageable pageable);
 
+
+    @Query("SELECT s FROM Student s WHERE s.id NOT IN "
+         + "(SELECT sc.student.id FROM StudentCourse sc WHERE sc.course = :course) "
+         + "AND (s.fullName LIKE %:keyword% OR s.email LIKE %:keyword%)")
+    Page<Student> searchStudentsNotInCourse(@Param("course") Course course,
+                                            @Param("keyword") String keyword,
+                                            Pageable pageable);
+
+    
     boolean existsByStudentAndCourseAndDeletedDateIsNull(Student student, Course course);
     boolean existsByStudentAndCourseAndDeletedDateIsNotNull(Student student, Course course);
 
