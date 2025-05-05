@@ -38,6 +38,7 @@ import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.Notification;
 import com.husc.lms.entity.Student;
+import com.husc.lms.enums.CommentType;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.NotificationType;
 import com.husc.lms.enums.StatusCourse;
@@ -166,6 +167,7 @@ public class CommentService {
     public List<CommentChapterResponse> getUnreadCommentsByCourseId(String courseId) {
     	return commentRepository.findUnreadCommentsByCourseId(courseId);
     }
+    
     public Page<CommentChapterResponse> getUnreadCommentsByCourseId(String courseId, int pageNumber, int pageSize) {
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize);
         
@@ -289,6 +291,7 @@ public class CommentService {
             readStatuses.add(CommentReadStatus.builder()
                 .account(studentAccount)
                 .comment(savedComment)
+                .commentType(CommentType.COMMENT)
                 .isRead(false)
                 .build());
 
@@ -317,25 +320,30 @@ public class CommentService {
         }
 
         // ✅ Trả về CommentMessageResponse
-        return new CommentMessageResponse(
-    		savedComment.getChapter().getId(),
-    		savedComment.getCourse().getId(),
-    		savedComment.getId(),
-            account.getUsername(),
-            account.getStudent() != null && account.getStudent().getFullName() != null
-            ? account.getStudent().getFullName()
-            : (account.getTeacher() != null && account.getTeacher().getFullName() != null
-                ? account.getTeacher().getFullName()
-                : ""),
-            account.getStudent() != null && account.getStudent().getAvatar() != null
-            ? account.getStudent().getAvatar()
-            : (account.getTeacher() != null && account.getTeacher().getAvatar() != null
-                ? account.getTeacher().getAvatar()
-                : ""),
-            comment.getDetail(),
-            comment.getCreatedDate(),
-            List.of()
-        );
+        return CommentMessageResponse.builder()
+        	    .chapterId(savedComment.getChapter().getId())
+        	    .courseId(savedComment.getCourse().getId())
+        	    .commentId(savedComment.getId())
+        	    .username(account.getUsername())
+        	    .fullname(
+        	        account.getStudent() != null && account.getStudent().getFullName() != null
+        	            ? account.getStudent().getFullName()
+        	            : (account.getTeacher() != null && account.getTeacher().getFullName() != null
+        	                ? account.getTeacher().getFullName()
+        	                : "")
+        	    )
+        	    .avatar(
+        	        account.getStudent() != null && account.getStudent().getAvatar() != null
+        	            ? account.getStudent().getAvatar()
+        	            : (account.getTeacher() != null && account.getTeacher().getAvatar() != null
+        	                ? account.getTeacher().getAvatar()
+        	                : "")
+        	    )
+        	    .detail(comment.getDetail())
+        	    .createdDate(comment.getCreatedDate())
+        	    .commentReplyResponses(List.of())
+        	    .build();
+
     }
 
 
