@@ -71,6 +71,11 @@ public class StudentCourseService {
 				studentCourseRepository.save(studentCourseExisted);
 			}
 			else {
+				JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
+				if(joinClassRequest != null) {
+					joinClassRequest.setStatus(JoinClassStatus.APPROVED.name());
+					joinClassRequestRepository.save(joinClassRequest);
+				}
 				StudentCourse studentCourse = StudentCourse.builder()
 						.registrationDate(new Date())
 						.createdDate(new Date())
@@ -95,6 +100,11 @@ public class StudentCourseService {
 			return true;
 		}
 		else {
+			JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
+			if(joinClassRequest != null) {
+				joinClassRequest.setStatus(JoinClassStatus.APPROVED.name());
+				joinClassRequestRepository.save(joinClassRequest);
+			}
 			StudentCourse studentCourse = StudentCourse.builder()
 					.registrationDate(new Date())
 					.createdDate(new Date())
