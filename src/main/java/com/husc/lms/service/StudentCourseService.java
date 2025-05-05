@@ -1,6 +1,8 @@
 package com.husc.lms.service;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,31 +59,45 @@ public class StudentCourseService {
 	@Autowired
 	private StudentMapper studentMapper;
 	
-	public boolean addListStudentToCourse(StudentCourseRequest request) {
-		Course course = courseRepository.findById(request.getCourseId()).get();
-		for(String id : request.getStudentIds()) {
-			Student student = studentRepository.findById(id).get();
-			if(studentCourseRepository.existsByStudentAndCourseAndDeletedDateIsNull(student, course)) {
-				throw new AppException(ErrorCode.STUDENT_ALREADY_IN_COURSE);
-			}
-			else if(studentCourseRepository.existsByStudentAndCourseAndDeletedDateIsNotNull(student, course)) {
-				StudentCourse studentCourseExisted =studentCourseRepository.findByCourseAndStudentAndDeletedDateIsNotNull(course, student);
-				studentCourseExisted.setDeletedBy(null);
-				studentCourseExisted.setDeletedDate(null);
-				studentCourseRepository.save(studentCourseExisted);
-			}
-			else {
-				StudentCourse studentCourse = StudentCourse.builder()
-						.registrationDate(new Date())
-						.createdDate(new Date())
-						.student(student)
-						.course(course)
-						.build();
-				studentCourseRepository.save(studentCourse);
-			}
-		}
-		return true;
+	public void addListStudentToCourse(StudentCourseRequest request) {
+	    Course course = courseRepository.findById(request.getCourseId())
+	            .orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+	    List<String> alreadyExistIds = new ArrayList<String>();
+	    Date now = new Date();
+
+	    for (String id : request.getStudentIds()) {
+	        Student student = studentRepository.findById(id)
+	                .orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+
+	        if (studentCourseRepository.existsByStudentAndCourseAndDeletedDateIsNull(student, course)) {
+	            alreadyExistIds.add(id);
+	            continue;
+	        }
+
+	        if (studentCourseRepository.existsByStudentAndCourseAndDeletedDateIsNotNull(student, course)) {
+	            StudentCourse studentCourseExisted = studentCourseRepository
+	                    .findByCourseAndStudentAndDeletedDateIsNotNull(course, student);
+	            studentCourseExisted.setDeletedBy(null);
+	            studentCourseExisted.setDeletedDate(null);
+	            studentCourseRepository.save(studentCourseExisted);
+	        } else {
+	            StudentCourse studentCourse = StudentCourse.builder()
+	                    .registrationDate(now)
+	                    .createdDate(now)
+	                    .student(student)
+	                    .course(course)
+	                    .build();
+	            studentCourseRepository.save(studentCourse);
+	        }
+	    }
+
+	    if (!alreadyExistIds.isEmpty()) {
+	        throw new AppException(ErrorCode.STUDENT_ALREADY_IN_COURSE, 
+	            "Some students are already in the course: " + alreadyExistIds);
+	    }
 	}
+
 	
 	public boolean addStudentToCourse(Student student , Course course) {
 		if(studentCourseRepository.existsByStudentAndCourseAndDeletedDateIsNull(student, course)) {
@@ -92,6 +108,7 @@ public class StudentCourseService {
 			studentCourseExisted.setDeletedBy(null);
 			studentCourseExisted.setDeletedDate(null);
 			studentCourseRepository.save(studentCourseExisted);
+			return true;
 		}
 		else {
 			StudentCourse studentCourse = StudentCourse.builder()
@@ -101,9 +118,8 @@ public class StudentCourseService {
 					.course(course)
 					.build();
 			studentCourseRepository.save(studentCourse);
+			return true;
 		}
-		
-		return true;
 	}
 	
 	public boolean deleteStudentOfCourse(String studentId, String courseId) {

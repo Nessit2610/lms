@@ -46,7 +46,8 @@ public enum ErrorCode {
 	OWNER_NOT_MATCH(1024, "Bạn không phải chủ nhân bình luận. Không thể sửa", HttpStatus.INTERNAL_SERVER_ERROR),
 	QUESTION_NOT_FOUND(1025, "Không tìm thấy câu hỏi", HttpStatus.NOT_FOUND),
 	TEST_NOT_FOUND(1026, "Không tìm thấy bài kiểm tra", HttpStatus.NOT_FOUND),
-	STUDENT_ALREADY_IN_COURSE(1026, "Sinh viên này đã tham gia vào lớp học", HttpStatus.BAD_REQUEST);
+	STUDENT_ALREADY_IN_COURSE(1027, "Sinh viên này đã tham gia vào lớp học", HttpStatus.BAD_REQUEST),
+	COURSE_NOT_FOUND(1028, "Không tìm thấy khóa học", HttpStatus.NOT_FOUND);
 	
 	
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
