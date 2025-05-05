@@ -85,14 +85,26 @@ public class JoinClassRequestService {
 			joinClassRequestRepository.deleteByStudentAndCourse(student, course);
 		}
 		if(student != null && course != null) {
-			JoinClassRequest joinClassRequest = JoinClassRequest.builder()
-					.student(student)
-					.course(course)
-					.status(JoinClassStatus.PENDING.name())
-					.createdAt(new Date())
-					.build();
-			joinClassRequestRepository.save(joinClassRequest);
-			return true;
+			if(course.getStatus().equals(StatusCourse.PUBLIC.name())) {
+				JoinClassRequest joinClassRequest = JoinClassRequest.builder()
+						.student(student)
+						.course(course)
+						.status(JoinClassStatus.APPROVED.name())
+						.createdAt(new Date())
+						.build();
+				joinClassRequestRepository.save(joinClassRequest);
+				return true;
+			}
+			else {
+				JoinClassRequest joinClassRequest = JoinClassRequest.builder()
+						.student(student)
+						.course(course)
+						.status(JoinClassStatus.PENDING.name())
+						.createdAt(new Date())
+						.build();
+				joinClassRequestRepository.save(joinClassRequest);
+				return true;
+			}
 		}
 		return false;
 	}

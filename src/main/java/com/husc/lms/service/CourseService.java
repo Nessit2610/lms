@@ -118,11 +118,14 @@ public class CourseService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
+		Major major = majorRepository.findById(request.getMajorId()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
+		
+		
 		Course course = courseRepository.findById(request.getIdCourse()).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
 		course.setName(request.getName());
 		course.setDescription(request.getDescription());
 		course.setEndDate(request.getEndDate());
-		course.setMajor(request.getMajor());
+		course.setMajor(major.getName());
 		course.setStatus(request.getStatus());
 		course.setLearningDurationType(request.getLearningDurationType());
 		course.setLastModifiedBy(name);

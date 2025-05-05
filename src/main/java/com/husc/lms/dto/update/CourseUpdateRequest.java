@@ -20,7 +20,7 @@ public class CourseUpdateRequest {
 
     private Date endDate;
 
-    private String major;
+    private String majorId;
 
     private String status;
     
