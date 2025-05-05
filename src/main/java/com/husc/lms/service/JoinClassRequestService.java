@@ -138,10 +138,7 @@ public class JoinClassRequestService {
 		return false;
 	}
 	
-	public Page<StudentOfCourseResponse> getAllStudentRequestOfCourse(String courseId, int pageNumber, int pageSize){
-		
-		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
-	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	public Page<StudentOfCourseResponse> getAllStudentRequestOfCourse(String courseId, int page, int size){
 	    
 	    Pageable pageable = PageRequest.of(page, size);
 	    
@@ -149,10 +146,7 @@ public class JoinClassRequestService {
 		return students.map(studentMapper::toStudentOfCourseResponse);
 	}
 	
-	public Page<CourseViewResponse> getAllCourseRequestOfStudent(String studentId,int pageNumber, int pageSize){
-		
-		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
-	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	public Page<CourseViewResponse> getAllCourseRequestOfStudent(String studentId,int page, int size){
 	    
 	    Pageable pageable = PageRequest.of(page, size);
 		
@@ -166,6 +160,25 @@ public class JoinClassRequestService {
 		return courseResponses;	
 	}
 	
-	
+	public String getStatusJoinClass(String courseId) {
+		
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Student student = studentRepository.findByAccount(account);
+		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
+		
+		if(student != null && course != null) {
+			JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
+			if(joinClassRequest != null) {
+				return joinClassRequest.getStatus();
+			}
+			else {
+				return JoinClassStatus.NOT_JOINED.name();	
+			}
+		}
+		return JoinClassStatus.NOT_JOINED.name();
+	}
 	
 }

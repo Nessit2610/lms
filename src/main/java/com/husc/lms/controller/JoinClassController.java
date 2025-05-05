@@ -62,6 +62,11 @@ public class JoinClassController {
 				.build();
 	}
 	
-	
+	@GetMapping("/getstatus")
+	public APIResponse<String> getStatus(@RequestParam("courseId") String courseId) {
+		return APIResponse.<String>builder()
+				.result(joinClassRequestService.getStatusJoinClass(courseId))
+				.build();
+	}
 	
 }

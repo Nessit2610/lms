@@ -2,7 +2,9 @@ package com.husc.lms.enums;
 
 public enum JoinClassStatus {
 
-	APPROVED,       // Đã duyệt
+    APPROVED,       // Đã duyệt
     PENDING,        // Đang chờ duyệt
-    REJECTED        // Từ chối
+    REJECTED,       // Từ chối
+    NOT_JOINED      // Chưa tham gia
 }
+
