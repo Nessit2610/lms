@@ -4,9 +4,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -33,6 +35,8 @@ import com.husc.lms.repository.StudentRepository;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ConfirmationCodeRepository;
 import com.husc.lms.repository.MajorRepository;
+import com.husc.lms.repository.StudentLessonChapterProgressRepository;
+import com.husc.lms.repository.StudentLessonProgressRepository;
 
 
 @Service
@@ -50,7 +54,12 @@ public class StudentService {
 	@Autowired
 	private ConfirmationCodeRepository codeRepository;
 	
+	@Autowired
+	private StudentLessonChapterProgressRepository studentLessonChapterProgressRepository;
 	
+	@Autowired
+	private StudentLessonProgressRepository studentLessonProgressRepository;
+
 	@Autowired
 	private MajorRepository majorRepository;
 	
@@ -137,5 +146,14 @@ public class StudentService {
 		}
 	};
 
+	public List<Student> findEligibleStudents(String lessonId, String chapterId) {
+        List<String> studentIdsByLesson = studentLessonProgressRepository.findStudentIdsByLessonCompleted(lessonId);
+        List<String> studentIdsByChapter = studentLessonChapterProgressRepository.findStudentIdsByChapterCompleted(chapterId);
 
+        Set<String> uniqueStudentIds = new HashSet<>();
+        uniqueStudentIds.addAll(studentIdsByLesson);
+        uniqueStudentIds.addAll(studentIdsByChapter);
+
+        return studentRepository.findAllById(uniqueStudentIds);
+    }
 }

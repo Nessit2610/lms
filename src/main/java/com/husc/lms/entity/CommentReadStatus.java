@@ -1,9 +1,12 @@
 package com.husc.lms.entity;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.husc.lms.enums.CommentType;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -33,6 +36,15 @@ public class CommentReadStatus {
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonBackReference
     private Comment comment;
+    
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "commentReplyId")
+    @JsonBackReference
+    private CommentReply commentReply;
+
+    @Column(name = "commentType")
+    @Enumerated(EnumType.STRING)
+    private CommentType commentType;
 
     @JoinColumn(name = "accountId")
     @ManyToOne(fetch = FetchType.EAGER)
