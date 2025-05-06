@@ -54,8 +54,10 @@ public class PostService {
 	
 	public PostResponse createPost(String groupId, String title, MultipartFile file, String type, String text) {
 		Group group = groupRepository.findById(groupId).orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
-		String extension = fileExtension.apply(file.getOriginalFilename());
-		validateFileExtension(type, extension);
+		if(file != null  && !file.isEmpty() && type != null) {
+			String extension = fileExtension.apply(file.getOriginalFilename());
+			validateFileExtension(type, extension);
+		}
 		Post post = Post.builder()
 				.group(group)
 				.title(title)
@@ -63,8 +65,13 @@ public class PostService {
 				.createdAt(new Date())
 				.build();
 		post = postRepository.save(post);
-		String id = post.getId();
-		uploadFile(id, file, type);
+		
+		if(file != null  && !file.isEmpty() && type != null) {
+			String id = post.getId();
+			uploadFile(id, file, type);
+			
+		}
+		
 		return postMapper.toPostResponse(post);
 		
 	}

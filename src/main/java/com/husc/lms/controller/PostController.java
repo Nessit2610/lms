@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.jsf.FacesContextUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.husc.lms.constant.Constant;
@@ -35,10 +36,10 @@ public class PostController {
 	
 	@PostMapping("/create")
 	public APIResponse<PostResponse> createPost(@RequestParam("groupId") String groupId,
-												@RequestParam("title") String title,
-												@RequestParam("file") MultipartFile file,
-												@RequestParam("type") String type,
-												@RequestParam("text") String text){
+												@RequestParam(value = "title", required = false) String title,
+												@RequestParam(value ="file",required = false) MultipartFile file,
+												@RequestParam(value ="type",required = false) String type,
+												@RequestParam(value ="text",required = false) String text){
 		return APIResponse.<PostResponse>builder()
 				.result(postService.createPost(groupId, title, file, type, text))
 				.build();
