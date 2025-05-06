@@ -45,6 +45,8 @@ public class Document {
 	@JoinColumn(name = "accountId")
 	private Account account;
 	
+	private String fileName;
+	
 	private String path;
 	
 	private Date createdAt;

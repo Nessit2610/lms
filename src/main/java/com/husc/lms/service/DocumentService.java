@@ -159,6 +159,7 @@ public class DocumentService {
 
 	    String fileUrl = generalFileUploadFunction.apply(id, type.toLowerCase(), file);
 	    document.setPath(fileUrl);
+	    document.setFileName(file.getOriginalFilename());
 	    documentRepository.save(document);
 
 	    return fileUrl;

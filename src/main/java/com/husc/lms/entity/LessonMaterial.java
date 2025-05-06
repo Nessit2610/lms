@@ -33,6 +33,8 @@ public class LessonMaterial {
 	private String path;
  
     private String type;
+    
+    private String fileName;
      
     @JoinColumn(name = "lessonId")
     @ManyToOne(fetch = FetchType.LAZY)

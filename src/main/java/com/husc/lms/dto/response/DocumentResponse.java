@@ -21,6 +21,8 @@ public class DocumentResponse {
 	
 	private MajorResponse major;
 	
+	private String fileName;
+	
 	private String path;
 	
 	private Object object;

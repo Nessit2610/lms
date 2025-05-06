@@ -99,6 +99,7 @@ public class LessonMaterialService {
 	            .orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
 
 	    String fileUrl = generalFileUploadFunction.apply(id, type.toLowerCase(), file);
+	    lessonMaterial.setFileName(file.getOriginalFilename());
 	    lessonMaterial.setPath(fileUrl);
 	    lessonMaterialRepository.save(lessonMaterial);
 

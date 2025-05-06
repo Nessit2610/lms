@@ -18,6 +18,7 @@ import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.JoinClassRequest;
 import com.husc.lms.entity.Student;
+import com.husc.lms.entity.StudentCourse;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.JoinClassStatus;
 import com.husc.lms.enums.StatusCourse;
@@ -170,12 +171,18 @@ public class JoinClassRequestService {
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
 		
 		if(student != null && course != null) {
+			StudentCourse studentCourse = studentCourseRepository.findByCourseAndStudentAndDeletedDateIsNull(course, student);
 			JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
-			if(joinClassRequest != null) {
-				return joinClassRequest.getStatus();
+			if(studentCourse != null) {
+				return JoinClassStatus.APPROVED.name();
 			}
 			else {
-				return JoinClassStatus.NOT_JOINED.name();	
+				if(joinClassRequest != null) {
+					return joinClassRequest.getStatus();
+				}
+				else {
+					return JoinClassStatus.NOT_JOINED.name();	
+				}
 			}
 		}
 		return JoinClassStatus.NOT_JOINED.name();
