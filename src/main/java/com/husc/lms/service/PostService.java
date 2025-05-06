@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -77,6 +78,7 @@ public class PostService {
 
 	    List<FileUploadRequest> uploads = request.getFileUploadRequests();
 	    if (uploads != null && !uploads.isEmpty()) {
+	    	List<PostFile> postFiles = new ArrayList<PostFile>();
 	        for (FileUploadRequest fileRequest : uploads) {
 	            MultipartFile file = fileRequest.getFile();
 	            String type = fileRequest.getType();
@@ -85,9 +87,11 @@ public class PostService {
 	                
 	                continue;
 	            }
-
-	            postFileService.creatPostFile(post, file, type);
+	            PostFile pf = postFileService.creatPostFile(post, file, type);
+	            postFiles.add(pf);
 	        }
+	        post.setFiles(postFiles);
+	        postRepository.save(post);
 	    }
 
 	    return postMapper.toPostResponse(post);

@@ -38,7 +38,7 @@ public class PostFileService {
 	@Autowired
 	private PostFileRepository postFileRepository;
 
-	public void creatPostFile(Post post,MultipartFile file, String type) {
+	public PostFile creatPostFile(Post post,MultipartFile file, String type) {
 		if(file != null  && !file.isEmpty() && type != null) {
 			String extension = fileExtension.apply(file.getOriginalFilename());
 			validateFileExtension(type, extension);
@@ -50,6 +50,7 @@ public class PostFileService {
 		if(file != null  && !file.isEmpty() && type != null) {
 			uploadFile(postFile.getId(), file, type);
 		}
+		return postFile;
 	}
 
 	public String uploadFile(String id, MultipartFile file, String type) {
