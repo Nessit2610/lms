@@ -30,6 +30,8 @@ public class PostFile {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "postId")
     private Post post;
+    
+    private String fileName;
 
     private String fileType;
 

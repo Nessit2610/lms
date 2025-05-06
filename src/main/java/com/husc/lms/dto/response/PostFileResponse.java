@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PostFileResponse {
 	
+	private String fileName;
+	
 	private String fileType;
 
 	private String fileUrl;

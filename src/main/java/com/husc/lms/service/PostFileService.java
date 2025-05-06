@@ -62,6 +62,7 @@ public class PostFileService {
 	            .orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
 
 	    String fileUrl = generalFileUploadFunction.apply(id, type.toLowerCase(), file);
+	    postFile.setFileName(file.getOriginalFilename());
 	    postFile.setFileType(type);
 	    postFile.setFileUrl(fileUrl);
 	    postFileRepository.save(postFile);
