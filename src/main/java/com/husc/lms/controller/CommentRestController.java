@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CommentChapterResponse;
+import com.husc.lms.dto.response.CommentOfCourseResponse;
 import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.entity.Chapter;
@@ -68,18 +69,27 @@ public class CommentRestController {
 	            .build();
 	}
 
-	@GetMapping("/chapter/unreadCommentsOfCourse/{courseId}")
-	public APIResponse<CommentsOfChapterInLessonOfCourseResponse> getUnreadCommentsOfCourse(
-	        @PathVariable("courseId") String courseId,
+//	@GetMapping("/chapter/unreadCommentsOfCourse/{courseId}")
+//	public APIResponse<CommentsOfChapterInLessonOfCourseResponse> getUnreadCommentsOfCourse(
+//	        @PathVariable("courseId") String courseId,
+//	        @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
+//	        @RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
+//	    
+//	    CommentsOfChapterInLessonOfCourseResponse response = commentService.getStructuredUnreadComments(courseId, pageNumber, pageSize);
+//	    return APIResponse.<CommentsOfChapterInLessonOfCourseResponse>builder()
+//	            .result(response)
+//	            .build();
+//	}
+	@GetMapping("/chapter/unreadCommentsOfCourse")
+	public APIResponse<Page<CommentOfCourseResponse>> getUnreadCommentsOfCourse(
 	        @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
 	        @RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
 	    
-	    CommentsOfChapterInLessonOfCourseResponse response = commentService.getStructuredUnreadComments(courseId, pageNumber, pageSize);
-	    return APIResponse.<CommentsOfChapterInLessonOfCourseResponse>builder()
+		Page<CommentOfCourseResponse> response = commentService.getTotalUnreadCommentsOfCourseForTeacher(pageNumber, pageSize);
+	    return APIResponse.<Page<CommentOfCourseResponse>>builder()
 	            .result(response)
 	            .build();
 	}
-
 	
 //	@PostMapping("/chapter/read")
 //    public APIResponse<Boolean> setNotificationAsReadByAccount(@RequestBody List<Comment> comments) {

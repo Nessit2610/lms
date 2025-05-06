@@ -271,7 +271,7 @@ public class CommentReplyService {
 
         // Trả về response
         return CommentReplyResponse.builder()
-            .parentCommentId(savedReply.getComment().getId())
+            .commentId(savedReply.getComment().getId())
             .commentReplyId(savedReply.getId())
             .usernameOwner(ownerAccount.getUsername())
             .fullnameOwner(fullnameOwner)
@@ -303,7 +303,6 @@ public class CommentReplyService {
 
         return payload;
     }
-
 
 	public CommentReplyUpdateMessageResponse updateCommentReply(CommentReplyUpdateMessage message) {
 		CommentReply changeCommentReply = commentReplyRepository.findById(message.getCommentReplyId())

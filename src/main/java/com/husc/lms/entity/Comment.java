@@ -39,6 +39,11 @@ public class Comment {
     @JoinColumn(name = "accountId")
     @JsonBackReference
     private Account account;
+    
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "lessonId")
+//    @JsonBackReference
+//    private Lesson lesson;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "chapterId")
