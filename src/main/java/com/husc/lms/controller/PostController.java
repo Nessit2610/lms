@@ -63,21 +63,5 @@ public class PostController {
 	}
 	
 	
-//	@GetMapping("/videos/{filename}")
-//	public ResponseEntity<Resource> streamVideo(
-//            @PathVariable String filename,
-//            @RequestHeader(value = "Range", required = false) String rangeHeader) throws IOException {
-//        return postService.streamVideo(filename, rangeHeader);
-//    }
-//
-//	@GetMapping("/files/{filename}")
-//	public ResponseEntity<byte[]> getFile(@PathVariable String filename) throws IOException {
-//	    return postService.getFile(filename);
-//	}
-//	
-//	
-//	@GetMapping(path = "/image/{filename}", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE })
-//    public byte[] getPhoto(@PathVariable("filename") String filename) throws IOException {
-//        return Files.readAllBytes(Paths.get(Constant.PHOTO_DIRECTORY + filename));
-//    }
+	
 }

@@ -77,6 +77,7 @@ public class PostService {
 	            String type = fileRequest.getType();
 
 	            if (file == null || file.isEmpty() || type == null || type.trim().isEmpty()) {
+	                
 	                continue;
 	            }
 
