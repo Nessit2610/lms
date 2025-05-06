@@ -36,10 +36,12 @@ import com.husc.lms.dto.request.PostRequest;
 import com.husc.lms.dto.response.PostResponse;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Post;
+import com.husc.lms.entity.PostFile;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.PostMapper;
 import com.husc.lms.repository.GroupRepository;
+import com.husc.lms.repository.PostFileRepository;
 import com.husc.lms.repository.PostRepository;
 
 @Service
@@ -53,6 +55,9 @@ public class PostService {
 	
 	@Autowired
 	private PostFileService postFileService;
+	
+	@Autowired
+	private PostFileRepository postFileRepository;
 	
 	@Autowired
 	private PostMapper postMapper;
@@ -92,6 +97,12 @@ public class PostService {
 	public Boolean deletePost(String postId) {
 		Post post = postRepository.findById(postId).orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
 		if(post != null) {
+			List<PostFile> postFiles = postFileRepository.findByPost(post);
+			if(postFiles != null) {
+				for(PostFile p : postFiles) {
+					postFileRepository.delete(p);
+				}
+			}
 			postRepository.deleteById(postId);
 			return true;
 		}

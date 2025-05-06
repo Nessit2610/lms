@@ -51,8 +51,7 @@ public class PostFileService {
 			uploadFile(postFile.getId(), file, type);
 		}
 	}
-	
-	
+
 	public String uploadFile(String id, MultipartFile file, String type) {
 	    if (file == null || file.isEmpty()) {
 	        throw new RuntimeException("File is empty");
