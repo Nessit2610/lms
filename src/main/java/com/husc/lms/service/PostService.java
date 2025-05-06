@@ -31,6 +31,8 @@ import org.springframework.http.MediaType;
 import com.husc.lms.configuration.LimitedInputStream;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.constant.TriFunction;
+import com.husc.lms.dto.request.FileUploadRequest;
+import com.husc.lms.dto.request.PostRequest;
 import com.husc.lms.dto.response.PostResponse;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Post;
@@ -50,31 +52,41 @@ public class PostService {
 	private GroupRepository groupRepository;
 	
 	@Autowired
+	private PostFileService postFileService;
+	
+	@Autowired
 	private PostMapper postMapper;
 	
-	public PostResponse createPost(String groupId, String title, MultipartFile file, String type, String text) {
-		Group group = groupRepository.findById(groupId).orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
-		if(file != null  && !file.isEmpty() && type != null) {
-			String extension = fileExtension.apply(file.getOriginalFilename());
-			validateFileExtension(type, extension);
-		}
-		Post post = Post.builder()
-				.group(group)
-				.title(title)
-				.text(text)
-				.createdAt(new Date())
-				.build();
-		post = postRepository.save(post);
-		
-		if(file != null  && !file.isEmpty() && type != null) {
-			String id = post.getId();
-			uploadFile(id, file, type);
-			
-		}
-		
-		return postMapper.toPostResponse(post);
-		
+	public PostResponse createPost(PostRequest request) {
+	    Group group = groupRepository.findById(request.getGroupId())
+	            .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+	    Post post = Post.builder()
+	            .group(group)
+	            .title(request.getTitle())
+	            .text(request.getText())
+	            .createdAt(new Date())
+	            .build();
+
+	    post = postRepository.save(post);
+
+	    List<FileUploadRequest> uploads = request.getFileUploadRequests();
+	    if (uploads != null && !uploads.isEmpty()) {
+	        for (FileUploadRequest fileRequest : uploads) {
+	            MultipartFile file = fileRequest.getFile();
+	            String type = fileRequest.getType();
+
+	            if (file == null || file.isEmpty() || type == null || type.trim().isEmpty()) {
+	                continue;
+	            }
+
+	            postFileService.creatPostFile(post, file, type);
+	        }
+	    }
+
+	    return postMapper.toPostResponse(post);
 	}
+
 	
 	public Boolean deletePost(String postId) {
 		Post post = postRepository.findById(postId).orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
@@ -92,133 +104,4 @@ public class PostService {
 		return posts.map(postMapper::toPostResponse);
 	}
 	
-	
-	public String uploadFile(String id, MultipartFile file, String type) {
-	    if (file == null || file.isEmpty()) {
-	        throw new RuntimeException("File is empty");
-	    }
-
-	    Post post = postRepository.findById(id)
-	            .orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
-
-	    String fileUrl = generalFileUploadFunction.apply(id, type.toLowerCase(), file);
-	    post.setPath(fileUrl);
-	    postRepository.save(post);
-
-	    return fileUrl;
-	}
-
-
-	private final Function<String, String> fileExtension = filename ->
-    Optional.ofNullable(filename)
-            .filter(name -> name.contains("."))
-            .map(name -> "." + name.substring(name.lastIndexOf('.') + 1))
-            .orElse("");
-
-	private String getFolderFromType(String type) {
-	    return switch (type.toLowerCase()) {
-	        case "image" -> "images";
-	        case "video" -> "videos";
-	        case "file"-> "files";
-	        default -> throw new RuntimeException("Unsupported file type: " + type);
-	    };
-	}
-
-	private final TriFunction<String, String, MultipartFile, String> generalFileUploadFunction = (id, type, file) -> {
-    String extension = fileExtension.apply(file.getOriginalFilename());
-    validateFileExtension(type, extension);
-    
-    String filename = id + extension;
-    String folder = getFolderFromType(type);
-    String baseDir = switch (folder) {
-        case "images" -> Constant.PHOTO_DIRECTORY;
-        case "videos" -> Constant.VIDEO_DIRECTORY;
-        case "files" -> Constant.FILE_DIRECTORY;
-        default -> throw new RuntimeException("Invalid folder: " + folder);
-    };
-
-    
-    try {
-        Path storagePath = Paths.get(baseDir).toAbsolutePath().normalize();
-        if (!Files.exists(storagePath)) {
-            Files.createDirectories(storagePath);
-        }
-
-        Path destination = storagePath.resolve(filename);
-        Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
-
-        return "/lms/post/" + folder + "/" + filename;
-
-    } catch (IOException e) {
-        throw new RuntimeException("Could not save file: " + filename, e);
-    	}
-	};
-	
-	public ResponseEntity<Resource> streamVideo(String filename, String rangeHeader) throws IOException {
-        File videoFile = Paths.get(Constant.VIDEO_DIRECTORY + filename).toFile();
-        long fileLength = videoFile.length();
-
-        if (rangeHeader == null) {
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
-                    .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileLength))
-                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                    .body(new FileSystemResource(videoFile));
-        }
-
-        long start, end;
-        String[] ranges = rangeHeader.replace("bytes=", "").split("-");
-        start = Long.parseLong(ranges[0]);
-        end = ranges.length > 1 && !ranges[1].isEmpty() ? Long.parseLong(ranges[1]) : fileLength - 1;
-
-        long contentLength = end - start + 1;
-        InputStream inputStream = new FileInputStream(videoFile);
-        inputStream.skip(start);
-        InputStreamResource inputStreamResource = new InputStreamResource(new LimitedInputStream(inputStream, contentLength));
-
-        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
-                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(contentLength))
-                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileLength)
-                .body(inputStreamResource);
-    }
-	
-	public ResponseEntity<byte[]> getFile(String filename) throws IOException {
-        Path path = Paths.get(Constant.FILE_DIRECTORY + filename);
-        byte[] data = Files.readAllBytes(path);
-
-        String mimeType = Files.probeContentType(path); // Lấy content-type tự động
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(mimeType != null ? mimeType : MediaType.APPLICATION_OCTET_STREAM_VALUE))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
-                .body(data);
-    }
-	
-	private void validateFileExtension(String type, String extension) {
-	    Set<String> imageExtensions = Set.of(".jpg", ".jpeg", ".png", ".gif");
-	    Set<String> videoExtensions = Set.of(".mp4", ".avi", ".mov");
-	    Set<String> fileExtensions = Set.of(".pdf", ".doc", ".docx", ".txt");
-
-	    switch (type.toLowerCase()) {
-	        case "image" -> {
-	            if (!imageExtensions.contains(extension)) {
-	                throw new AppException(ErrorCode.INVALID_IMAGE_TYPE);
-	            }
-	        }
-	        case "video" -> {
-	            if (!videoExtensions.contains(extension)) {
-	                throw new AppException(ErrorCode.INVALID_VIDEO_TYPE);
-	            }
-	        }
-	        case "file" -> {
-	            if (!fileExtensions.contains(extension)) {
-	                throw new AppException(ErrorCode.INVALID_FILE_TYPE);
-	            }
-	        }
-	        default -> throw new AppException(ErrorCode.UNSUPPORTED_FILE_TYPE);
-	    }
-	}
-
 }
