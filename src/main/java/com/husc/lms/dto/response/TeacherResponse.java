@@ -12,8 +12,10 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TeacherResponse {
     
+	private String fullName;
     private String email;
-    
-    private String fullName;
+    private String avatar;
+    private String description;
+    private String contact;
 
 }

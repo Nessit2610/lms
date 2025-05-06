@@ -13,16 +13,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.husc.lms.dto.request.TeacherRequest;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.AccountRequest;
 import com.husc.lms.dto.response.TeacherResponse;
 import com.husc.lms.dto.response.AccountResponse;
-import com.husc.lms.dto.response.TeacherInfoResponse;
 import com.husc.lms.entity.Account;
-import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Teacher;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
@@ -60,12 +57,12 @@ public class TeacherService {
 		return teacherMapper.toTeacherResponse(teacher);
 	}
 	
-	public TeacherInfoResponse getTeacherInfo() {
+	public TeacherResponse getTeacherInfo() {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Teacher teacher = teacherRepository.findByAccount(account);
-		return teacherMapper.toTeacherInfoResponse(teacher);
+		return teacherMapper.toTeacherResponse(teacher);
 	}
 	
 	public String uploadPhoto(String id, MultipartFile file) {

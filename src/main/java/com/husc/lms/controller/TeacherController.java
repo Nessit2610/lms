@@ -19,7 +19,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.TeacherRequest;
 import com.husc.lms.dto.response.APIResponse;
-import com.husc.lms.dto.response.TeacherInfoResponse;
 import com.husc.lms.dto.response.TeacherResponse;
 import com.husc.lms.service.TeacherService;
 
@@ -38,8 +37,8 @@ public class TeacherController {
 	}
 	
 	@GetMapping("/myinfo")
-	public APIResponse<TeacherInfoResponse> getStudentInfo(){
-		return APIResponse.<TeacherInfoResponse>builder()
+	public APIResponse<TeacherResponse> getStudentInfo(){
+		return APIResponse.<TeacherResponse>builder()
 				.result(teacherService.getTeacherInfo())
 				.build();
 	}
