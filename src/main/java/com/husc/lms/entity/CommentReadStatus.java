@@ -48,7 +48,7 @@ public class CommentReadStatus {
 
     @JoinColumn(name = "accountId")
     @ManyToOne(fetch = FetchType.EAGER)
-    @JsonBackReference
+    @JsonBackReference	
     private Account account;
 
     @Column(name = "isRead")

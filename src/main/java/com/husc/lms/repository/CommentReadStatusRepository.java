@@ -40,74 +40,7 @@ public interface CommentReadStatusRepository extends JpaRepository<CommentReadSt
 	void markRepliesAsReadByAccount(@Param("replies") List<CommentReply> replies,
 	                                @Param("account") Account account,
 	                                @Param("type") CommentType type);
-	
-//	@Query("SELECT COUNT(crs) FROM CommentReadStatus crs " +
-//		       "WHERE crs.comment IN :comments AND crs.account = :account AND crs.isRead = false")
-//	int countUnreadByCommentsAndAccount(@Param("comments") List<Comment> comments,
-//	                                     @Param("account") Account account);
-//	
-//	@Query("SELECT COUNT(crs) FROM CommentReadStatus crs " +
-//		       "WHERE crs.comment IN :comments AND crs.account = :account")
-//	int countAllByCommentsAndAccount(@Param("comments") List<Comment> comments,
-//		                                  @Param("account") Account account);
-	
-//	@Query("""
-//		    SELECT COUNT(crs) FROM CommentReadStatus crs 
-//		    WHERE crs.comment.course = :course 
-//		      AND crs.comment.deletedDate IS NULL 
-//		      AND crs.comment.course.deletedDate IS NULL
-//		""")
-//	int countAllValidCommentReadStatusesByCourse(@Param("course") Course course);
-//	@Query("""
-//		    SELECT COUNT(crs) 
-//		    FROM CommentReadStatus crs 
-//		    WHERE crs.comment.course = :course 
-//		      AND crs.comment.deletedDate IS NULL 
-//		      AND crs.comment.course.deletedDate IS NULL
-//		      AND crs.isRead = false
-//		""")
-//	int countUnreadValidCommentReadStatusesByCourse(@Param("course") Course course);
-//
-//	@Query("""
-//		    SELECT COUNT(crs)
-//		    FROM CommentReadStatus crs
-//		    WHERE crs.comment.chapter.lesson = :lesson
-//		      AND crs.comment.deletedDate IS NULL
-//		      AND crs.comment.chapter.deletedDate IS NULL
-//		      AND crs.comment.chapter.lesson.deletedDate IS NULL
-//		""")
-//	int countAllValidCommentReadStatusesByLessonInCourse(@Param("lesson") Lesson lesson);
-//
-//		@Query("""
-//		    SELECT COUNT(crs)
-//		    FROM CommentReadStatus crs
-//		    WHERE crs.comment.chapter.lesson = :lesson
-//		      AND crs.isRead = false
-//		      AND crs.comment.deletedDate IS NULL
-//		      AND crs.comment.chapter.deletedDate IS NULL
-//		      AND crs.comment.chapter.lesson.deletedDate IS NULL
-//		""")
-//	int countUnreadCommentReadStatusesByLessonInCourse(@Param("lesson") Lesson lesson);
-//
-//	@Query("""
-//		    SELECT COUNT(crs)
-//		    FROM CommentReadStatus crs
-//		    WHERE crs.comment.chapter = :chapter
-//		      AND crs.comment.deletedDate IS NULL
-//		      AND crs.comment.chapter.deletedDate IS NULL
-//		""")
-//	int countAllValidCommentReadStatusesByChapter(@Param("chapter") Chapter chapter);
-//
-//	@Query("""
-//		    SELECT COUNT(crs)
-//		    FROM CommentReadStatus crs
-//		    WHERE crs.comment.chapter = :chapter
-//		      AND crs.comment.deletedDate IS NULL
-//		      AND crs.comment.chapter.deletedDate IS NULL
-//		      AND crs.isRead = false
-//		""")
-//	int countUnreadCommentReadStatusesByChapter(@Param("chapter") Chapter chapter);
-	
+		
 	@Query("""
 		    SELECT COUNT(crs) FROM CommentReadStatus crs
 		    WHERE crs.comment.course = :course
@@ -176,6 +109,7 @@ public interface CommentReadStatusRepository extends JpaRepository<CommentReadSt
 	      AND crs.commentReply.chapter.lesson.deletedDate IS NULL
 		""")
 	int countUnreadCommentReplyReadStatusesByLessonInCourse(@Param("lesson") Lesson lesson);
+	
 	@Query("""
 		    SELECT COUNT(crs) FROM CommentReadStatus crs
 		    WHERE crs.comment.chapter = :chapter
@@ -191,6 +125,7 @@ public interface CommentReadStatusRepository extends JpaRepository<CommentReadSt
 	      AND crs.commentReply.chapter.deletedDate IS NULL
 		""")
 	int countAllValidCommentReplyReadStatusesByChapter(@Param("chapter") Chapter chapter);
+	
 	@Query("""
 		    SELECT COUNT(crs) FROM CommentReadStatus crs
 		    WHERE crs.comment.chapter = :chapter

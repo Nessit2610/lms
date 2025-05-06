@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,24 +41,14 @@ public class CommentRestController {
 	private final ChapterRepository chapterRepository;
 	private final CommentReadStatusService commentReadStatusService;
 	
-//	@PostMapping
-//	public ResponseEntity<Comment> addComment(@RequestBody Comment comment){
-//		return ResponseEntity.ok(commentService.saveCommentWithReadStatusAndNotification(comment));
-//	}	
-	
-//	@GetMapping("/chapter/{chapterId}")
-//	public ResponseEntity<List<CommentChapterResponse>> getComments(@PathVariable("chapterId") String chapterId) {
-//	    List<CommentChapterResponse> response = commentService.getCommentsByChapterId(chapterId);
-//	    return ResponseEntity.ok(response);
-//	}
 
-	@GetMapping("/chapter/{chapterId}")
+	@GetMapping("/unreadCommentsOfChapter/details")
 	public APIResponse<Page<CommentChapterResponse>> getComments(
-	        @PathVariable("chapterId") String chapterId,
-	        @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
-	        @RequestParam(name = "pageSize", defaultValue = "10") int pageSize,
-	        @RequestParam(name = "replyPageNumber", defaultValue = "0") int replyPageNumber,
-	        @RequestParam(name = "replyPageSize", defaultValue = "5") int replyPageSize) {
+			@RequestHeader("chapterId") String chapterId,
+	        @RequestHeader(name = "pageNumber", defaultValue = "0") int pageNumber,
+	        @RequestHeader(name = "pageSize", defaultValue = "10") int pageSize,
+	        @RequestHeader(name = "replyPageNumber", defaultValue = "0") int replyPageNumber,
+	        @RequestHeader(name = "replyPageSize", defaultValue = "5") int replyPageSize) {
 	    
 	    // Gọi service để lấy comments và replies phân trang
 	    Page<CommentChapterResponse> response = commentService.getCommentsByChapterId(
@@ -68,37 +59,40 @@ public class CommentRestController {
 	            .result(response)
 	            .build();
 	}
-
-//	@GetMapping("/chapter/unreadCommentsOfCourse/{courseId}")
-//	public APIResponse<CommentsOfChapterInLessonOfCourseResponse> getUnreadCommentsOfCourse(
-//	        @PathVariable("courseId") String courseId,
-//	        @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
-//	        @RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
-//	    
-//	    CommentsOfChapterInLessonOfCourseResponse response = commentService.getStructuredUnreadComments(courseId, pageNumber, pageSize);
-//	    return APIResponse.<CommentsOfChapterInLessonOfCourseResponse>builder()
-//	            .result(response)
-//	            .build();
-//	}
-	@GetMapping("/chapter/unreadCommentsOfCourse")
-	public APIResponse<Page<CommentOfCourseResponse>> getUnreadCommentsOfCourse(
-	        @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
-	        @RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
-	    
-		Page<CommentOfCourseResponse> response = commentService.getTotalUnreadCommentsOfCourseForTeacher(pageNumber, pageSize);
-	    return APIResponse.<Page<CommentOfCourseResponse>>builder()
-	            .result(response)
-	            .build();
-	}
 	
-//	@PostMapping("/chapter/read")
-//    public APIResponse<Boolean> setNotificationAsReadByAccount(@RequestBody List<Comment> comments) {
-//		commentReadStatusService.setCommentsAsReadByAccount(comments);
-//		return APIResponse.<Boolean>builder()
-//				.result(true)
-//				.build();
-//    }
-	@PostMapping("/chapter/read")
+	@GetMapping("/unreadCommentsOfCourse")
+	public APIResponse<Page<CommentOfCourseResponse>> getUnreadCommentsOfCourse(
+	        @RequestHeader(defaultValue = "0") int pageNumber,
+	        @RequestHeader(defaultValue = "20") int pageSize) {
+
+	    var response = commentService.getCoursesWithUnreadComments(pageNumber, pageSize);
+	    return APIResponse.<Page<CommentOfCourseResponse>>builder()
+	    		.result(response)
+	    		.build();
+	}
+
+	@GetMapping("/unreadCommentsOfLesson")
+	public APIResponse<List<CommentOfCourseResponse.CommentOfLesson>> getUnreadCommentsOfLessons(
+	        @RequestHeader String courseId) {
+
+	    var response = commentService.getLessonsWithUnreadComments(courseId);
+	    return APIResponse.<List<CommentOfCourseResponse.CommentOfLesson>>builder()
+	    		.result(response)
+	    		.build();
+	}
+
+	@GetMapping("/unreadCommentsOfChapter")
+	public APIResponse<List<CommentOfCourseResponse.CommentOfChapter>> getUnreadCommentsOfChapters(
+	        @RequestHeader String lessonId) {
+
+	    var response = commentService.getChaptersWithUnreadComments(lessonId);
+	    return APIResponse.<List<CommentOfCourseResponse.CommentOfChapter>>builder()
+	    		.result(response)
+	    		.build();
+	}
+
+	
+	@PostMapping("/read")
 	public APIResponse<String> setNotificationAsReadByAccount(@RequestBody List<Comment> comments) {
 	    try {
 	        commentReadStatusService.setCommentsAsReadByAccount(comments);

@@ -17,7 +17,7 @@ public class CommentOfCourseResponse {
 	private String courseName;
 	private Integer totalCommentsOfCourse;
 	private Integer totalUnreadCommentsfCourse;
-	private List<CommentOfLesson> commentsOfLesson;
+//	private List<CommentOfLesson> commentsOfLesson;
 	
 	@Data
 	@NoArgsConstructor
@@ -29,7 +29,7 @@ public class CommentOfCourseResponse {
 		private Integer lessonOrder;
 		private Integer totalCommentsOfLesson;
 		private Integer totalUnreadCommentsOfLesson;
-		private List<CommentOfChapter> commentsOfChapter;
+//		private List<CommentOfChapter> commentsOfChapter;
 	}
 	
 	@Data
