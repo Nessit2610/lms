@@ -20,8 +20,6 @@ public class PostResponse {
 	
 	private String title;
 	
-	private String path;
-	
 	private String text;
 	
 	private Date createdAt;
