@@ -61,34 +61,17 @@ public class StudentCourseService {
 		Course course = courseRepository.findById(request.getCourseId()).get();
 		for(String id : request.getStudentIds()) {
 			Student student = studentRepository.findById(id).get();
-			if(studentCourseRepository.existsByStudentAndCourseAndDeletedDateIsNull(student, course)) {
-				throw new AppException(ErrorCode.STUDENT_ALREADY_IN_COURSE);
-			}
-			else if(studentCourseRepository.existsByStudentAndCourseAndDeletedDateIsNotNull(student, course)) {
-				StudentCourse studentCourseExisted =studentCourseRepository.findByCourseAndStudentAndDeletedDateIsNotNull(course, student);
-				studentCourseExisted.setDeletedBy(null);
-				studentCourseExisted.setDeletedDate(null);
-				studentCourseRepository.save(studentCourseExisted);
-			}
-			else {
-				JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
-				if(joinClassRequest != null) {
-					joinClassRequest.setStatus(JoinClassStatus.APPROVED.name());
-					joinClassRequestRepository.save(joinClassRequest);
-				}
-				StudentCourse studentCourse = StudentCourse.builder()
-						.registrationDate(new Date())
-						.createdDate(new Date())
-						.student(student)
-						.course(course)
-						.build();
-				studentCourseRepository.save(studentCourse);
-			}
+			addStudentToCourse(student, course);
 		}
 		return true;
 	}
 	
 	public boolean addStudentToCourse(Student student , Course course) {
+		JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
+		if(joinClassRequest != null) {
+			joinClassRequest.setStatus(JoinClassStatus.APPROVED.name());
+			joinClassRequestRepository.save(joinClassRequest);
+		}
 		if(studentCourseRepository.existsByStudentAndCourseAndDeletedDateIsNull(student, course)) {
 			throw new AppException(ErrorCode.STUDENT_ALREADY_IN_COURSE);
 		}
@@ -100,11 +83,6 @@ public class StudentCourseService {
 			return true;
 		}
 		else {
-			JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
-			if(joinClassRequest != null) {
-				joinClassRequest.setStatus(JoinClassStatus.APPROVED.name());
-				joinClassRequestRepository.save(joinClassRequest);
-			}
 			StudentCourse studentCourse = StudentCourse.builder()
 					.registrationDate(new Date())
 					.createdDate(new Date())
