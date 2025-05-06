@@ -19,12 +19,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.CommentMessage;
 import com.husc.lms.dto.request.CommentUpdateMessage;
 import com.husc.lms.dto.response.CommentChapterResponse;
 import com.husc.lms.dto.response.CommentMessageResponse;
+import com.husc.lms.dto.response.CommentOfCourseResponse;
 import com.husc.lms.dto.response.CommentReplyResponse;
 import com.husc.lms.dto.response.CommentUpdateMessageResponse;
 import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
@@ -96,8 +98,7 @@ public class CommentService {
         commentRepository.save(comment);
     }
         
-    public Page<CommentChapterResponse> getCommentsByChapterId(
-            String chapterId, int pageNumber, int pageSize, int replyPageNumber, int replyPageSize) {
+    public Page<CommentChapterResponse> getCommentsByChapterId(String chapterId, int pageNumber, int pageSize, int replyPageNumber, int replyPageSize) {
 
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Chapter not found"));
@@ -139,6 +140,7 @@ public class CommentService {
                 }
 
                 CommentReplyResponse replyResponse = CommentReplyResponse.builder()
+                		.commentId(reply.getComment().getId())
                         .commentReplyId(reply.getId())
                         .usernameOwner(usernameOwner)
                         .fullnameOwner(fullnameOwner)
@@ -174,72 +176,146 @@ public class CommentService {
         return commentRepository.findUnreadCommentsByCourseId(courseId, pageRequest);
     }
 
-    public CommentsOfChapterInLessonOfCourseResponse getStructuredUnreadComments(String courseId, int pageNumber, int pageSize) {
-        List<FlatCommentInfo> flatList = commentRepository.findStructuredUnreadComments(courseId);
+//    public CommentsOfChapterInLessonOfCourseResponse getStructuredUnreadComments(String courseId, int pageNumber, int pageSize) {
+//        List<FlatCommentInfo> flatList = commentRepository.findStructuredUnreadComments(courseId);
+//
+//        if (flatList.isEmpty()) return null;
+//
+//        CommentsOfChapterInLessonOfCourseResponse response = new CommentsOfChapterInLessonOfCourseResponse();
+//        response.setCourseId(flatList.get(0).getCourseId());
+//        response.setCourseTitle(flatList.get(0).getCourseTitle());
+//
+//        int totalCommentsOfCourse = flatList.size();
+//        int fromIndex = pageNumber * pageSize;
+//        int toIndex = Math.min(fromIndex + pageSize, totalCommentsOfCourse);
+//        List<FlatCommentInfo> paginatedFlatList = flatList.subList(fromIndex, toIndex);
+//
+//        Map<String, CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters> lessonMap = new LinkedHashMap<>();
+//
+//        for (FlatCommentInfo flat : paginatedFlatList) {
+//            lessonMap.putIfAbsent(flat.getLessonId(),
+//                new CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters(
+//                    flat.getLessonId(),
+//                    flat.getLessonId(),
+//                    flat.getLessonOrder(),
+//                    new ArrayList<>()
+//                )
+//            );
+//
+//            var lesson = lessonMap.get(flat.getLessonId());
+//            var chapterList = lesson.getChapters();
+//
+//            var chapter = chapterList.stream()
+//                .filter(ch -> ch.getChapterId().equals(flat.getChapterId()))
+//                .findFirst()
+//                .orElseGet(() -> {
+//                    var ch = new CommentsOfChapterInLessonOfCourseResponse.ChapterWithComments(
+//                        flat.getChapterId(),
+//                        flat.getChapterTitle(),
+//                        flat.getChapterOrder(),
+//                        0,
+//                        0,
+//                        new ArrayList<>()
+//                    );
+//                    chapterList.add(ch);
+//                    return ch;
+//                });
+//
+//            chapter.getComments().add(new CommentsOfChapterInLessonOfCourseResponse.CommentResponse(
+//                flat.getUsername(),
+//                flat.getAvatar() != null ? flat.getAvatar() : "",
+//                flat.getDetail(),
+//                flat.getCreatedDate(),
+//                new ArrayList<>()
+//            ));
+//
+//            chapter.setTotalCommentsOfChapter(chapter.getTotalCommentsOfChapter() + 1);
+//        }
+//
+//        List<CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters> sortedLessons = new ArrayList<>(lessonMap.values());
+//        sortedLessons.sort(Comparator.comparing(CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters::getLessonOrder));
+//        for (var lesson : sortedLessons) {
+//            lesson.getChapters().sort(Comparator.comparing(CommentsOfChapterInLessonOfCourseResponse.ChapterWithComments::getChapterOrder));
+//        }
+//
+//        response.setLessons(sortedLessons);
+//        response.setTotalCommentsOfCourse(totalCommentsOfCourse); // ✅ Tổng số comment vẫn là của toàn bộ
+//
+//        return response;
+//    }
+    public Page<CommentOfCourseResponse> getTotalUnreadCommentsOfCourseForTeacher(int pageNumber, int pageSize) {
+    	var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+    	
+		Account teacherAccount = accountRepository.findByUsernameAndDeletedDateIsNull(name)
+				.orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		
+		if (teacherAccount.getTeacher() == null) {
+	        return Page.empty();
+	    }
 
-        if (flatList.isEmpty()) return null;
+		Pageable pageable = PageRequest.of(pageNumber, pageSize);
+		
+		Page<Course> coursesOfTeacher = courseRepository.findByTeacherAndDeletedDateIsNull(teacherAccount.getTeacher(), pageable);
+		
+		Page<CommentOfCourseResponse> result = coursesOfTeacher.map(courseOfTeacher -> {
 
-        CommentsOfChapterInLessonOfCourseResponse response = new CommentsOfChapterInLessonOfCourseResponse();
-        response.setCourseId(flatList.get(0).getCourseId());
-        response.setCourseTitle(flatList.get(0).getCourseTitle());
+		    int totalCommentsOfCourse = commentReadStatusRepository.countAllValidCommentReadStatusesByCourse(courseOfTeacher)
+		    							+ commentReadStatusRepository.countAllValidCommentReplyReadStatusesByCourse(courseOfTeacher);
+		    int totalUnreadCommentOfCourse = commentReadStatusRepository.countUnreadValidCommentReadStatusesByCourse(courseOfTeacher)
+		    							+ commentReadStatusRepository.countUnreadValidCommentReplyReadStatusesByCourse(courseOfTeacher);
 
-        int totalCommentsOfCourse = flatList.size();
-        int fromIndex = pageNumber * pageSize;
-        int toIndex = Math.min(fromIndex + pageSize, totalCommentsOfCourse);
-        List<FlatCommentInfo> paginatedFlatList = flatList.subList(fromIndex, toIndex);
+		    List<CommentOfCourseResponse.CommentOfLesson> commentOfLesson = courseOfTeacher.getLesson().stream().map(lessonOfCourse -> {
+		        int totalCommentOfLesson = commentReadStatusRepository.countAllValidCommentReadStatusesByLessonInCourse(lessonOfCourse)
+		        						+ commentReadStatusRepository.countAllValidCommentReplyReadStatusesByLessonInCourse(lessonOfCourse);
+		        int totalUnreadCommentsOfLesson = commentReadStatusRepository.countUnreadCommentReadStatusesByLessonInCourse(lessonOfCourse)
+		        						+ commentReadStatusRepository.countUnreadCommentReplyReadStatusesByLessonInCourse(lessonOfCourse);
 
-        Map<String, CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters> lessonMap = new LinkedHashMap<>();
+		        List<CommentOfCourseResponse.CommentOfChapter> commentOfChapter = lessonOfCourse.getChapter().stream().map(chapterOfLesson -> {
+		            int totalCommentOfChapter = commentReadStatusRepository.countAllValidCommentReadStatusesByChapter(chapterOfLesson)
+		            					+ commentReadStatusRepository.countAllValidCommentReplyReadStatusesByChapter(chapterOfLesson);
+		            int totalUnreadCommentsOfChapter = commentReadStatusRepository.countUnreadCommentReadStatusesByChapter(chapterOfLesson)
+		            					+ commentReadStatusRepository.countUnreadCommentReplyReadStatusesByChapter(chapterOfLesson);
 
-        for (FlatCommentInfo flat : paginatedFlatList) {
-            lessonMap.putIfAbsent(flat.getLessonId(),
-                new CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters(
-                    flat.getLessonId(),
-                    flat.getLessonId(),
-                    flat.getLessonOrder(),
-                    new ArrayList<>()
-                )
-            );
+		            return CommentOfCourseResponse.CommentOfChapter.builder()
+		                    .chapterId(chapterOfLesson.getId())
+		                    .chapterName(chapterOfLesson.getName())
+		                    .chapterOrder(chapterOfLesson.getOrder())
+		                    .totalCommentsOfChapter(totalCommentOfChapter)
+		                    .totalUnreadCommentsOfChapter(totalUnreadCommentsOfChapter)
+		                    .build();
+		        }).toList();
 
-            var lesson = lessonMap.get(flat.getLessonId());
-            var chapterList = lesson.getChapters();
+		        return CommentOfCourseResponse.CommentOfLesson.builder()
+		                .lessonId(lessonOfCourse.getId())
+		                .lessonName(lessonOfCourse.getDescription())
+		                .lessonOrder(lessonOfCourse.getOrder())
+		                .totalCommentsOfLesson(totalCommentOfLesson)
+		                .totalUnreadCommentsOfLesson(totalUnreadCommentsOfLesson)
+		                .commentsOfChapter(commentOfChapter)
+		                .build();
+		    }).toList();
 
-            var chapter = chapterList.stream()
-                .filter(ch -> ch.getChapterId().equals(flat.getChapterId()))
-                .findFirst()
-                .orElseGet(() -> {
-                    var ch = new CommentsOfChapterInLessonOfCourseResponse.ChapterWithComments(
-                        flat.getChapterId(),
-                        flat.getChapterTitle(),
-                        flat.getChapterOrder(),
-                        0,
-                        0,
-                        new ArrayList<>()
-                    );
-                    chapterList.add(ch);
-                    return ch;
-                });
+		    return CommentOfCourseResponse.builder()
+		            .courseId(courseOfTeacher.getId())
+		            .courseName(courseOfTeacher.getName())
+		            .totalCommentsOfCourse(totalCommentsOfCourse)
+		            .totalUnreadCommentsfCourse(totalUnreadCommentOfCourse)
+		            .commentsOfLesson(commentOfLesson)
+		            .build();
 
-            chapter.getComments().add(new CommentsOfChapterInLessonOfCourseResponse.CommentResponse(
-                flat.getUsername(),
-                flat.getAvatar() != null ? flat.getAvatar() : "",
-                flat.getDetail(),
-                flat.getCreatedDate(),
-                new ArrayList<>()
-            ));
+		}); // <-- Đây là dấu đóng đúng của map()
 
-            chapter.setTotalCommentsOfChapter(chapter.getTotalCommentsOfChapter() + 1);
-        }
-
-        List<CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters> sortedLessons = new ArrayList<>(lessonMap.values());
-        sortedLessons.sort(Comparator.comparing(CommentsOfChapterInLessonOfCourseResponse.LessonWithChapters::getLessonOrder));
-        for (var lesson : sortedLessons) {
-            lesson.getChapters().sort(Comparator.comparing(CommentsOfChapterInLessonOfCourseResponse.ChapterWithComments::getChapterOrder));
-        }
-
-        response.setLessons(sortedLessons);
-        response.setTotalCommentsOfCourse(totalCommentsOfCourse); // ✅ Tổng số comment vẫn là của toàn bộ
-
-        return response;
+		return result;
+		
+//		for (Course courseOfTeacher : coursesOfTeacher) {
+//			List<Comment> commentsOfCourse = commentRepository.findByCourse(courseOfTeacher);
+//			int totalCommentsOfCourse = commentReadStatusRepository.countAllByCommentsAndAccount(commentsOfCourse, teacherAccount);
+//			int totalUnreadCommentOfCourse = commentReadStatusRepository.countUnreadByCommentsAndAccount(commentsOfCourse, teacherAccount);
+//			
+//			
+//		}
+//    	return null;
     }
 
     @Transactional
