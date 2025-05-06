@@ -22,6 +22,7 @@ public class CommentsOfChapterInLessonOfCourseResponse {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     public static class LessonWithChapters {
         private String lessonId;
         private String lessonTitle;
@@ -32,33 +33,36 @@ public class CommentsOfChapterInLessonOfCourseResponse {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
+    @Builder
     public static class ChapterWithComments {
         private String chapterId;
         private String chapterTitle;
         private Integer chapterOrder;
         private int totalCommentsOfChapter;
         private int totalUnreadComment;
-        private List<CommentResponse> comments;
+        private List<CommentChapterResponse> commentChapters;
     }
 
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class CommentResponse {
-        private String username;
-        private String avatar;
-        private String detail;
-        private OffsetDateTime createdDate;
-        private List<CommentReplyResponse> commentReplies;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class CommentReplyResponse {
-        private String username;
-        private String avatar;
-        private String detail;
-        private OffsetDateTime createdDate;
-    }
+//    @Data
+//    @NoArgsConstructor
+//    @AllArgsConstructor
+//    @Builder
+//    public static class CommentResponse {
+//        private String username;
+//        private String avatar;
+//        private String detail;
+//        private OffsetDateTime createdDate;
+//        private List<CommentReplyResponse> commentReplies;
+//    }
+//
+//    @Data
+//    @NoArgsConstructor
+//    @AllArgsConstructor
+//    @Builder
+//    public static class CommentReplyResponse {
+//        private String username;
+//        private String avatar;
+//        private String detail;
+//        private OffsetDateTime createdDate;
+//    }
 }

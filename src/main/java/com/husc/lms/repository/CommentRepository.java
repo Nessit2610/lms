@@ -13,6 +13,9 @@ import com.husc.lms.dto.response.CommentChapterResponse;
 import com.husc.lms.dto.response.FlatCommentInfo;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
+import com.husc.lms.entity.Course;
+import com.husc.lms.entity.Lesson;
+
 
 @Repository
 public interface CommentRepository extends JpaRepository<Comment, String>{
@@ -28,7 +31,21 @@ public interface CommentRepository extends JpaRepository<Comment, String>{
     Page<CommentChapterResponse> findUnreadCommentsByCourseId(@Param("courseId") String courseId, Pageable pageable);
     Page<Comment> findByChapterOrderByCreatedDateDesc(Chapter chapter, Pageable pageable);
     Page<Comment> findByChapterAndDeletedDateIsNullOrderByCreatedDateDesc(Chapter chapter, Pageable pageable);
+    
+    @Query("""
+    	    SELECT c 
+    	    FROM Comment c 
+    	    WHERE c.course IN (
+    	        SELECT l.course 
+    	        FROM Lesson l 
+    	        WHERE l IN :lessons AND l.deletedDate IS NULL AND l.course.deletedDate IS NULL
+    	    ) 
+    	    AND c.course.deletedDate IS NULL
+    	""")
+	List<Comment> getCommentsByLessons(@Param("lessons") List<Lesson> lessons);
 
+    @Query("SELECT c FROM Comment c WHERE c.course = :course AND c.deletedDate IS NULL")
+    List<Comment> findByCourseHasDeleteDateNull(@Param("course") Course course);
 //    @Query("""
 //    	    SELECT new com.husc.lms.dto.response.FlatCommentInfo(
 //    	        c.course.id,

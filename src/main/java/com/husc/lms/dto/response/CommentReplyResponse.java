@@ -12,10 +12,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CommentReplyResponse {
-    private String parentCommentId;	
+    private String commentId;	
+    private String commentReplyId;
 	private String usernameOwner;
 	private String fullnameOwner;
-	private String commentReplyId;
     private String usernameReply;
     private String fullnameReply;
     private String avatarReply;
