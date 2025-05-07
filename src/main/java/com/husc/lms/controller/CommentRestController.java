@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CommentChapterResponse;
 import com.husc.lms.dto.response.CommentOfCourseResponse;
+import com.husc.lms.dto.response.CommentReplyResponse;
 import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.entity.Chapter;
@@ -31,7 +32,6 @@ import com.husc.lms.service.CommentService;
 
 import lombok.RequiredArgsConstructor;
 
-
 @RestController
 @RequestMapping("/comments")
 @RequiredArgsConstructor
@@ -40,69 +40,81 @@ public class CommentRestController {
 	private final CommentService commentService;
 	private final ChapterRepository chapterRepository;
 	private final CommentReadStatusService commentReadStatusService;
-	
 
 	@GetMapping("/unreadCommentsOfChapter/details")
 	public APIResponse<Page<CommentChapterResponse>> getComments(
 			@RequestHeader("chapterId") String chapterId,
-	        @RequestHeader(name = "pageNumber", defaultValue = "0") int pageNumber,
-	        @RequestHeader(name = "pageSize", defaultValue = "10") int pageSize,
-	        @RequestHeader(name = "replyPageNumber", defaultValue = "0") int replyPageNumber,
-	        @RequestHeader(name = "replyPageSize", defaultValue = "5") int replyPageSize) {
-	    
-	    // Gọi service để lấy comments và replies phân trang
-	    Page<CommentChapterResponse> response = commentService.getCommentsByChapterId(
-	            chapterId, pageNumber, pageSize, replyPageNumber, replyPageSize);
+			@RequestHeader(name = "pageNumber", defaultValue = "0") int pageNumber,
+			@RequestHeader(name = "pageSize", defaultValue = "10") int pageSize) {
 
-	    // Trả về kết quả dưới dạng APIResponse
-	    return APIResponse.<Page<CommentChapterResponse>>builder()
-	            .result(response)
-	            .build();
+		// Gọi service để lấy comments và replies phân trang
+		Page<CommentChapterResponse> response = commentService.getCommentsByChapterId(
+				chapterId, pageNumber, pageSize);
+
+		// Trả về kết quả dưới dạng APIResponse
+		return APIResponse.<Page<CommentChapterResponse>>builder()
+				.result(response)
+				.build();
 	}
-	
+
+	@GetMapping("/unreadCommentsOfChapter/details/reply")
+	public APIResponse<Page<CommentReplyResponse>> getCommentsReplyOfComment(
+			@RequestHeader("commentId") String commentId,
+			@RequestHeader(name = "pageNumber", defaultValue = "0") int pageNumber,
+			@RequestHeader(name = "pageSize", defaultValue = "10") int pageSize) {
+
+		// Gọi service để lấy comments và replies phân trang
+		Page<CommentReplyResponse> response = commentService.getCommentRepliesByCommentId(
+				commentId, pageNumber, pageSize);
+
+		// Trả về kết quả dưới dạng APIResponse
+		return APIResponse.<Page<CommentReplyResponse>>builder()
+				.result(response)
+				.build();
+	}
+
 	@GetMapping("/unreadCommentsOfCourse")
 	public APIResponse<Page<CommentOfCourseResponse>> getUnreadCommentsOfCourse(
-	        @RequestHeader(defaultValue = "0") int pageNumber,
-	        @RequestHeader(defaultValue = "20") int pageSize) {
+			@RequestHeader(defaultValue = "0") int pageNumber,
+			@RequestHeader(defaultValue = "20") int pageSize) {
 
-	    var response = commentService.getCoursesWithUnreadComments(pageNumber, pageSize);
-	    return APIResponse.<Page<CommentOfCourseResponse>>builder()
-	    		.result(response)
-	    		.build();
+		var response = commentService.getCoursesWithUnreadComments(pageNumber, pageSize);
+		return APIResponse.<Page<CommentOfCourseResponse>>builder()
+				.result(response)
+				.build();
 	}
 
 	@GetMapping("/unreadCommentsOfLesson")
 	public APIResponse<List<CommentOfCourseResponse.CommentOfLesson>> getUnreadCommentsOfLessons(
-	        @RequestHeader String courseId) {
+			@RequestHeader String courseId) {
 
-	    var response = commentService.getLessonsWithUnreadComments(courseId);
-	    return APIResponse.<List<CommentOfCourseResponse.CommentOfLesson>>builder()
-	    		.result(response)
-	    		.build();
+		var response = commentService.getLessonsWithUnreadComments(courseId);
+		return APIResponse.<List<CommentOfCourseResponse.CommentOfLesson>>builder()
+				.result(response)
+				.build();
 	}
 
 	@GetMapping("/unreadCommentsOfChapter")
 	public APIResponse<List<CommentOfCourseResponse.CommentOfChapter>> getUnreadCommentsOfChapters(
-	        @RequestHeader String lessonId) {
+			@RequestHeader String lessonId) {
 
-	    var response = commentService.getChaptersWithUnreadComments(lessonId);
-	    return APIResponse.<List<CommentOfCourseResponse.CommentOfChapter>>builder()
-	    		.result(response)
-	    		.build();
+		var response = commentService.getChaptersWithUnreadComments(lessonId);
+		return APIResponse.<List<CommentOfCourseResponse.CommentOfChapter>>builder()
+				.result(response)
+				.build();
 	}
 
-	
 	@PostMapping("/read")
 	public APIResponse<String> setNotificationAsReadByAccount(@RequestBody List<Comment> comments) {
-	    try {
-	        commentReadStatusService.setCommentsAsReadByAccount(comments);
-	        return APIResponse.<String>builder()
-	                .result("Đã đánh dấu đã đọc")
-	                .build();
-	    } catch (Exception e) {
-	        return APIResponse.<String>builder()
-	                .result("Có lỗi xảy ra")
-	                .build();
-	    }
+		try {
+			commentReadStatusService.setCommentsAsReadByAccount(comments);
+			return APIResponse.<String>builder()
+					.result("Đã đánh dấu đã đọc")
+					.build();
+		} catch (Exception e) {
+			return APIResponse.<String>builder()
+					.result("Có lỗi xảy ra")
+					.build();
+		}
 	}
 }

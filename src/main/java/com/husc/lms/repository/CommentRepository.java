@@ -68,29 +68,29 @@ public interface CommentRepository extends JpaRepository<Comment, String>{
 //    	""")
 //    	List<FlatCommentInfo> findStructuredUnreadComments(@Param("courseId") String courseId);
 
-    @Query("""
-    	    SELECT new com.husc.lms.dto.response.FlatCommentInfo(
-    	        c.course.id,
-    	        c.course.name,
-    	        ch.lesson.id,
-    	        ch.lesson.order,
-    	        ch.id,
-    	        ch.order,
-    	        ch.name,
-    	        c.account.username,
-    	        COALESCE(s.avatar, t.avatar),
-    	        c.detail,
-    	        c.createdDate
-    	    )
-    	    FROM Comment c
-    	    JOIN c.chapter ch
-    	    JOIN ch.lesson l
-    	    LEFT JOIN c.account.student s
-    	    LEFT JOIN c.account.teacher t
-    	    WHERE c.course.id = :courseId
-    	      AND c.deletedDate IS NULL
-    	    ORDER BY l.order, ch.order, c.createdDate
-    	""")
-    	List<FlatCommentInfo> findStructuredUnreadComments(@Param("courseId") String courseId);
+//    @Query("""
+//    	    SELECT new com.husc.lms.dto.response.FlatCommentInfo(
+//    	        c.course.id,
+//    	        c.course.name,
+//    	        ch.lesson.id,
+//    	        ch.lesson.order,
+//    	        ch.id,
+//    	        ch.order,
+//    	        ch.name,
+//    	        c.account.username,
+//    	        COALESCE(s.avatar, t.avatar),
+//    	        c.detail,
+//    	        c.createdDate
+//    	    )
+//    	    FROM Comment c
+//    	    JOIN c.chapter ch
+//    	    JOIN ch.lesson l
+//    	    LEFT JOIN c.account.student s
+//    	    LEFT JOIN c.account.teacher t
+//    	    WHERE c.course.id = :courseId
+//    	      AND c.deletedDate IS NULL
+//    	    ORDER BY l.order, ch.order, c.createdDate
+//    	""")
+//    	List<FlatCommentInfo> findStructuredUnreadComments(@Param("courseId") String courseId);
 
 }
