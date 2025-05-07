@@ -19,7 +19,7 @@ import com.husc.lms.service.TestInGroupService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("testingroup")
+@RequestMapping("/testingroup")
 public class TestInGroupController {
 
 	@Autowired

@@ -56,12 +56,12 @@ public class StudentController {
 		
 	}
 	@GetMapping("/searchnotingroup")
-	public APIResponse<Page<StudentViewResponse>> searchStudentNotInGroup(@RequestParam("groupId") String courseId,
+	public APIResponse<Page<StudentViewResponse>> searchStudentNotInGroup(@RequestParam("groupId") String groupId,
 			@RequestParam("keyword") String keyword,
 			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<StudentViewResponse>>builder()
-				.result(studentService.searchStudentsNotInGroup(courseId, keyword, pageNumber, pageSize))
+				.result(studentService.searchStudentsNotInGroup(groupId, keyword, pageNumber, pageSize))
 				.build();
 	}
 	
