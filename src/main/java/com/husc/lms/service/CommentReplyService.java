@@ -216,6 +216,8 @@ public class CommentReplyService {
                     .isRead(false)
                     .build());
 
+            // notificationRepository.save(savedNotificationForTeacher);
+
             // Gửi thông báo riêng cho teacher qua WebSocket
             Map<String, Object> payload = new HashMap<>();
             payload.put("message", "Có bình luận mới từ khóa học " + course.getName() + " : " + savedReply.getDetail());

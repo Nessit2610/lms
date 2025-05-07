@@ -10,21 +10,21 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collection = "chat_messages")
+@Document(collection = "chat_message_status")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChatMessage {
+public class ChatMessageStatus {
 
     @Id
     private String id;
 
-    private String chatBoxId;
+    private String messageId; // ID của tin nhắn
 
-    private String senderId; // chính là account.getId() bên MySQL
+    private String accountId; // ID của người dùng
 
-    private String content;
+    private boolean isRead; // Trạng thái đã đọc
 
-    private Date createdAt;
+    private Date readAt; // Thời gian đọc tin nhắn
 }

@@ -54,7 +54,6 @@ public class MongoTestSeeder implements CommandLineRunner {
                     .senderId("acc1") // người gửi
                     .content("Hello everyone!") // nội dung tin nhắn
                     .createdAt(new Date()) // thời gian gửi
-                    .read(false) // chưa đọc
                     .build();
 
             ChatMessage message2 = ChatMessage.builder()
@@ -62,7 +61,6 @@ public class MongoTestSeeder implements CommandLineRunner {
                     .senderId("acc2") // người gửi
                     .content("Hi, how are you?") // nội dung tin nhắn
                     .createdAt(new Date()) // thời gian gửi
-                    .read(false) // chưa đọc
                     .build();
 
             chatMessageRepository.save(message1);
