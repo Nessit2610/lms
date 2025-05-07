@@ -56,7 +56,7 @@ public class StudentController {
 		
 	}
 	@GetMapping("/searchnotingroup")
-	public APIResponse<Page<StudentViewResponse>> searchStudentNotInGroup(@RequestParam("courseId") String courseId,
+	public APIResponse<Page<StudentViewResponse>> searchStudentNotInGroup(@RequestParam("groupId") String courseId,
 			@RequestParam("keyword") String keyword,
 			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
