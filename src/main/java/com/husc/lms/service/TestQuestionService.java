@@ -42,14 +42,14 @@ public class TestQuestionService {
 		return listQuestions.stream().map(testQuestionMapper::toTestQuestionResponse).toList();
 	}
 	
-	public void createTestQuestion(TestInGroup test,List<TestQuestionRequest> requests) {
+	public List<TestQuestion> createTestQuestion(TestInGroup test,List<TestQuestionRequest> requests) {
 		List<TestQuestion> listQuestions = new ArrayList<TestQuestion>();
 		for(TestQuestionRequest testQuestionRequest : requests) {
 			TestQuestion t = testQuestionMapper.toTestQuestion(testQuestionRequest);
 			t.setTest(test);
-			t = testQuestionRepository.save(t);
 			listQuestions.add(t);
 		}
+		return listQuestions;
 	}
 	
 	public boolean deleteQuestionById(String id) {

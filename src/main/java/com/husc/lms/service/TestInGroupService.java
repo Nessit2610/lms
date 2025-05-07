@@ -15,6 +15,7 @@ import com.husc.lms.dto.response.TestInGroupResponse;
 import com.husc.lms.dto.response.TestInGroupViewResponse;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.TestInGroup;
+import com.husc.lms.entity.TestQuestion;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.TestInGroupMapper;
@@ -46,8 +47,9 @@ public class TestInGroupService {
 				.expiredAt(request.getExpiredAt())
 				.build();
 		testInGroup = testInGroupRepository.save(testInGroup);
-		testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
-		
+		List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
+		testInGroup.setQuestions(listQuestions);
+		testInGroup = testInGroupRepository.save(testInGroup);
 		return testInGroupMapper.toTestInGroupResponse(testInGroup);
 		
 	}
