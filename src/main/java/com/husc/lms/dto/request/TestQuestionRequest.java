@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TestQuestionRequest {
 	
+	private int point;
 	private String content;
 	private String type;
 	private String options;

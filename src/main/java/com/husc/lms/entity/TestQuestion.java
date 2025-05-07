@@ -33,8 +33,10 @@ public class TestQuestion {
     @JoinColumn(name = "testId")
     private TestInGroup test;
 
-    private String content; // Nội dung câu hỏi
+    private int point;
 
+    private String content; // Nội dung câu hỏi
+    
     /**
      * Loại câu hỏi:
      * - "text": trả lời tự luận
