@@ -195,17 +195,28 @@ public class CommentReplyService {
                 .isRead(false)
                 .build());
 
-            Notification savedNotificationForTeacher = Notification.builder()
+//            Notification savedNotificationForTeacher = Notification.builder()
+//                    .account(teacherAccount)
+//                    .commentReply(savedReply)
+//                    .description(savedReply.getDetail())
+//                    .createdAt(new Date())
+//                    .type(NotificationType.COMMENT_REPLY)
+//                    .isRead(false)
+//                    .build();
+//
+//            notificationRepository.save(savedNotificationForTeacher);
+
+            Notification savedNotificationForTeacher = notificationRepository.save(Notification.builder()
                     .account(teacherAccount)
                     .commentReply(savedReply)
                     .description(savedReply.getDetail())
                     .createdAt(new Date())
                     .type(NotificationType.COMMENT_REPLY)
                     .isRead(false)
-                    .build();
+                    .build());
 
-            notificationRepository.save(savedNotificationForTeacher);
-
+//            notificationRepository.save(savedNotificationForTeacher);
+            
             // Gửi thông báo riêng cho teacher qua WebSocket
             Map<String, Object> payload = new HashMap<>();
             payload.put("message", "Có bình luận mới từ khóa học " + course.getName() + " : " + savedReply.getDetail());

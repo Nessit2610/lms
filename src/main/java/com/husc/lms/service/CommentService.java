@@ -2,18 +2,13 @@ package com.husc.lms.service;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,8 +24,6 @@ import com.husc.lms.dto.response.CommentMessageResponse;
 import com.husc.lms.dto.response.CommentOfCourseResponse;
 import com.husc.lms.dto.response.CommentReplyResponse;
 import com.husc.lms.dto.response.CommentUpdateMessageResponse;
-import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
-import com.husc.lms.dto.response.FlatCommentInfo;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
@@ -43,14 +36,12 @@ import com.husc.lms.entity.Student;
 import com.husc.lms.enums.CommentType;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.NotificationType;
-import com.husc.lms.enums.StatusCourse;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.CommentReadStatusRepository;
 import com.husc.lms.repository.CommentReplyRepository;
 import com.husc.lms.repository.CommentRepository;
-//import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.NotificationRepository;
@@ -61,55 +52,51 @@ import com.husc.lms.repository.StudentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
-
 @Service
 @RequiredArgsConstructor
 public class CommentService {
-	private final CommentRepository commentRepository;
-	private final CommentReplyRepository commentReplyRepository;
-	private final ChapterRepository chapterRepository;
-	private final CourseRepository courseRepository;
-	private final AccountRepository accountRepository;
-	private final StudentRepository studentRepository;
-	private final CommentReadStatusRepository commentReadStatusRepository;
-	private final StudentLessonChapterProgressRepository studentLessonChapterProgressRepository;
-	private final StudentLessonProgressRepository studentLessonProgressRepository;
-	private final NotificationRepository notificationRepository;
-	private final LessonRepository lessonRepository;
+    private final CommentRepository commentRepository;
+    private final CommentReplyRepository commentReplyRepository;
+    private final ChapterRepository chapterRepository;
+    private final CourseRepository courseRepository;
+    private final AccountRepository accountRepository;
+    private final StudentRepository studentRepository;
+    private final CommentReadStatusRepository commentReadStatusRepository;
+    private final StudentLessonChapterProgressRepository studentLessonChapterProgressRepository;
+    private final StudentLessonProgressRepository studentLessonProgressRepository;
+    private final NotificationRepository notificationRepository;
+    private final LessonRepository lessonRepository;
     private final SimpMessagingTemplate messagingTemplate;
-
 
     @Transactional
     public void handleWebSocketComment(CommentMessage message) {
 
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsername())
-				.orElseThrow(() -> new RuntimeException("Account not found"));
+        Account account = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsername())
+                .orElseThrow(() -> new RuntimeException("Account not found"));
         Chapter chapter = chapterRepository.findById(message.getChapterId())
-            .orElseThrow(() -> new RuntimeException("Chapter not found"));
+                .orElseThrow(() -> new RuntimeException("Chapter not found"));
         Course course = courseRepository.findById(message.getCourseId())
-            .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new RuntimeException("Course not found"));
 
         Comment comment = Comment.builder()
-            .account(account)
-            .chapter(chapter)
-            .course(course)
-            .detail(message.getDetail())
-            .createdDate(OffsetDateTime.now())
-            .build();
+                .account(account)
+                .chapter(chapter)
+                .course(course)
+                .detail(message.getDetail())
+                .createdDate(OffsetDateTime.now())
+                .build();
 
         commentRepository.save(comment);
     }
-        
-    public Page<CommentChapterResponse> getCommentsByChapterId(String chapterId, int pageNumber, int pageSize, int replyPageNumber, int replyPageSize) {
 
+    public Page<CommentChapterResponse> getCommentsByChapterId(String chapterId, int pageNumber, int pageSize) {
         Chapter chapter = chapterRepository.findById(chapterId)
                 .orElseThrow(() -> new RuntimeException("Chapter not found"));
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Pageable replyPageable = PageRequest.of(replyPageNumber, replyPageSize);
+        Page<Comment> pagedComments = commentRepository.findByChapterAndDeletedDateIsNullOrderByCreatedDateDesc(chapter,
+                pageable);
 
-//        Page<Comment> pagedComments = commentRepository.findByChapterOrderByCreatedDateDesc(chapter, pageable);
-        Page<Comment> pagedComments = commentRepository.findByChapterAndDeletedDateIsNullOrderByCreatedDateDesc(chapter, pageable);
         return pagedComments.map(comment -> {
             Account commentAccount = comment.getAccount();
             String usernameOwner = commentAccount.getUsername();
@@ -124,37 +111,7 @@ public class CommentService {
                 fullnameOwner = commentAccount.getTeacher().getFullName();
             }
 
-            Page<CommentReply> pagedReplies = commentReplyRepository.findByComment(comment, replyPageable);
-
-            List<CommentReplyResponse> replyResponses = new ArrayList<>();
-
-            for (CommentReply reply : pagedReplies.getContent()) {
-                Account replyAccount = reply.getReplyAccount();
-                String replyAvatar = "";
-                String replyFullname = "";
-
-                if (replyAccount.getStudent() != null) {
-                    replyAvatar = Optional.ofNullable(replyAccount.getStudent().getAvatar()).orElse("");
-                    replyFullname = replyAccount.getStudent().getFullName();
-                } else if (replyAccount.getTeacher() != null) {
-                    replyAvatar = Optional.ofNullable(replyAccount.getTeacher().getAvatar()).orElse("");
-                    replyFullname = replyAccount.getTeacher().getFullName();
-                }
-
-                CommentReplyResponse replyResponse = CommentReplyResponse.builder()
-                		.commentId(reply.getComment().getId())
-                        .commentReplyId(reply.getId())
-                        .usernameOwner(usernameOwner)
-                        .fullnameOwner(fullnameOwner)
-                        .usernameReply(replyAccount.getUsername())
-                        .avatarReply(replyAvatar)
-                        .fullnameReply(replyFullname)
-                        .detail(reply.getDetail())
-                        .createdDate(reply.getCreatedDate())
-                        .build();
-
-                replyResponses.add(replyResponse);
-            }
+            int countOfReply = commentReplyRepository.countByComment(comment);
 
             return CommentChapterResponse.builder()
                     .commentId(comment.getId())
@@ -163,88 +120,139 @@ public class CommentService {
                     .avatar(commentAvatar)
                     .detail(comment.getDetail())
                     .createdDate(comment.getCreatedDate())
-                    .commentReplyResponses(replyResponses)
+                    .countOfReply(countOfReply)
                     .build();
         });
     }
-    
-    public List<CommentChapterResponse> getUnreadCommentsByCourseId(String courseId) {
-    	return commentRepository.findUnreadCommentsByCourseId(courseId);
+
+    public Page<CommentReplyResponse> getCommentRepliesByCommentId(String commentId, int pageNumber, int pageSize) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        Pageable replyPageable = PageRequest.of(pageNumber, pageSize);
+        Page<CommentReply> pagedReplies = commentReplyRepository.findByComment(comment, replyPageable);
+
+        return pagedReplies.map(reply -> {
+            Account replyAccount = reply.getReplyAccount();
+            String replyAvatar = "";
+            String replyFullname = "";
+
+            if (replyAccount.getStudent() != null) {
+                replyAvatar = Optional.ofNullable(replyAccount.getStudent().getAvatar()).orElse("");
+                replyFullname = replyAccount.getStudent().getFullName();
+            } else if (replyAccount.getTeacher() != null) {
+                replyAvatar = Optional.ofNullable(replyAccount.getTeacher().getAvatar()).orElse("");
+                replyFullname = replyAccount.getTeacher().getFullName();
+            }
+
+            return CommentReplyResponse.builder()
+                    .commentId(reply.getComment().getId())
+                    .commentReplyId(reply.getId())
+                    .usernameReply(replyAccount.getUsername())
+                    .avatarReply(replyAvatar)
+                    .fullnameReply(replyFullname)
+                    .detail(reply.getDetail())
+                    .createdDate(reply.getCreatedDate())
+                    .build();
+        });
     }
-    
+
+    public List<CommentChapterResponse> getUnreadCommentsByCourseId(String courseId) {
+        return commentRepository.findUnreadCommentsByCourseId(courseId);
+    }
+
     public Page<CommentChapterResponse> getUnreadCommentsByCourseId(String courseId, int pageNumber, int pageSize) {
         Pageable pageRequest = PageRequest.of(pageNumber, pageSize);
-        
+
         return commentRepository.findUnreadCommentsByCourseId(courseId, pageRequest);
     }
 
-//    public Page<CommentOfCourseResponse> getTotalUnreadCommentsOfCourseForTeacher(int pageNumber, int pageSize) {
-//    	var context = SecurityContextHolder.getContext();
-//		String name = context.getAuthentication().getName();
-//    	
-//		Account teacherAccount = accountRepository.findByUsernameAndDeletedDateIsNull(name)
-//				.orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
-//		
-//		if (teacherAccount.getTeacher() == null) {
-//	        return Page.empty();
-//	    }
-//
-//		Pageable pageable = PageRequest.of(pageNumber, pageSize);
-//		
-//		Page<Course> coursesOfTeacher = courseRepository.findByTeacherAndDeletedDateIsNull(teacherAccount.getTeacher(), pageable);
-//		
-//		Page<CommentOfCourseResponse> result = coursesOfTeacher.map(courseOfTeacher -> {
-//
-//		    int totalCommentsOfCourse = commentReadStatusRepository.countAllValidCommentReadStatusesByCourse(courseOfTeacher)
-//		    							+ commentReadStatusRepository.countAllValidCommentReplyReadStatusesByCourse(courseOfTeacher);
-//		    int totalUnreadCommentOfCourse = commentReadStatusRepository.countUnreadValidCommentReadStatusesByCourse(courseOfTeacher)
-//		    							+ commentReadStatusRepository.countUnreadValidCommentReplyReadStatusesByCourse(courseOfTeacher);
-//
-//		    List<CommentOfCourseResponse.CommentOfLesson> commentOfLesson = courseOfTeacher.getLesson().stream().map(lessonOfCourse -> {
-//		        int totalCommentOfLesson = commentReadStatusRepository.countAllValidCommentReadStatusesByLessonInCourse(lessonOfCourse)
-//		        						+ commentReadStatusRepository.countAllValidCommentReplyReadStatusesByLessonInCourse(lessonOfCourse);
-//		        int totalUnreadCommentsOfLesson = commentReadStatusRepository.countUnreadCommentReadStatusesByLessonInCourse(lessonOfCourse)
-//		        						+ commentReadStatusRepository.countUnreadCommentReplyReadStatusesByLessonInCourse(lessonOfCourse);
-//
-//		        List<CommentOfCourseResponse.CommentOfChapter> commentOfChapter = lessonOfCourse.getChapter().stream().map(chapterOfLesson -> {
-//		            int totalCommentOfChapter = commentReadStatusRepository.countAllValidCommentReadStatusesByChapter(chapterOfLesson)
-//		            					+ commentReadStatusRepository.countAllValidCommentReplyReadStatusesByChapter(chapterOfLesson);
-//		            int totalUnreadCommentsOfChapter = commentReadStatusRepository.countUnreadCommentReadStatusesByChapter(chapterOfLesson)
-//		            					+ commentReadStatusRepository.countUnreadCommentReplyReadStatusesByChapter(chapterOfLesson);
-//
-//		            return CommentOfCourseResponse.CommentOfChapter.builder()
-//		                    .chapterId(chapterOfLesson.getId())
-//		                    .chapterName(chapterOfLesson.getName())
-//		                    .chapterOrder(chapterOfLesson.getOrder())
-//		                    .totalCommentsOfChapter(totalCommentOfChapter)
-//		                    .totalUnreadCommentsOfChapter(totalUnreadCommentsOfChapter)
-//		                    .build();
-//		        }).toList();
-//
-//		        return CommentOfCourseResponse.CommentOfLesson.builder()
-//		                .lessonId(lessonOfCourse.getId())
-//		                .lessonName(lessonOfCourse.getDescription())
-//		                .lessonOrder(lessonOfCourse.getOrder())
-//		                .totalCommentsOfLesson(totalCommentOfLesson)
-//		                .totalUnreadCommentsOfLesson(totalUnreadCommentsOfLesson)
-//		                .commentsOfChapter(commentOfChapter)
-//		                .build();
-//		    }).toList();
-//
-//		    return CommentOfCourseResponse.builder()
-//		            .courseId(courseOfTeacher.getId())
-//		            .courseName(courseOfTeacher.getName())
-//		            .totalCommentsOfCourse(totalCommentsOfCourse)
-//		            .totalUnreadCommentsfCourse(totalUnreadCommentOfCourse)
-//		            .commentsOfLesson(commentOfLesson)
-//		            .build();
-//
-//		});
-//
-//		return result;
-//		
-//    }
-    
+    // public Page<CommentOfCourseResponse>
+    // getTotalUnreadCommentsOfCourseForTeacher(int pageNumber, int pageSize) {
+    // var context = SecurityContextHolder.getContext();
+    // String name = context.getAuthentication().getName();
+    //
+    // Account teacherAccount =
+    // accountRepository.findByUsernameAndDeletedDateIsNull(name)
+    // .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+    //
+    // if (teacherAccount.getTeacher() == null) {
+    // return Page.empty();
+    // }
+    //
+    // Pageable pageable = PageRequest.of(pageNumber, pageSize);
+    //
+    // Page<Course> coursesOfTeacher =
+    // courseRepository.findByTeacherAndDeletedDateIsNull(teacherAccount.getTeacher(),
+    // pageable);
+    //
+    // Page<CommentOfCourseResponse> result = coursesOfTeacher.map(courseOfTeacher
+    // -> {
+    //
+    // int totalCommentsOfCourse =
+    // commentReadStatusRepository.countAllValidCommentReadStatusesByCourse(courseOfTeacher)
+    // +
+    // commentReadStatusRepository.countAllValidCommentReplyReadStatusesByCourse(courseOfTeacher);
+    // int totalUnreadCommentOfCourse =
+    // commentReadStatusRepository.countUnreadValidCommentReadStatusesByCourse(courseOfTeacher)
+    // +
+    // commentReadStatusRepository.countUnreadValidCommentReplyReadStatusesByCourse(courseOfTeacher);
+    //
+    // List<CommentOfCourseResponse.CommentOfLesson> commentOfLesson =
+    // courseOfTeacher.getLesson().stream().map(lessonOfCourse -> {
+    // int totalCommentOfLesson =
+    // commentReadStatusRepository.countAllValidCommentReadStatusesByLessonInCourse(lessonOfCourse)
+    // +
+    // commentReadStatusRepository.countAllValidCommentReplyReadStatusesByLessonInCourse(lessonOfCourse);
+    // int totalUnreadCommentsOfLesson =
+    // commentReadStatusRepository.countUnreadCommentReadStatusesByLessonInCourse(lessonOfCourse)
+    // +
+    // commentReadStatusRepository.countUnreadCommentReplyReadStatusesByLessonInCourse(lessonOfCourse);
+    //
+    // List<CommentOfCourseResponse.CommentOfChapter> commentOfChapter =
+    // lessonOfCourse.getChapter().stream().map(chapterOfLesson -> {
+    // int totalCommentOfChapter =
+    // commentReadStatusRepository.countAllValidCommentReadStatusesByChapter(chapterOfLesson)
+    // +
+    // commentReadStatusRepository.countAllValidCommentReplyReadStatusesByChapter(chapterOfLesson);
+    // int totalUnreadCommentsOfChapter =
+    // commentReadStatusRepository.countUnreadCommentReadStatusesByChapter(chapterOfLesson)
+    // +
+    // commentReadStatusRepository.countUnreadCommentReplyReadStatusesByChapter(chapterOfLesson);
+    //
+    // return CommentOfCourseResponse.CommentOfChapter.builder()
+    // .chapterId(chapterOfLesson.getId())
+    // .chapterName(chapterOfLesson.getName())
+    // .chapterOrder(chapterOfLesson.getOrder())
+    // .totalCommentsOfChapter(totalCommentOfChapter)
+    // .totalUnreadCommentsOfChapter(totalUnreadCommentsOfChapter)
+    // .build();
+    // }).toList();
+    //
+    // return CommentOfCourseResponse.CommentOfLesson.builder()
+    // .lessonId(lessonOfCourse.getId())
+    // .lessonName(lessonOfCourse.getDescription())
+    // .lessonOrder(lessonOfCourse.getOrder())
+    // .totalCommentsOfLesson(totalCommentOfLesson)
+    // .totalUnreadCommentsOfLesson(totalUnreadCommentsOfLesson)
+    // .commentsOfChapter(commentOfChapter)
+    // .build();
+    // }).toList();
+    //
+    // return CommentOfCourseResponse.builder()
+    // .courseId(courseOfTeacher.getId())
+    // .courseName(courseOfTeacher.getName())
+    // .totalCommentsOfCourse(totalCommentsOfCourse)
+    // .totalUnreadCommentsfCourse(totalUnreadCommentOfCourse)
+    // .commentsOfLesson(commentOfLesson)
+    // .build();
+    //
+    // });
+    //
+    // return result;
+    //
+    // }
+
     public Page<CommentOfCourseResponse> getCoursesWithUnreadComments(int pageNumber, int pageSize) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
         Account teacherAccount = accountRepository.findByUsernameAndDeletedDateIsNull(username)
@@ -255,13 +263,14 @@ public class CommentService {
         }
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Course> courses = courseRepository.findByTeacherAndDeletedDateIsNull(teacherAccount.getTeacher(), pageable);
+        Page<Course> courses = courseRepository.findByTeacherAndDeletedDateIsNull(teacherAccount.getTeacher(),
+                pageable);
 
         return courses.map(course -> {
             int total = commentReadStatusRepository.countAllValidCommentReadStatusesByCourse(course)
-                      + commentReadStatusRepository.countAllValidCommentReplyReadStatusesByCourse(course);
+                    + commentReadStatusRepository.countAllValidCommentReplyReadStatusesByCourse(course);
             int unread = commentReadStatusRepository.countUnreadValidCommentReadStatusesByCourse(course)
-                       + commentReadStatusRepository.countUnreadValidCommentReplyReadStatusesByCourse(course);
+                    + commentReadStatusRepository.countUnreadValidCommentReplyReadStatusesByCourse(course);
 
             return CommentOfCourseResponse.builder()
                     .courseId(course.getId())
@@ -271,14 +280,15 @@ public class CommentService {
                     .build();
         });
     }
+
     public List<CommentOfCourseResponse.CommentOfLesson> getLessonsWithUnreadComments(String courseId) {
         Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
-        
+
         return course.getLesson().stream().map(lesson -> {
             int total = commentReadStatusRepository.countAllValidCommentReadStatusesByLessonInCourse(lesson)
-                      + commentReadStatusRepository.countAllValidCommentReplyReadStatusesByLessonInCourse(lesson);
+                    + commentReadStatusRepository.countAllValidCommentReplyReadStatusesByLessonInCourse(lesson);
             int unread = commentReadStatusRepository.countUnreadCommentReadStatusesByLessonInCourse(lesson)
-                       + commentReadStatusRepository.countUnreadCommentReplyReadStatusesByLessonInCourse(lesson);
+                    + commentReadStatusRepository.countUnreadCommentReplyReadStatusesByLessonInCourse(lesson);
 
             return CommentOfCourseResponse.CommentOfLesson.builder()
                     .lessonId(lesson.getId())
@@ -289,14 +299,15 @@ public class CommentService {
                     .build();
         }).toList();
     }
+
     public List<CommentOfCourseResponse.CommentOfChapter> getChaptersWithUnreadComments(String lessonId) {
         Lesson lesson = lessonRepository.findByIdAndDeletedDateIsNull(lessonId);
-        
+
         return lesson.getChapter().stream().map(chapter -> {
             int total = commentReadStatusRepository.countAllValidCommentReadStatusesByChapter(chapter)
-                      + commentReadStatusRepository.countAllValidCommentReplyReadStatusesByChapter(chapter);
+                    + commentReadStatusRepository.countAllValidCommentReplyReadStatusesByChapter(chapter);
             int unread = commentReadStatusRepository.countUnreadCommentReadStatusesByChapter(chapter)
-                       + commentReadStatusRepository.countUnreadCommentReplyReadStatusesByChapter(chapter);
+                    + commentReadStatusRepository.countUnreadCommentReplyReadStatusesByChapter(chapter);
 
             return CommentOfCourseResponse.CommentOfChapter.builder()
                     .chapterId(chapter.getId())
@@ -308,27 +319,26 @@ public class CommentService {
         }).toList();
     }
 
-
     @Transactional
     public CommentMessageResponse saveCommentWithReadStatusAndNotification(CommentMessage commentMessage) {
         // Lấy thông tin cần thiết từ message
         Account account = accountRepository.findByUsernameAndDeletedDateIsNull(commentMessage.getUsername())
-            .orElseThrow(() -> new RuntimeException("Account not found"));
+                .orElseThrow(() -> new RuntimeException("Account not found"));
 
         Chapter chapter = chapterRepository.findById(commentMessage.getChapterId())
-            .orElseThrow(() -> new RuntimeException("Chapter not found"));
+                .orElseThrow(() -> new RuntimeException("Chapter not found"));
 
         Course course = courseRepository.findById(commentMessage.getCourseId())
-            .orElseThrow(() -> new RuntimeException("Course not found"));
+                .orElseThrow(() -> new RuntimeException("Course not found"));
 
         // Tạo và lưu comment
         Comment comment = Comment.builder()
-            .account(account)
-            .chapter(chapter)
-            .course(course)
-            .detail(commentMessage.getDetail())
-            .createdDate(OffsetDateTime.now())
-            .build();
+                .account(account)
+                .chapter(chapter)
+                .course(course)
+                .detail(commentMessage.getDetail())
+                .createdDate(OffsetDateTime.now())
+                .build();
 
         Comment savedComment = commentRepository.save(comment);
 
@@ -348,28 +358,28 @@ public class CommentService {
 
             if (studentAccount.getId().equals(account.getId())) {
                 readStatuses.add(CommentReadStatus.builder()
-                    .account(studentAccount)
-                    .comment(savedComment)
-                    .isRead(true)
-                    .build());
+                        .account(studentAccount)
+                        .comment(savedComment)
+                        .isRead(true)
+                        .build());
                 continue;
             }
 
             readStatuses.add(CommentReadStatus.builder()
-                .account(studentAccount)
-                .comment(savedComment)
-                .commentType(CommentType.COMMENT)
-                .isRead(false)
-                .build());
+                    .account(studentAccount)
+                    .comment(savedComment)
+                    .commentType(CommentType.COMMENT)
+                    .isRead(false)
+                    .build());
 
             notifications.add(Notification.builder()
-                .account(studentAccount)
-                .comment(savedComment)
-                .type(NotificationType.COMMENT)
-                .description(comment.getDetail())
-                .isRead(false)
-                .createdAt(new Date())
-                .build());
+                    .account(studentAccount)
+                    .comment(savedComment)
+                    .type(NotificationType.COMMENT)
+                    .description(comment.getDetail())
+                    .isRead(false)
+                    .createdAt(new Date())
+                    .build());
         }
 
         // Lưu vào DB
@@ -388,35 +398,33 @@ public class CommentService {
 
         // ✅ Trả về CommentMessageResponse
         return CommentMessageResponse.builder()
-        	    .chapterId(savedComment.getChapter().getId())
-        	    .courseId(savedComment.getCourse().getId())
-        	    .commentId(savedComment.getId())
-        	    .username(account.getUsername())
-        	    .fullname(
-        	        account.getStudent() != null && account.getStudent().getFullName() != null
-        	            ? account.getStudent().getFullName()
-        	            : (account.getTeacher() != null && account.getTeacher().getFullName() != null
-        	                ? account.getTeacher().getFullName()
-        	                : "")
-        	    )
-        	    .avatar(
-        	        account.getStudent() != null && account.getStudent().getAvatar() != null
-        	            ? account.getStudent().getAvatar()
-        	            : (account.getTeacher() != null && account.getTeacher().getAvatar() != null
-        	                ? account.getTeacher().getAvatar()
-        	                : "")
-        	    )
-        	    .detail(comment.getDetail())
-        	    .createdDate(comment.getCreatedDate())
-        	    .commentReplyResponses(List.of())
-        	    .build();
+                .chapterId(savedComment.getChapter().getId())
+                .courseId(savedComment.getCourse().getId())
+                .commentId(savedComment.getId())
+                .username(account.getUsername())
+                .fullname(
+                        account.getStudent() != null && account.getStudent().getFullName() != null
+                                ? account.getStudent().getFullName()
+                                : (account.getTeacher() != null && account.getTeacher().getFullName() != null
+                                        ? account.getTeacher().getFullName()
+                                        : ""))
+                .avatar(
+                        account.getStudent() != null && account.getStudent().getAvatar() != null
+                                ? account.getStudent().getAvatar()
+                                : (account.getTeacher() != null && account.getTeacher().getAvatar() != null
+                                        ? account.getTeacher().getAvatar()
+                                        : ""))
+                .detail(comment.getDetail())
+                .createdDate(comment.getCreatedDate())
+                .commentReplyResponses(List.of())
+                .build();
 
     }
 
-
     public List<Student> findEligibleStudents(String lessonId, String chapterId) {
         List<String> studentIdsByLesson = studentLessonProgressRepository.findStudentIdsByLessonCompleted(lessonId);
-        List<String> studentIdsByChapter = studentLessonChapterProgressRepository.findStudentIdsByChapterCompleted(chapterId);
+        List<String> studentIdsByChapter = studentLessonChapterProgressRepository
+                .findStudentIdsByChapterCompleted(chapterId);
 
         Set<String> uniqueStudentIds = new HashSet<>();
         uniqueStudentIds.addAll(studentIdsByLesson);
@@ -425,70 +433,69 @@ public class CommentService {
         return studentRepository.findAllById(uniqueStudentIds);
     }
 
-	public CommentUpdateMessageResponse updateComment(CommentUpdateMessage message) {
-		Comment changeComment = commentRepository.findById(message.getCommentId())
-		        .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+    public CommentUpdateMessageResponse updateComment(CommentUpdateMessage message) {
+        Comment changeComment = commentRepository.findById(message.getCommentId())
+                .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
-	    Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameOwner())
-	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+        Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameOwner())
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 
-	    if (!changeComment.getAccount().equals(ownerAccount)) {
-	        throw new AppException(ErrorCode.OWNER_NOT_MATCH); // hoặc tạo error code phù hợp
-	    }
+        if (!changeComment.getAccount().equals(ownerAccount)) {
+            throw new AppException(ErrorCode.OWNER_NOT_MATCH); // hoặc tạo error code phù hợp
+        }
 
-	    changeComment.setDetail(message.getNewDetail());
-	    changeComment.setUpdateDateAt(OffsetDateTime.now());
-	    commentRepository.save(changeComment);
+        changeComment.setDetail(message.getNewDetail());
+        changeComment.setUpdateDateAt(OffsetDateTime.now());
+        commentRepository.save(changeComment);
 
-	    return CommentUpdateMessageResponse.builder()
-	        .commentId(changeComment.getId())
-	        .courseId(changeComment.getCourse().getId())
-	        .chapterId(changeComment.getChapter().getId())
-	        .newDetail(changeComment.getDetail())
-	        .updateDate(changeComment.getUpdateDateAt())
-	        .usernameOwner(changeComment.getAccount().getUsername())
-	        .avatarOwner(changeComment.getAccount().getStudent() != null
-	                    ? changeComment.getAccount().getStudent().getAvatar()
-	                    : changeComment.getAccount().getTeacher() != null
-	                        ? changeComment.getAccount().getTeacher().getAvatar()
-	                        : null)
-	        .fullnameOwner(changeComment.getAccount().getStudent() != null
-	                    ? changeComment.getAccount().getStudent().getFullName()
-	                    : changeComment.getAccount().getTeacher() != null
-	                        ? changeComment.getAccount().getTeacher().getFullName()
-	                        : null)
-	        .build();
-	}
+        return CommentUpdateMessageResponse.builder()
+                .commentId(changeComment.getId())
+                .courseId(changeComment.getCourse().getId())
+                .chapterId(changeComment.getChapter().getId())
+                .newDetail(changeComment.getDetail())
+                .updateDate(changeComment.getUpdateDateAt())
+                .usernameOwner(changeComment.getAccount().getUsername())
+                .avatarOwner(changeComment.getAccount().getStudent() != null
+                        ? changeComment.getAccount().getStudent().getAvatar()
+                        : changeComment.getAccount().getTeacher() != null
+                                ? changeComment.getAccount().getTeacher().getAvatar()
+                                : null)
+                .fullnameOwner(changeComment.getAccount().getStudent() != null
+                        ? changeComment.getAccount().getStudent().getFullName()
+                        : changeComment.getAccount().getTeacher() != null
+                                ? changeComment.getAccount().getTeacher().getFullName()
+                                : null)
+                .build();
+    }
 
-	public Boolean deleteComment(CommentUpdateMessage message) {
-	    Comment deleteComment = commentRepository.findById(message.getCommentId())
-	        .filter(comment -> comment.getDeletedDate() == null)
-	        .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
+    public Boolean deleteComment(CommentUpdateMessage message) {
+        Comment deleteComment = commentRepository.findById(message.getCommentId())
+                .filter(comment -> comment.getDeletedDate() == null)
+                .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
-	    Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameOwner())
-	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+        Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameOwner())
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 
-	    if (!deleteComment.getAccount().getId().equals(ownerAccount.getId())) {
-	        throw new AppException(ErrorCode.OWNER_NOT_MATCH);
-	    }
+        if (!deleteComment.getAccount().getId().equals(ownerAccount.getId())) {
+            throw new AppException(ErrorCode.OWNER_NOT_MATCH);
+        }
 
-	    OffsetDateTime now = OffsetDateTime.now();
-	    deleteComment.setDeletedBy(message.getUsernameOwner());
-	    deleteComment.setDeletedDate(now);
+        OffsetDateTime now = OffsetDateTime.now();
+        deleteComment.setDeletedBy(message.getUsernameOwner());
+        deleteComment.setDeletedDate(now);
 
-	    // Xử lý soft delete tất cả các comment replies nếu có
-	    if (deleteComment.getCommentReplies() != null) {
-	        deleteComment.getCommentReplies().forEach(reply -> {
-	            if (reply.getDeletedDate() == null) {
-	                reply.setDeletedBy(message.getUsernameOwner());
-	                reply.setDeletedDate(now);
-	            }
-	        });
-	    }
+        // Xử lý soft delete tất cả các comment replies nếu có
+        if (deleteComment.getCommentReplies() != null) {
+            deleteComment.getCommentReplies().forEach(reply -> {
+                if (reply.getDeletedDate() == null) {
+                    reply.setDeletedBy(message.getUsernameOwner());
+                    reply.setDeletedDate(now);
+                }
+            });
+        }
 
-	    commentRepository.save(deleteComment); // save sẽ cascade nếu được cấu hình
-	    return true;
-	}
-
+        commentRepository.save(deleteComment); // save sẽ cascade nếu được cấu hình
+        return true;
+    }
 
 }
