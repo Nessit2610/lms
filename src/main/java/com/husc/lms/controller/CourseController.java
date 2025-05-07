@@ -61,8 +61,8 @@ public class CourseController {
 	}
 
 	@GetMapping("/courseofteacher")
-	public APIResponse<Page<CourseViewResponse>> getCourseOfTeacher(@RequestParam("pageNumber") int pageNumber,
-																	@RequestParam("pageSize") int pageSize){
+	public APIResponse<Page<CourseViewResponse>> getCourseOfTeacher(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																	@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<CourseViewResponse>>builder()
 				.result(courseService.getCourseOfTeacher(pageNumber,pageSize))
 				.build();

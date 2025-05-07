@@ -4,11 +4,15 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.TestInGroupRequest;
 import com.husc.lms.dto.request.TestQuestionRequest;
 import com.husc.lms.dto.response.TestInGroupResponse;
+import com.husc.lms.dto.response.TestInGroupViewResponse;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.TestInGroup;
 import com.husc.lms.enums.ErrorCode;
@@ -50,6 +54,13 @@ public class TestInGroupService {
 	public TestInGroupResponse getById(String id) {
 		TestInGroup testInGroup = testInGroupRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 		return testInGroupMapper.toTestInGroupResponse(testInGroup);
+	}
+	
+	public Page<TestInGroupViewResponse> getAllTestInGroup(String groupId, int pageNumber , int pageSize) {
+		 Pageable pageable = PageRequest.of(pageNumber, pageSize);
+		 Group group = groupRepository.findById(groupId).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
+		 Page<TestInGroup> testInGroup = testInGroupRepository.findByGroup(group, pageable);
+		 return testInGroup.map(testInGroupMapper::toTestInGroupViewResponse);
 	}
 	
 	
