@@ -1,7 +1,6 @@
 package com.husc.lms.dto.request;
 
 import java.time.OffsetDateTime;
-import java.util.UUID;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
