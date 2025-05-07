@@ -1,6 +1,8 @@
 package com.husc.lms.dto.response;
 
 import java.time.OffsetDateTime;
+import java.util.List;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,6 +20,7 @@ public class CommentChapterResponse {
 	private String detail;
 	private OffsetDateTime createdDate;
 	private int countOfReply;
+	private List<CommentReplyResponse> commentReplyResponses;
 
 	public CommentChapterResponse(String commentId, String username, String detail, OffsetDateTime createdDate) {
 		super();

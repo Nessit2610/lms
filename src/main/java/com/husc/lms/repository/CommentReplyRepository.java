@@ -20,4 +20,5 @@ public interface CommentReplyRepository extends JpaRepository<CommentReply, Stri
 
     @Query("SELECT COUNT(cr) FROM CommentReply cr WHERE cr.comment = :comment AND cr.deletedDate IS NULL")
     int countByComment(@Param("comment") Comment comment);
+
 }
