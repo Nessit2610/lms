@@ -62,6 +62,106 @@ public class CommentReplyService {
     private final StudentService studentService;
     private final SimpMessagingTemplate messagingTemplate;
 
+    // @Transactional
+    // public CommentReplyResponse
+    // saveCommentReplyWithReadStatusAndNotification(CommentReplyMessage message) {
+    // // Lấy các entity cần thiết
+    // Account ownerAccount =
+    // accountRepository.findByUsernameAndDeletedDateIsNull(message.getOwnerUsername())
+    // .orElseThrow(() -> new RuntimeException("Owner account not found"));
+    //
+    // Account replyAccount =
+    // accountRepository.findByUsernameAndDeletedDateIsNull(message.getReplyUsername())
+    // .orElseThrow(() -> new RuntimeException("Reply account not found"));
+    //
+    // Chapter chapter = chapterRepository.findById(message.getChapterId())
+    // .orElseThrow(() -> new RuntimeException("Chapter not found"));
+    //
+    // Course course = courseRepository.findById(message.getCourseId())
+    // .orElseThrow(() -> new RuntimeException("Course not found"));
+    //
+    // Comment parentComment =
+    // commentRepository.findById(message.getParentCommentId())
+    // .orElseThrow(() -> new RuntimeException("Parent comment not found"));
+    //
+    // // Tạo CommentReply
+    // CommentReply commentReply = CommentReply.builder()
+    // .ownerAccount(ownerAccount)
+    // .replyAccount(replyAccount)
+    // .chapter(chapter)
+    // .course(course)
+    // .detail(message.getDetail())
+    // .createdDate(OffsetDateTime.now())
+    // .comment(parentComment)
+    // .build();
+    //
+    // CommentReply savedReply = commentReplyRepository.save(commentReply);
+    //
+    // // Lấy lesson từ chapter
+    // Lesson lesson = chapter.getLesson();
+    // if (lesson == null) {
+    // throw new IllegalArgumentException("Chapter không thuộc lesson nào.");
+    // }
+    //
+    // // Tìm các student đủ điều kiện
+    // List<Student> eligibleStudents =
+    // studentService.findEligibleStudents(lesson.getId(), chapter.getId());
+    // List<Notification> notifications = new ArrayList<>();
+    //
+    // // Tạo thông báo nếu người được reply khác với người reply
+    // if (!replyAccount.getId().equals(ownerAccount.getId())) {
+    // Notification notification = Notification.builder()
+    // .account(replyAccount)
+    // .commentReply(savedReply)
+    // .type(NotificationType.COMMENT_REPLY)
+    // .description(message.getDetail())
+    // .isRead(false)
+    // .createdAt(new Date())
+    // .build();
+    //
+    // notificationRepository.save(notification);
+    //
+    // // Gửi real-time notification
+    // String destination = "/topic/notifications/" + replyAccount.getUsername();
+    // Map<String, Object> payload = new HashMap<>();
+    // payload.put("message", notification.getDescription());
+    // payload.put("chapterId", chapter.getId());
+    // payload.put("createdDate", notification.getCreatedAt());
+    // messagingTemplate.convertAndSend(destination, payload);
+    // }
+    //
+    // // Xử lý lấy avatar và full name của người reply
+    // String fullnameReply = "";
+    // String avatarReply = "";
+    // if (replyAccount.getStudent() != null) {
+    // fullnameReply = replyAccount.getStudent().getFullName();
+    // avatarReply = replyAccount.getStudent().getAvatar();
+    // } else if (replyAccount.getTeacher() != null) {
+    // fullnameReply = replyAccount.getTeacher().getFullName();
+    // avatarReply = replyAccount.getTeacher().getAvatar();
+    // }
+    //
+    // // Xử lý lấy full name của người được reply
+    // String fullnameOwner = "";
+    // if (ownerAccount.getStudent() != null) {
+    // fullnameOwner = ownerAccount.getStudent().getFullName();
+    // } else if (ownerAccount.getTeacher() != null) {
+    // fullnameOwner = ownerAccount.getTeacher().getFullName();
+    // }
+    //
+    // // Trả về DTO
+    // return CommentReplyResponse.builder()
+    // .parentCommentId(savedReply.getComment().getId())
+    // .commentReplyId(savedReply.getId())
+    // .usernameOwner(ownerAccount.getUsername())
+    // .fullnameOwner(fullnameOwner)
+    // .usernameReply(replyAccount.getUsername())
+    // .fullnameReply(fullnameReply)
+    // .avatarReply(avatarReply)
+    // .detail(savedReply.getDetail())
+    // .createdDate(savedReply.getCreatedDate())
+    // .build();
+    // }
     @Transactional
     public CommentReplyResponse saveCommentReplyWithReadStatusAndNotification(CommentReplyMessage message) {
         System.out.println("Owner Username: " + message.getOwnerUsername());
@@ -120,7 +220,9 @@ public class CommentReplyService {
             Map<String, Object> payload = new HashMap<>();
             payload.put("message", "Có bình luận mới từ khóa học " + course.getName() + " : " + savedReply.getDetail());
             payload.put("type", NotificationType.COMMENT_REPLY);
+            payload.put("courseId", course.getId());
             payload.put("lessonId", lesson.getId());
+            payload.put("chapterId", chapter.getId());
             messagingTemplate.convertAndSend("/topic/notifications/" + teacherAccount.getUsername(), payload);
         }
 
