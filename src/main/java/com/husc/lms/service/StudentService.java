@@ -24,9 +24,11 @@ import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.request.AccountRequest;
 import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.dto.response.AccountResponse;
-import com.husc.lms.dto.response.StudentOfCourseResponse;
+import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.entity.Student;
+import com.husc.lms.entity.StudentGroup;
 import com.husc.lms.entity.Account;
+import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Major;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
@@ -34,6 +36,7 @@ import com.husc.lms.mapper.StudentMapper;
 import com.husc.lms.repository.StudentRepository;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ConfirmationCodeRepository;
+import com.husc.lms.repository.GroupRepository;
 import com.husc.lms.repository.MajorRepository;
 import com.husc.lms.repository.StudentLessonChapterProgressRepository;
 import com.husc.lms.repository.StudentLessonProgressRepository;
@@ -62,6 +65,10 @@ public class StudentService {
 
 	@Autowired
 	private MajorRepository majorRepository;
+	
+	@Autowired
+	private GroupRepository groupRepository;
+	
 	
 	@Autowired
 	private AccountService accountService;
@@ -98,18 +105,26 @@ public class StudentService {
 	}
 	
 	
-	public Page<StudentOfCourseResponse> searchStudents(String fullName, String email, String majorName, int pageNumber, int pageSize) {
+	public Page<StudentViewResponse> searchStudents(String fullName, String email, String majorName, int page, int size) {
 	    if (fullName != null && fullName.trim().isEmpty()) fullName = null;
 	    if (email != null && email.trim().isEmpty()) email = null;
 	    if (majorName != null && majorName.trim().isEmpty()) majorName = null;
 	    
-	    int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
-	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
 	    Pageable pageable = PageRequest.of(page, size);
 	    
-	    return studentRepository.searchStudent(fullName, email, majorName, pageable).map(studentMapper::toStudentOfCourseResponse);
+	    return studentRepository.searchStudent(fullName, email, majorName, pageable).map(studentMapper::toStudentViewResponse);
 	}
 
+	public Page<StudentViewResponse> searchStudentsNotInGroup(String groupId, String keyword, int page, int size) {
+		Group group = groupRepository.findById(groupId).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
+	    Pageable pageable = PageRequest.of(page, size);
+	    Page<Student> student = studentRepository.findStudentsNotInGroup(group, keyword, pageable);
+
+	    return student.map(studentMapper::toStudentViewResponse);
+	}
+
+	
+	
 	
 	public StudentResponse getStudentInfo() {
 		var context = SecurityContextHolder.getContext();

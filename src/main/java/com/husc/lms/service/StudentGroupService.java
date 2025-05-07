@@ -7,12 +7,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.provisioning.GroupManager;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.StudentGroupRequest;
 import com.husc.lms.dto.response.GroupViewResponse;
-import com.husc.lms.dto.response.StudentOfCourseResponse;
+import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Student;
@@ -88,25 +87,25 @@ public class StudentGroupService {
 	    });
 	}
 	
-	public Page<StudentOfCourseResponse> getStudentsOfGroup(String groupId, int page, int size) {
+	public Page<StudentViewResponse> getStudentsOfGroup(String groupId, int page, int size) {
 		Group group = groupRepository.findById(groupId).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
 		Pageable pageable = PageRequest.of(page, size);
 	    Page<StudentGroup> studentGroups = studentGroupRepository.findByGroup(group, pageable);
 
 	    return studentGroups.map(sg -> {
 	        Student s = sg.getStudent();
-	        return studentMapper.toStudentOfCourseResponse(s);
+	        return studentMapper.toStudentViewResponse(s);
 	    });
 	}
 
-	public Page<StudentOfCourseResponse> searchStudentsInGroup(String groupId, String keyword, int page, int size) {
+	public Page<StudentViewResponse> searchStudentsInGroup(String groupId, String keyword, int page, int size) {
 		Group group = groupRepository.findById(groupId).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
 	    Pageable pageable = PageRequest.of(page, size);
 	    Page<StudentGroup> studentGroups = studentGroupRepository.searchByFullNameOrEmail(group, keyword, pageable);
 
 	    return studentGroups.map(sg -> {
 	        Student s = sg.getStudent();
-	        return studentMapper.toStudentOfCourseResponse(s); 
+	        return studentMapper.toStudentViewResponse(s); 
 	    });
 	}
 

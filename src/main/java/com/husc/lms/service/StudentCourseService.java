@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.StudentCourseRequest;
 import com.husc.lms.dto.response.CourseViewResponse;
-import com.husc.lms.dto.response.StudentOfCourseResponse;
+import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.JoinClassRequest;
@@ -137,31 +137,31 @@ public class StudentCourseService {
 		return courseResponsePage;	
 	}
 	
-	public Page<StudentOfCourseResponse> getAllStudentOfCourse(String courseId, int page, int size){
+	public Page<StudentViewResponse> getAllStudentOfCourse(String courseId, int page, int size){
 		
 	    Pageable pageable = PageRequest.of(page, size);
 	    
 		Course course = courseRepository.findById(courseId).get();
 		Page<Student> listSoC = studentCourseRepository.findStudentByCourse(course, pageable);
-		return listSoC.map(studentMapper::toStudentOfCourseResponse);
+		return listSoC.map(studentMapper::toStudentViewResponse);
 	}
 	
-	public Page<StudentOfCourseResponse> searchStudentInCourse(String courseId,String keyword, int page, int size){
+	public Page<StudentViewResponse> searchStudentInCourse(String courseId,String keyword, int page, int size){
 		
 		Pageable pageable = PageRequest.of(page, size);
 		
 		Course course = courseRepository.findById(courseId).get();
 		Page<Student> listSoC = studentCourseRepository.searchStudentsInCourse(course, keyword, pageable);
-		return listSoC.map(studentMapper::toStudentOfCourseResponse);
+		return listSoC.map(studentMapper::toStudentViewResponse);
 	}
 	
-	public Page<StudentOfCourseResponse> searchStudentNotInCourse(String courseId,String keyword, int page, int size){
+	public Page<StudentViewResponse> searchStudentNotInCourse(String courseId,String keyword, int page, int size){
 		
 		Pageable pageable = PageRequest.of(page, size);
 		
 		Course course = courseRepository.findById(courseId).get();
 		Page<Student> listSoC = studentCourseRepository.searchStudentsNotInCourse(course, keyword, pageable);
-		return listSoC.map(studentMapper::toStudentOfCourseResponse);
+		return listSoC.map(studentMapper::toStudentViewResponse);
 	}
 	
 	

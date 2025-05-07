@@ -13,7 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.response.CourseViewResponse;
-import com.husc.lms.dto.response.StudentOfCourseResponse;
+import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.JoinClassRequest;
@@ -139,12 +139,12 @@ public class JoinClassRequestService {
 		return false;
 	}
 	
-	public Page<StudentOfCourseResponse> getAllStudentRequestOfCourse(String courseId, int page, int size){
+	public Page<StudentViewResponse> getAllStudentRequestOfCourse(String courseId, int page, int size){
 	    
 	    Pageable pageable = PageRequest.of(page, size);
 	    
 		Page<Student> students = joinClassRequestRepository.findAllStudentsByCourseIdAndStatus(courseId,JoinClassStatus.PENDING.name(),pageable);
-		return students.map(studentMapper::toStudentOfCourseResponse);
+		return students.map(studentMapper::toStudentViewResponse);
 	}
 	
 	public Page<CourseViewResponse> getAllCourseRequestOfStudent(String studentId,int page, int size){

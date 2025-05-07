@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.husc.lms.dto.request.StudentCourseRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
-import com.husc.lms.dto.response.StudentOfCourseResponse;
+import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.service.StudentCourseService;
 
 @RestController
@@ -42,30 +42,30 @@ public class StudentCourseController {
 	}
 	
 	@GetMapping("/studentofcourse")
-	public APIResponse<Page<StudentOfCourseResponse>> getAllStudentOfCourse(@RequestParam("courseId") String courseId,
+	public APIResponse<Page<StudentViewResponse>> getAllStudentOfCourse(@RequestParam("courseId") String courseId,
 																			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 																			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
-		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(studentCourseService.getAllStudentOfCourse(courseId,pageNumber,pageSize))
 				.build();
 	}
 	
 	@GetMapping("/searchstudent")
-	public APIResponse<Page<StudentOfCourseResponse>> searchStudentInCourse(@RequestParam("courseId") String courseId,
+	public APIResponse<Page<StudentViewResponse>> searchStudentInCourse(@RequestParam("courseId") String courseId,
 																			@RequestParam("keyword") String keyword,
 																			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 																			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
-		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(studentCourseService.searchStudentInCourse(courseId,keyword,pageNumber,pageSize))
 				.build();
 	}
 	
 	@GetMapping("/searchstudentnotin")
-	public APIResponse<Page<StudentOfCourseResponse>> searchStudentNotInCourse(@RequestParam("courseId") String courseId,
+	public APIResponse<Page<StudentViewResponse>> searchStudentNotInCourse(@RequestParam("courseId") String courseId,
 			@RequestParam("keyword") String keyword,
 			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
-		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(studentCourseService.searchStudentNotInCourse(courseId,keyword,pageNumber,pageSize))
 				.build();
 	}

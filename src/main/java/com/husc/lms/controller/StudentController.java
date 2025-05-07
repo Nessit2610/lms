@@ -21,7 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.response.APIResponse;
-import com.husc.lms.dto.response.StudentOfCourseResponse;
+import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.dto.response.StudentResponse;
 import com.husc.lms.entity.Student;
 import com.husc.lms.service.StudentService;
@@ -45,15 +45,24 @@ public class StudentController {
 	}
 	
 	@GetMapping("/search")
-	public APIResponse<Page<StudentOfCourseResponse>> searchStudent(@RequestParam("fullName") String fullName,
+	public APIResponse<Page<StudentViewResponse>> searchStudent(@RequestParam("fullName") String fullName,
 															@RequestParam("email") String email,
 															@RequestParam("majorName") String majorName,
 															@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
     														@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
-		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(studentService.searchStudents(fullName, email, majorName,pageNumber,pageSize))
 				.build();
 		
+	}
+	@GetMapping("/searchstudentnotin")
+	public APIResponse<Page<StudentViewResponse>> searchStudentNotInCourse(@RequestParam("courseId") String courseId,
+			@RequestParam("keyword") String keyword,
+			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+		return APIResponse.<Page<StudentViewResponse>>builder()
+				.result(studentService.searchStudentsNotInGroup(courseId, keyword, pageNumber, pageSize))
+				.build();
 	}
 	
 	@GetMapping("/myinfo")

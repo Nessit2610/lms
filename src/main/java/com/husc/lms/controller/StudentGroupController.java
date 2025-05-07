@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.husc.lms.dto.request.StudentGroupRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.GroupViewResponse;
-import com.husc.lms.dto.response.StudentOfCourseResponse;
+import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.service.StudentGroupService;
 
 @RestController
@@ -46,19 +46,19 @@ public class StudentGroupController {
 	}
 	
 	@GetMapping("/getstudent")
-	public APIResponse<Page<StudentOfCourseResponse>> getStudentsOfGroup(@RequestParam("groupId") String groupId ,
+	public APIResponse<Page<StudentViewResponse>> getStudentsOfGroup(@RequestParam("groupId") String groupId ,
 																		@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 																		@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) {
-		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(studentGroupService.getStudentsOfGroup(groupId, pageNumber, pageSize))
 				.build();
 	}
 	@GetMapping("/seachstudent")
-	public APIResponse<Page<StudentOfCourseResponse>> seachStudentsInGroup(@RequestParam("groupId") String groupId ,
+	public APIResponse<Page<StudentViewResponse>> seachStudentsInGroup(@RequestParam("groupId") String groupId ,
 																			@RequestParam("keyword") String keyword,
 																			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 																			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) {
-		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(studentGroupService.searchStudentsInGroup(groupId, keyword, pageNumber, pageSize))
 				.build();
 	}

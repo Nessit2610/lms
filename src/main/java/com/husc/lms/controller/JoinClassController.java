@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
-import com.husc.lms.dto.response.StudentOfCourseResponse;
+import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.service.JoinClassRequestService;
 
 @RestController
@@ -45,10 +45,10 @@ public class JoinClassController {
 	}
 	
 	@GetMapping("/studentrequest")
-	public APIResponse<Page<StudentOfCourseResponse>> getAllStudentRequestOfCourse(@RequestParam("courseId") String courseId,
+	public APIResponse<Page<StudentViewResponse>> getAllStudentRequestOfCourse(@RequestParam("courseId") String courseId,
 																					@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 																					@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) {
-		return APIResponse.<Page<StudentOfCourseResponse>>builder()
+		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(joinClassRequestService.getAllStudentRequestOfCourse(courseId,pageNumber,pageSize))
 				.build();
 	}
