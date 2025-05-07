@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.husc.lms.mongoEntity.ChatBox;
 import com.husc.lms.mongoEntity.ChatMessage;
 import com.husc.lms.mongoRepository.ChatMessageRepository;
-import com.husc.lms.mongoService.ChatService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class ChatBoxController {
 	private final ChatMessageRepository messageRepo;
-    private final ChatService chatService;
+//    private final ChatService chatService;
 
 //    API load lịch sử chat dựa trên 2 tài khoản
 //    @GetMapping("/history")
@@ -42,13 +41,13 @@ public class ChatBoxController {
 //        return ResponseEntity.ok(messages);
 //    }
 
-    @GetMapping("/getAllChatBoxOfAccount")
-    public ResponseEntity<Page<ChatBox>> getOneToOneChatBoxesForCurrentUser(
-    		@RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
-	        @RequestParam(name = "pageSize", defaultValue = "10") int pageSize
-    ) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<ChatBox> chatBoxes = chatService.getOneToOneChatBoxesForAccount(pageable);
-        return ResponseEntity.ok(chatBoxes);
-    }
+//    @GetMapping("/getAllChatBoxOfAccount")
+//    public ResponseEntity<Page<ChatBox>> getOneToOneChatBoxesForCurrentUser(
+//    		@RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
+//	        @RequestParam(name = "pageSize", defaultValue = "10") int pageSize
+//    ) {
+//        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+//        Page<ChatBox> chatBoxes = chatService.getOneToOneChatBoxesForAccount(pageable);
+//        return ResponseEntity.ok(chatBoxes);
+//    }
 }

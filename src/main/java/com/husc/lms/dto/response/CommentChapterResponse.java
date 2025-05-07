@@ -20,7 +20,7 @@ public class CommentChapterResponse {
 	private String detail;
 	private OffsetDateTime createdDate;
 	private int countOfReply;
-	private List<CommentReplyResponse> commentReplyResponses;
+//	private List<CommentReplyResponse> commentReplyResponses;
 
 	public CommentChapterResponse(String commentId, String username, String detail, OffsetDateTime createdDate) {
 		super();

@@ -13,8 +13,9 @@ import com.husc.lms.mongoEntity.ChatBox;
 @Repository
 public interface ChatBoxRepository extends MongoRepository<ChatBox, String> {
     Optional<ChatBox> findById(String id);
+
     List<ChatBox> findByIsGroupFalse();
+
     Page<ChatBox> findByIdInAndIsGroupFalse(List<String> chatBoxIds, Pageable pageable);
 
 }
-

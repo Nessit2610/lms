@@ -1,5 +1,7 @@
 package com.husc.lms.mongoService;
 
-public interface ChatMessageService {
+import com.husc.lms.mongoEntity.ChatMessage;
 
+public interface ChatMessageService {
+    ChatMessage sendMessage(String chatBoxId, String senderId, String content);
 }
