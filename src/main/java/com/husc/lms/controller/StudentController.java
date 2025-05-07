@@ -55,7 +55,7 @@ public class StudentController {
 				.build();
 		
 	}
-	@GetMapping("/searchstudentnotin")
+	@GetMapping("/searchnotincourse")
 	public APIResponse<Page<StudentViewResponse>> searchStudentNotInCourse(@RequestParam("courseId") String courseId,
 			@RequestParam("keyword") String keyword,
 			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
