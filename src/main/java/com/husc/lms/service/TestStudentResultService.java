@@ -55,13 +55,10 @@ public class TestStudentResultService {
 	private TestStudentResultMapper testStudentResultMapper;
 	
 	public boolean startTest(String testId) {	
-	    String name = SecurityContextHolder.getContext().getAuthentication().getName();
-
-	    Account account = accountRepository
-	        .findByUsernameAndDeletedDateIsNull(name)
-	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
-
-	    Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 	    TestInGroup testInGroup = testInGroupRepository
 	        .findById(testId)
 	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
@@ -121,12 +118,13 @@ public class TestStudentResultService {
 	        
 	        TestQuestion testQuestion = testQuestionRepository.findById(request.getQuestionId()).orElseThrow(()-> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 	        
-	        
 	        boolean isCorrect = request.getAnswer().equals(testQuestion.getCorrectAnswers());
+	        
 	        if (isCorrect) {
 	            correctCount++;
 	            totalScore += testQuestion.getPoint();
 	        }
+	        
 	        TestStudentAnswer testStudentAnswer = TestStudentAnswer.builder()
 	            .answer(request.getAnswer())
 	            .testStudentResult(testStudentResult)
