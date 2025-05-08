@@ -2,6 +2,7 @@ package com.husc.lms.mongoService;
 
 import com.husc.lms.dto.request.ChatBoxCreateRequest;
 import com.husc.lms.dto.request.ChatMessageSenderRequest;
+import com.husc.lms.dto.response.ChatBoxCreateResponse;
 import com.husc.lms.dto.response.ChatMessageSenderResponse;
 import com.husc.lms.mongoEntity.ChatBox;
 
@@ -12,7 +13,7 @@ public interface ChatWebSocketService {
      * @param request Đối tượng chứa thông tin để tạo chatbox
      * @return ChatBox đã tồn tại hoặc mới tạo
      */
-    ChatBox handleChatCreation(ChatBoxCreateRequest request);
+    ChatBoxCreateResponse handleChatCreation(ChatBoxCreateRequest request);
 
     /**
      * Xử lý gửi tin nhắn trong chatbox

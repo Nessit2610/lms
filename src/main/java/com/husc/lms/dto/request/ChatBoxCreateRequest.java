@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ChatBoxCreateRequest {
-	private String currentAccount;
 	private List<String> anotherAccounts;
 	private String groupName; // Tên cho group chat, có thể null nếu là chat 1-1
 }
