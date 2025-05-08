@@ -16,5 +16,5 @@ public class TestStudentAnswerResponse {
 	
 	private String answer;
 	
-	private boolean isCorrect;
+	private boolean Correct;
 }
