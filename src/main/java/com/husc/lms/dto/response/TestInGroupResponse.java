@@ -20,6 +20,8 @@ public class TestInGroupResponse {
 
     private String description;
     
+    private Date startedAt;
+    
     private Date createdAt;
 
     private Date expiredAt;
