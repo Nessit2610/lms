@@ -1,5 +1,6 @@
 package com.husc.lms.service;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -52,11 +53,16 @@ public class TestStudentResultService {
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Student student = studentRepository.findByAccount(account);
+		
 		TestInGroup testInGroup = testInGroupRepository.findById(testId).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 		
-		if (testInGroup.getStartedAt().after(new Date())) {
+		Instant now = Instant.now(); // thời gian hiện tại theo UTC
+		Instant startedAt = testInGroup.getStartedAt().toInstant();
+
+		if (startedAt.isAfter(now)) {
 		    throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);
 		}
+
 		else {
 			TestStudentResult testStudentResult = TestStudentResult.builder()
 					.student(student)

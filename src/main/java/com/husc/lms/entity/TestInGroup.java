@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class TestInGroup {
+	
 	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(length = 36)
