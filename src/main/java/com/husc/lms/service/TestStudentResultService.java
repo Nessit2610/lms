@@ -129,7 +129,7 @@ public class TestStudentResultService {
 	            .answer(request.getAnswer())
 	            .testStudentResult(testStudentResult)
 	            .testQuestion(testQuestion)
-	            .Correct(isCorrect)
+	            .correct(isCorrect)
 	            .build();
 	        
 	        testStudentAnswerRepository.save(testStudentAnswer);
