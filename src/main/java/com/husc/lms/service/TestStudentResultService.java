@@ -61,7 +61,7 @@ public class TestStudentResultService {
 	        .findByUsernameAndDeletedDateIsNull(name)
 	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-	    Student student = studentRepository.findByAccount(account);
+	    Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 	    TestInGroup testInGroup = testInGroupRepository
 	        .findById(testId)
 	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
@@ -94,55 +94,69 @@ public class TestStudentResultService {
 	
 	
 	public boolean submitTest(SubmitTestRequets submitTestRequets) {
-		var context = SecurityContextHolder.getContext();
-		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account);
-		TestInGroup testInGroup = testInGroupRepository.findById(submitTestRequets.getTestId()).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
-		
-		TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup);
-		List<TestStudentAnswer> list = new ArrayList<TestStudentAnswer>();
-		int correctCount = 0;
-		int totalScore = 0;
-		for (AnswerRequest request : submitTestRequets.getAnswerRequests()) {
-		    TestQuestion testQuestion = testQuestionRepository.findById(request.getQuestionId())
-		        .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
-		    
-		    boolean isCorrect = request.getAnswer().equals(testQuestion.getCorrectAnswers());
-		    if (isCorrect) {
-		        correctCount++;
-		        totalScore += testQuestion.getPoint();
-		    }
-		    
-		    TestStudentAnswer testStudentAnswer = TestStudentAnswer.builder()
-		        .answer(request.getAnswer())
-		        .testStudentResult(testStudentResult)
-		        .testQuestion(testQuestion)
-		        .isCorrect(isCorrect)
-		        .build();
-		    testStudentAnswer = testStudentAnswerRepository.save(testStudentAnswer);
-		    list.add(testStudentAnswer);
-		}
+	    var context = SecurityContextHolder.getContext();
+	    String name = context.getAuthentication().getName();
+	    
+	    // Tìm tài khoản và sinh viên
+	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name)
+	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));  // Thêm ngoại lệ cho tài khoản không tồn tại
+	    Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));  // Thêm ngoại lệ cho sinh viên không tồn tại
+	    
+	    // Lấy thông tin bài kiểm tra
+	    TestInGroup testInGroup = testInGroupRepository.findById(submitTestRequets.getTestId())
+	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+	    
+	    // Lấy kết quả bài kiểm tra của sinh viên
+	    TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup)
+	        .orElseThrow(() -> new AppException(ErrorCode.RESULT_NOT_FOUND));  // Thêm ngoại lệ nếu không tìm thấy kết quả kiểm tra
+	    
+	    // Lấy danh sách câu hỏi của bài kiểm tra (tối ưu việc gọi nhiều lần)
+	    List<TestQuestion> testQuestions = testQuestionRepository.findByTestInGroup(testInGroup);
 
-		// Cập nhật kết quả và câu trả lời vào TestStudentResult
-		testStudentResult.setTestStudentAnswer(list);
-		testStudentResult.setScore(totalScore);
-		testStudentResult.setTotalCorrect(correctCount);
+	    // Tạo danh sách câu trả lời
+	    int correctCount = 0;
+	    int totalScore = 0;
 
-		// Lưu lại TestStudentResult (Hibernate sẽ tự động lưu các TestStudentAnswer liên quan)
-		testStudentResultRepository.save(testStudentResult);
+	    for (AnswerRequest request : submitTestRequets.getAnswerRequests()) {
+	        
+	        TestQuestion testQuestion = testQuestionRepository.findById(request.getQuestionId()).orElseThrow(()-> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+	        
+	        
+	        boolean isCorrect = request.getAnswer().equals(testQuestion.getCorrectAnswers());
+	        if (isCorrect) {
+	            correctCount++;
+	            totalScore += testQuestion.getPoint();
+	        }
+	        TestStudentAnswer testStudentAnswer = TestStudentAnswer.builder()
+	            .answer(request.getAnswer())
+	            .testStudentResult(testStudentResult)
+	            .testQuestion(testQuestion)
+	            .isCorrect(isCorrect)
+	            .build();
+	        
+	        testStudentAnswerRepository.save(testStudentAnswer);
+	    }
 
-		return true;
+	    
+	    testStudentResult.setSubmittedAt(new Date());
+	    testStudentResult.setScore(totalScore);
+	    testStudentResult.setTotalCorrect(correctCount);
+	    
+	    
+	    testStudentResultRepository.save(testStudentResult);
+
+	    return true;
 	}
+
 	
 	public TestStudentResultResponse getDetail(String testId) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account);
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		TestInGroup testInGroup = testInGroupRepository.findById(testId).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 		
-		TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup);
+		TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup).orElseThrow(() -> new AppException(ErrorCode.RESULT_NOT_FOUND));
 	
 		return testStudentResultMapper.toTestStudentResultResponse(testStudentResult);
 	}

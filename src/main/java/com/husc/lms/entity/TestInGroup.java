@@ -46,6 +46,6 @@ public class TestInGroup {
     
     private Date expiredAt;
 
-    @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "testInGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestQuestion> questions;
 }

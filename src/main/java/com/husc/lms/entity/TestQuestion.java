@@ -31,7 +31,7 @@ public class TestQuestion {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "testId")
-    private TestInGroup test;
+    private TestInGroup testInGroup;
 
     private int point;
 

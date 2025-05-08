@@ -11,6 +11,8 @@ import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentLessonProgress;
+import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.StudentLessonProgressMapper;
 import com.husc.lms.repository.AccountRepository;
 
@@ -37,7 +39,7 @@ public class StudentLessonProgressService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account);
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		Lesson lesson = lessonRepository.findById(lessonId).get();
 		StudentLessonProgress slp = StudentLessonProgress.builder()
 				.lesson(lesson)
@@ -56,7 +58,7 @@ public class StudentLessonProgressService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account);
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		Lesson lesson = lessonRepository.findById(lessonId).get();
 		StudentLessonProgress slp = studentLessonProgressRepository.findByLessonAndStudent(lesson,student);
 		slp.setIsCompleted(true);
@@ -72,7 +74,7 @@ public class StudentLessonProgressService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account);
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		Lesson lesson = lessonRepository.findById(lessonId).get();
 		StudentLessonProgress slp = studentLessonProgressRepository.findByLessonAndStudent(lesson,student);
 		if(slp == null) {

@@ -12,7 +12,7 @@ public class TestStudentAnswerResponse {
 
 	private String id;
 	
-	private TestQuestionResponse question;
+	private TestQuestionResponse testQuestion;
 	
 	private String answer;
 	

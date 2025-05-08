@@ -36,7 +36,7 @@ public class TestQuestionService {
 		List<TestQuestion> listQuestions = new ArrayList<TestQuestion>();
 		for(TestQuestionRequest testQuestionRequest : requests) {
 			TestQuestion t = testQuestionMapper.toTestQuestion(testQuestionRequest);
-						 t.setTest(test);
+						 t.setTestInGroup(test);
 			t = testQuestionRepository.save(t);
 			listQuestions.add(t);
 		}
@@ -54,7 +54,7 @@ public class TestQuestionService {
 			};
 			TestQuestion t = testQuestionMapper.toTestQuestion(testQuestionRequest);
 						t.setType(type);
-						t.setTest(test);
+						t.setTestInGroup(test);
 			listQuestions.add(t);
 		}
 		return listQuestions;

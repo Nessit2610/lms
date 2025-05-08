@@ -42,7 +42,7 @@ public class StudentLessonChapterProgressService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account);
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		Chapter chapter = chapterRepository.findById(chapterId).get();
 		StudentLessonChapterProgress slcp = StudentLessonChapterProgress.builder()
 				.chapter(chapter)
@@ -58,7 +58,7 @@ public class StudentLessonChapterProgressService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account);
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		Chapter chapter = chapterRepository.findById(chapterId).get();
 		StudentLessonChapterProgress slcp = slcpRepository.findByStudentAndChapter(student, chapter);
 		slcp.setIsCompleted(true);
@@ -73,7 +73,7 @@ public class StudentLessonChapterProgressService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account);
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		Chapter chapter = chapterRepository.findById(chapterId).get();
 		StudentLessonChapterProgress slcp = slcpRepository.findByStudentAndChapter(student, chapter);
 		if (slcp == null) {

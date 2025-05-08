@@ -168,7 +168,7 @@ public class CourseService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
-		Student student = studentRepository.findByAccount(account);
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		
 		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
 		int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;

@@ -23,7 +23,7 @@ public class TestStudentResultResponse {
 	
 	private StudentViewResponse student;
 	
-	private TestInGroupViewResponse test;
+	private TestInGroupViewResponse testInGroup;
 
 	private int totalCorrect; 
 
@@ -33,5 +33,5 @@ public class TestStudentResultResponse {
     
     private Date submittedAt;
     
-    private List<TestStudentAnswerResponse> answers;
+    private List<TestStudentAnswerResponse> testStudentAnswer;
 }

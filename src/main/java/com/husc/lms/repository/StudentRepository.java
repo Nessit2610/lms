@@ -2,6 +2,7 @@ package com.husc.lms.repository;
 
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,7 +20,7 @@ import com.husc.lms.entity.Group;
 @Repository
 public interface StudentRepository extends JpaRepository<Student, String> {
 
-	public Student findByAccount(Account account);
+	Optional<Student> findByAccount(Account account);
 
 	
 	@Query("SELECT s FROM Student s " +

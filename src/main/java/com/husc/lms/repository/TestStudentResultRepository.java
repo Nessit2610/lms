@@ -6,10 +6,12 @@ import org.springframework.stereotype.Repository;
 import com.husc.lms.entity.TestStudentResult;
 import com.husc.lms.entity.TestInGroup;
 import java.util.List;
+import java.util.Optional;
+
 import com.husc.lms.entity.Student;
 
 
 @Repository
 public interface TestStudentResultRepository extends JpaRepository<TestStudentResult, String> {
-	TestStudentResult findByStudentAndTestInGroup(Student student, TestInGroup testInGroup);
+	Optional<TestStudentResult> findByStudentAndTestInGroup(Student student, TestInGroup testInGroup);
 }

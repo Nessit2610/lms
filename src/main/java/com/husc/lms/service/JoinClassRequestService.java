@@ -70,7 +70,7 @@ public class JoinClassRequestService {
 		String name = context.getAuthentication().getName();
 		
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account);
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
 		
 		if(course.getStatus().contains(StatusCourse.PRIVATE.name())) {
@@ -167,7 +167,7 @@ public class JoinClassRequestService {
 		String name = context.getAuthentication().getName();
 		
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
-		Student student = studentRepository.findByAccount(account);
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
 		
 		if(student != null && course != null) {

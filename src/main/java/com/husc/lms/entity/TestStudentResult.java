@@ -39,12 +39,12 @@ public class TestStudentResult {
     @JoinColumn(name = "testId")
     private TestInGroup testInGroup;
 
-    private int totalCorrect; // số câu đúng
+    private int totalCorrect; // Số câu đúng
 
-    private double score; // điểm
+    private double score; // Điểm
 
     private Date startedAt;
-    
+
     private Date submittedAt;
 
     @OneToMany(mappedBy = "testStudentResult", cascade = CascadeType.ALL, orphanRemoval = true)

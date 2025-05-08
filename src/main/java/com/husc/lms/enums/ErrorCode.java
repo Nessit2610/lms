@@ -55,7 +55,8 @@ public enum ErrorCode {
 	ACCOUNT_NOT_FOUND(1033, "Account not found", HttpStatus.NOT_FOUND),
 	CHATBOX_NOT_FOUND(1034,"Chatbox not found", HttpStatus.NOT_FOUND),
 	CHATBOX_MEMBER_NOT_FOUND(1035,"No ChatMember in this ChatBox", HttpStatus.NOT_FOUND),
-	INVALID_PARAMETER(1036,"Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST);
+	RESULT_NOT_FOUND(1036,"RESULT_NOT_FOUND", HttpStatus.NOT_FOUND),
+	INVALID_PARAMETER(1037,"Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST);
   
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
 		this.Code = code;

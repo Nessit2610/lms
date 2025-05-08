@@ -144,7 +144,7 @@ public class AccountService {
 		List<String> roles = accountRepository.findRoleNamesByAccountId(accountId);
 		Account account = accountRepository.findById(accountId).get();
 		if(roles.contains(Roles.STUDENT.name())) {
-			Student student = studentRepository.findByAccount(account);
+			Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 			return studentMapper.toStudentResponse(student);
 		}
 		else if(roles.contains(Roles.TEACHER.name())) {
