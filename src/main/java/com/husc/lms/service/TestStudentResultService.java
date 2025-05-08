@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.husc.lms.dto.request.AnswerRequest;
+import com.husc.lms.dto.request.SubmitTestRequets;
 import com.husc.lms.dto.response.TestStudentResultResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Student;
@@ -66,18 +67,18 @@ public class TestStudentResultService {
 	}
 	
 	
-	public boolean submitTest(String testId, List<AnswerRequest> requests) {
+	public boolean submitTest(SubmitTestRequets submitTestRequets) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Student student = studentRepository.findByAccount(account);
-		TestInGroup testInGroup = testInGroupRepository.findById(testId).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+		TestInGroup testInGroup = testInGroupRepository.findById(submitTestRequets.getTestId()).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 		
 		TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTest(student, testInGroup);
 		List<TestStudentAnswer> list = new ArrayList<TestStudentAnswer>();
 		int correctCount = 0;
 		int totalScore = 0;
-		for(AnswerRequest request : requests) {
+		for(AnswerRequest request : submitTestRequets.getAnswerRequests()) {
 			TestQuestion testQuestion = testQuestionRepository.findById(request.getQuestionId()).orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 			boolean iscorrect = false;
 			if(request.getAnswer().equals(testQuestion.getCorrectAnswers())) {
