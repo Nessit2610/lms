@@ -22,7 +22,7 @@ public class ChatBoxMember {
 
     private String chatBoxId;
 
-    private String accountId;
+    private String accountUsername;
 
     private Date joinedAt;
 }

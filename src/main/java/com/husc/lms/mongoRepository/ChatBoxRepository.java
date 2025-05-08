@@ -18,4 +18,12 @@ public interface ChatBoxRepository extends MongoRepository<ChatBox, String> {
 
     Page<ChatBox> findByIdInAndIsGroupFalse(List<String> chatBoxIds, Pageable pageable);
 
+    /**
+     * Tìm tất cả chatbox theo danh sách ID
+     * 
+     * @param chatBoxIds Danh sách ID của chatbox
+     * @param pageable   Thông tin phân trang
+     * @return Page chứa danh sách chatbox
+     */
+    Page<ChatBox> findByIdIn(List<String> chatBoxIds, Pageable pageable);
 }

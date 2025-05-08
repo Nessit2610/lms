@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.exception.AppException;
+import com.husc.lms.mongoEntity.ChatBox;
 import com.husc.lms.mongoEntity.ChatBoxMember;
 import com.husc.lms.mongoEntity.ChatMessage;
 import com.husc.lms.mongoEntity.ChatMessageStatus;
@@ -19,19 +22,23 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
-public class ChatMessageServiceImpl implements ChatMessageService{
+public class ChatMessageServiceImpl implements ChatMessageService {
 
-	private final ChatBoxRepository chatBoxRepo;
+    private final ChatBoxRepository chatBoxRepo;
     private final ChatBoxMemberRepository memberRepo;
     private final ChatMessageRepository messageRepo;
     private final AccountRepository accountRepo;
-	
-	@Override
-	public ChatMessage sendMessage(String chatBoxId, String senderId, String content) {
-		// Create and save message
+
+    @Override
+    public ChatMessage sendMessage(String chatBoxId, String senderId, String content) {
+        // Kiểm tra chatbox tồn tại
+        ChatBox chatBox = chatBoxRepo.findById(chatBoxId)
+                .orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND));
+
+        // Create and save message
         ChatMessage message = ChatMessage.builder()
                 .chatBoxId(chatBoxId)
-                .senderId(senderId)
+                .senderAccount(senderId)
                 .content(content)
                 .createdAt(new Date())
                 .build();
@@ -39,20 +46,25 @@ public class ChatMessageServiceImpl implements ChatMessageService{
 
         // Get all members except sender
         List<ChatBoxMember> members = memberRepo.findByChatBoxId(chatBoxId);
+        if (members.isEmpty()) {
+            throw new AppException(ErrorCode.CHATBOX_MEMBER_NOT_FOUND);
+        }
+
         List<ChatMessageStatus> statuses = new ArrayList<>();
 
         // Create message status for each member
         for (ChatBoxMember member : members) {
             ChatMessageStatus status = ChatMessageStatus.builder()
                     .messageId(message.getId())
-                    .accountId(member.getAccountId())
-                    .isRead(member.getAccountId().equals(senderId)) // true for sender, false for others
-                    .readAt(member.getAccountId().equals(senderId) ? new Date() : null)
+                    .chatBoxId(chatBoxId)
+                    .accountUsername(member.getAccountUsername())
+                    .isRead(member.getAccountUsername().equals(senderId)) // true for sender, false for others
+                    .readAt(member.getAccountUsername().equals(senderId) ? new Date() : null)
                     .build();
             statuses.add(status);
         }
 
         return message;
-	}
+    }
 
 }

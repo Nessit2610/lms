@@ -53,10 +53,10 @@ public enum ErrorCode {
 	TEST_IS_EXPIRED(1031, "Test is expired", HttpStatus.BAD_REQUEST),
 	TEST_ALREADY_STARTED(1032, "Test already started", HttpStatus.BAD_REQUEST),
 	ACCOUNT_NOT_FOUND(1033, "Account not found", HttpStatus.NOT_FOUND);
-
-
-	
-	
+	CHATBOX_NOT_FOUND(1034,"Chatbox not found", HttpStatus.NOT_FOUND),
+	CHATBOX_MEMBER_NOT_FOUND(1035,"No ChatMember in this ChatBox", HttpStatus.NOT_FOUND),
+	INVALID_PARAMETER(1036,"Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST);
+  
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
 		this.Code = code;
 		this.Message = message;
