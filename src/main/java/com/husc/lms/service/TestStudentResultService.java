@@ -49,29 +49,42 @@ public class TestStudentResultService {
 	private TestStudentResultMapper testStudentResultMapper;
 	
 	public boolean startTest(String testId) {	
-		var context = SecurityContextHolder.getContext();
-		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account);
-		
-		TestInGroup testInGroup = testInGroupRepository.findById(testId).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
-		
-		Instant now = Instant.now(); // thời gian hiện tại theo UTC
-		Instant startedAt = testInGroup.getStartedAt().toInstant();
+	    String name = SecurityContextHolder.getContext().getAuthentication().getName();
 
-		if (startedAt.isAfter(now)) {
-		    throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);
-		}
+	    Account account = accountRepository
+	        .findByUsernameAndDeletedDateIsNull(name)
+	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-		else {
-			TestStudentResult testStudentResult = TestStudentResult.builder()
-					.student(student)
-					.test(testInGroup)
-					.startedAt(new Date())
-					.build();
-			testStudentResult = testStudentResultRepository.save(testStudentResult);
-			return true;
-		}
+	    Student student = studentRepository.findByAccount(account);
+	    TestInGroup testInGroup = testInGroupRepository
+	        .findById(testId)
+	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+
+	    Instant now = Instant.now();
+	    Instant startedAt = testInGroup.getStartedAt().toInstant();
+	    Instant expiredAt = testInGroup.getExpiredAt().toInstant();
+
+	    if (now.isBefore(startedAt)) {
+	        throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);
+	    }
+
+	    if (now.isAfter(expiredAt)) {
+	        throw new AppException(ErrorCode.TEST_IS_EXPIRED);
+	    }
+
+	    // Kiểm tra nếu đã bắt đầu
+	    if (testStudentResultRepository.findByStudentAndTest(student, testInGroup) != null) {
+	        throw new AppException(ErrorCode.TEST_ALREADY_STARTED);
+	    }
+
+	    TestStudentResult testStudentResult = TestStudentResult.builder()
+	            .student(student)
+	            .test(testInGroup)
+	            .startedAt(new Date())
+	            .build();
+
+	    testStudentResultRepository.save(testStudentResult);
+	    return true;
 	}
 	
 	
