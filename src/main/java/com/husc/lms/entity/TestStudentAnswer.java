@@ -28,11 +28,11 @@ public class TestStudentAnswer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resultId")
-    private TestStudentResult result;
+    private TestStudentResult testStudentResult;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "questionId")
-    private TestQuestion question;
+    private TestQuestion testQuestion;
 
     private String answer;
 

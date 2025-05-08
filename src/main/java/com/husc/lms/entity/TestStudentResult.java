@@ -37,7 +37,7 @@ public class TestStudentResult {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "testId")
-    private TestInGroup test;
+    private TestInGroup testInGroup;
 
     private int totalCorrect; // số câu đúng
 
@@ -47,7 +47,7 @@ public class TestStudentResult {
     
     private Date submittedAt;
 
-    @OneToMany(mappedBy = "result", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TestStudentAnswer> answers;
+    @OneToMany(mappedBy = "testStudentResult", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<TestStudentAnswer> testStudentAnswer;
 
 }

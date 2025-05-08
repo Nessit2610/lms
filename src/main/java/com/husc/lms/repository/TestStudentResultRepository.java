@@ -11,5 +11,5 @@ import com.husc.lms.entity.Student;
 
 @Repository
 public interface TestStudentResultRepository extends JpaRepository<TestStudentResult, String> {
-	TestStudentResult findByStudentAndTest(Student student, TestInGroup test);
+	TestStudentResult findByStudentAndTestInGroup(Student student, TestInGroup testInGroup);
 }
