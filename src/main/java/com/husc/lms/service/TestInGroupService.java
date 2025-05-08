@@ -43,6 +43,7 @@ public class TestInGroupService {
 				.title(request.getTitle())
 				.description(request.getDescription())
 				.group(group)
+				.startedAt(request.getStartedAt())
 				.createdAt(new Date())
 				.expiredAt(request.getExpiredAt())
 				.build();
