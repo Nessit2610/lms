@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.AnswerRequest;
 import com.husc.lms.dto.request.SubmitTestRequets;
@@ -25,6 +26,7 @@ import com.husc.lms.repository.TestInGroupRepository;
 import com.husc.lms.repository.TestQuestionRepository;
 import com.husc.lms.repository.TestStudentResultRepository;
 
+@Service
 public class TestStudentResultService {
 
 	@Autowired

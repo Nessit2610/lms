@@ -24,6 +24,8 @@ public class TestInGroupRequest {
 
     private String description;
     
+    private Date startedAt;
+    
     @NotNull
     private Date expiredAt;
     

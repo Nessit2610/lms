@@ -19,6 +19,8 @@ public class StudentViewResponse {
 	
 	private MajorResponse major;
     
+	private String avatar;
+	
     private String email;
     
 }
