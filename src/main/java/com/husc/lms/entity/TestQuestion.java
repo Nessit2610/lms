@@ -35,26 +35,12 @@ public class TestQuestion {
 
     private int point;
 
-    private String content; // Nội dung câu hỏi
+    private String content;
     
-    /**
-     * Loại câu hỏi:
-     * - "text": trả lời tự luận
-     * - "single_choice": chọn một
-     * - "multiple_choice": chọn nhiều
-     */
     private String type;
 
-    /**
-     * Các lựa chọn trả lời, phân cách bằng JSON hoặc ký tự đặc biệt (nếu muốn đơn giản).
-     * VD: ["A. Java", "B. Python", "C. C++"]
-     */
     @Column(columnDefinition = "TEXT")
     private String options;
-
-    /**
-     * Đáp án đúng (nếu muốn lưu sẵn để chấm điểm tự động)
-     * VD: "A", hoặc "A,B" nếu là multiple
-     */
+    
     private String correctAnswers;
 }

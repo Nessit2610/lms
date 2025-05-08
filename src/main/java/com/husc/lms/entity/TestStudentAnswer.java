@@ -34,9 +34,7 @@ public class TestStudentAnswer {
     @JoinColumn(name = "questionId")
     private TestQuestion question;
 
-    // VD: "A", hoặc "A,B" nếu là multiple choice
     private String answer;
 
-    // Tự động tính đúng hay sai
     private boolean isCorrect;
 }

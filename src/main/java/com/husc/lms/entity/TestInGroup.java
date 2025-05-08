@@ -41,6 +41,8 @@ public class TestInGroup {
 
     private Date createdAt;
 
+    private Date startedAt;
+    
     private Date expiredAt;
 
     @OneToMany(mappedBy = "test", cascade = CascadeType.ALL, orphanRemoval = true)

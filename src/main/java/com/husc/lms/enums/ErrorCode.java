@@ -47,7 +47,10 @@ public enum ErrorCode {
 	QUESTION_NOT_FOUND(1025, "Không tìm thấy câu hỏi", HttpStatus.NOT_FOUND),
 	TEST_NOT_FOUND(1026, "Không tìm thấy bài kiểm tra", HttpStatus.NOT_FOUND),
 	STUDENT_ALREADY_IN_COURSE(1027, "Sinh viên này đã tham gia vào lớp học", HttpStatus.BAD_REQUEST),
-	COURSE_NOT_FOUND(1028, "Không tìm thấy khóa học", HttpStatus.NOT_FOUND);
+	COURSE_NOT_FOUND(1028, "Không tìm thấy khóa học", HttpStatus.NOT_FOUND),
+	NOT_ALLOWED_TYPE(1029, "Không hỗ trợ", HttpStatus.BAD_REQUEST),
+	TEST_NOT_STARTED_YET(1030,"Test has not started yet",HttpStatus.BAD_REQUEST);
+
 	
 	
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {

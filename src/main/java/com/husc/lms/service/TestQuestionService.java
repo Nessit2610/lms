@@ -11,6 +11,8 @@ import com.husc.lms.dto.response.TestQuestionResponse;
 import com.husc.lms.entity.TestInGroup;
 import com.husc.lms.entity.TestQuestion;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.QuestionEnum;
+import com.husc.lms.enums.StatusCourse;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.TestQuestionMapper;
 import com.husc.lms.repository.TestInGroupRepository;
@@ -45,8 +47,14 @@ public class TestQuestionService {
 	public List<TestQuestion> createTestQuestion(TestInGroup test,List<TestQuestionRequest> requests) {
 		List<TestQuestion> listQuestions = new ArrayList<TestQuestion>();
 		for(TestQuestionRequest testQuestionRequest : requests) {
+			String type = switch (testQuestionRequest.getType()) {
+	        case "SINGLE_CHOICE" -> QuestionEnum.SINGLE_CHOICE.name();
+	        case "MULTIPLE_CHOICE" -> QuestionEnum.MULTIPLE_CHOICE.name();
+	        default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
+			};
 			TestQuestion t = testQuestionMapper.toTestQuestion(testQuestionRequest);
-			t.setTest(test);
+						t.setType(type);
+						t.setTest(test);
 			listQuestions.add(t);
 		}
 		return listQuestions;

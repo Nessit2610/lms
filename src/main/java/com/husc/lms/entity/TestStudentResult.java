@@ -43,6 +43,8 @@ public class TestStudentResult {
 
     private double score; // điểm
 
+    private Date startedAt;
+    
     private Date submittedAt;
 
     @OneToMany(mappedBy = "result", cascade = CascadeType.ALL, orphanRemoval = true)
