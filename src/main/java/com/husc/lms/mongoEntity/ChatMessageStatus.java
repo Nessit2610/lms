@@ -21,10 +21,8 @@ public class ChatMessageStatus {
     private String id;
 
     private String messageId; // ID của tin nhắn
-
-    private String accountId; // ID của người dùng
-
+    private String chatBoxId; // ID của chatbox
+    private String accountUsername; // ID của người dùng
     private boolean isRead; // Trạng thái đã đọc
-
     private Date readAt; // Thời gian đọc tin nhắn
 }

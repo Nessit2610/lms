@@ -1,28 +1,25 @@
-package com.husc.lms.mongoEntity;
+package com.husc.lms.dto.response;
 
 import java.util.Date;
 
-import org.springframework.data.mongodb.core.mapping.Document;
-
-import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Document(collection = "chat_messages")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class ChatMessage {
-
-    @Id
+public class ChatMessageSenderResponse {
+	
     private String id;
 
     private String chatBoxId;
 
     private String senderAccount;
+    
+    private String avatarSenderAccount;
 
     private String content;
 

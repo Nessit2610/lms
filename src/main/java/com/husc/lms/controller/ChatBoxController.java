@@ -13,41 +13,30 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.mongoEntity.ChatBox;
 import com.husc.lms.mongoEntity.ChatMessage;
 import com.husc.lms.mongoRepository.ChatMessageRepository;
+import com.husc.lms.mongoService.ChatBoxService;
 
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/chatBox")
 @RequiredArgsConstructor
 public class ChatBoxController {
-	private final ChatMessageRepository messageRepo;
-//    private final ChatService chatService;
-
-//    API load lịch sử chat dựa trên 2 tài khoản
-//    @GetMapping("/history")
-//    public ResponseEntity<?> getChatHistory(
-//            @RequestParam String user1,
-//            @RequestParam String user2) {
-//
-//        // Lấy ChatBox giữa 2 tài khoản
-//        ChatBox chatBox = chatService.getOrCreatePrivateChatBox(user1, user2);
-//        // Lấy tin nhắn của ChatBox
-//        List<ChatMessage> messages = messageRepo.findByChatBoxId(chatBox.getId());
-//        // Sắp xếp theo thời gian tăng dần
-//        messages.sort(Comparator.comparing(ChatMessage::getCreatedAt));
-//        return ResponseEntity.ok(messages);
-//    }
-
-//    @GetMapping("/getAllChatBoxOfAccount")
-//    public ResponseEntity<Page<ChatBox>> getOneToOneChatBoxesForCurrentUser(
-//    		@RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
-//	        @RequestParam(name = "pageSize", defaultValue = "10") int pageSize
-//    ) {
-//        Pageable pageable = PageRequest.of(pageNumber, pageSize);
-//        Page<ChatBox> chatBoxes = chatService.getOneToOneChatBoxesForAccount(pageable);
-//        return ResponseEntity.ok(chatBoxes);
-//    }
+	private final ChatBoxService chatBoxService;
+	
+	@GetMapping("")
+	public APIResponse<Page<ChatBox>> getAllChatBoxes(
+	    @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
+	    @RequestParam(name = "pageSize", defaultValue = "10") int pageSize
+	) {
+	    Pageable pageable = PageRequest.of(pageNumber, pageSize);
+	    Page<ChatBox> chatBoxes = chatBoxService.getAllChatBoxesForCurrentAccount(pageable);
+	    return APIResponse.<Page<ChatBox>>builder()
+	    		.result(chatBoxes)
+	    		.build();
+	}
 }

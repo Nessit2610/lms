@@ -49,9 +49,10 @@ public enum ErrorCode {
 	STUDENT_ALREADY_IN_COURSE(1027, "Sinh viên này đã tham gia vào lớp học", HttpStatus.BAD_REQUEST),
 	COURSE_NOT_FOUND(1028, "Không tìm thấy khóa học", HttpStatus.NOT_FOUND),
 	NOT_ALLOWED_TYPE(1029, "Không hỗ trợ", HttpStatus.BAD_REQUEST),
-	TEST_NOT_STARTED_YET(1030,"Test has not started yet",HttpStatus.BAD_REQUEST);
-
-	
+	TEST_NOT_STARTED_YET(1030,"Test has not started yet",HttpStatus.BAD_REQUEST),
+	CHATBOX_NOT_FOUND(1031,"Chatbox not found", HttpStatus.NOT_FOUND),
+	CHATBOX_MEMBER_NOT_FOUND(1032,"No ChatMember in this ChatBox", HttpStatus.NOT_FOUND),
+	INVALID_PARAMETER(1033,"Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST);
 	
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
 		this.Code = code;
