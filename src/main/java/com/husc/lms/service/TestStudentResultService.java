@@ -75,7 +75,7 @@ public class TestStudentResultService {
 	        throw new AppException(ErrorCode.TEST_IS_EXPIRED);
 	    }
 
-	    if (testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup) != null) {
+	    if (!testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup).isEmpty()) {
 	        throw new AppException(ErrorCode.TEST_ALREADY_STARTED);
 	    }
 
