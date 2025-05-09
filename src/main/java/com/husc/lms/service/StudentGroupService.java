@@ -57,9 +57,8 @@ public class StudentGroupService {
 					.joinAt(new Date())
 					.build();
 			studentGroupRepository.save(studentGroup);
-			return true;
 		}
-		return false;
+		return true;
 	}
 	
 	public Boolean deleteStudentOfGroup(String groupId, String studentId) {
