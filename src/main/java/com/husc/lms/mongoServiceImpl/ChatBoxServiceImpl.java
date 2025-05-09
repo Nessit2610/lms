@@ -27,112 +27,112 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class ChatBoxServiceImpl implements ChatBoxService {
-        private final ChatBoxRepository chatBoxRepo;
-        private final ChatBoxMemberRepository memberRepo;
-        private final AccountRepository accountRepo;
+    private final ChatBoxRepository chatBoxRepo;
+    private final ChatBoxMemberRepository memberRepo;
+    private final AccountRepository accountRepo;
 
-        @Override
-        public ChatBox createOrGetOneToOneChatBox(String accountId1, String accountId2) {
-                // Tìm kiếm chatbox giữa 2 account đã tồn tại chưa
-                List<ChatBoxMember> members1 = memberRepo.findByAccountUsername(accountId1);
-                List<ChatBoxMember> members2 = memberRepo.findByAccountUsername(accountId2);
+    @Override
+    public ChatBox createOrGetOneToOneChatBox(String accountId1, String accountId2) {
+            // Tìm kiếm chatbox giữa 2 account đã tồn tại chưa
+            List<ChatBoxMember> members1 = memberRepo.findByAccountUsername(accountId1);
+            List<ChatBoxMember> members2 = memberRepo.findByAccountUsername(accountId2);
 
-                for (ChatBoxMember member1 : members1) {
-                        for (ChatBoxMember member2 : members2) {
-                                if (member1.getChatBoxId().equals(member2.getChatBoxId())) {
-                                        Optional<ChatBox> existingChatBox = chatBoxRepo
-                                                        .findById(member1.getChatBoxId());
-                                        if (existingChatBox.isPresent() && !existingChatBox.get().isGroup()) {
-                                                return existingChatBox.get();
-                                        }
-                                }
-                        }
-                }
+            for (ChatBoxMember member1 : members1) {
+                    for (ChatBoxMember member2 : members2) {
+                            if (member1.getChatBoxId().equals(member2.getChatBoxId())) {
+                                    Optional<ChatBox> existingChatBox = chatBoxRepo
+                                                    .findById(member1.getChatBoxId());
+                                    if (existingChatBox.isPresent() && !existingChatBox.get().isGroup()) {
+                                            return existingChatBox.get();
+                                    }
+                            }
+                    }
+            }
 
-                // Tạo chatbox mới nếu chưa tồn tại
-                ChatBox newChatBox = ChatBox.builder()
-                                .isGroup(false)
-                                .createdAt(new Date())
-                                .createdBy(accountId1)
-                                .build();
-                newChatBox = chatBoxRepo.save(newChatBox);
+            // Tạo chatbox mới nếu chưa tồn tại
+            ChatBox newChatBox = ChatBox.builder()
+                            .isGroup(false)
+                            .createdAt(new Date())
+                            .createdBy(accountId1)
+                            .build();
+            newChatBox = chatBoxRepo.save(newChatBox);
 
-                // Thêm account vào chatbox
-                ChatBoxMember member1 = ChatBoxMember.builder()
-                                .chatBoxId(newChatBox.getId())
-                                .accountUsername(accountId1)
-                                .joinedAt(new Date())
-                                .build();
+            // Thêm account vào chatbox
+            ChatBoxMember member1 = ChatBoxMember.builder()
+                            .chatBoxId(newChatBox.getId())
+                            .accountUsername(accountId1)
+                            .joinedAt(new Date())
+                            .build();
 
-                ChatBoxMember member2 = ChatBoxMember.builder()
-                                .chatBoxId(newChatBox.getId())
-                                .accountUsername(accountId2)
-                                .joinedAt(new Date())
-                                .build();
+            ChatBoxMember member2 = ChatBoxMember.builder()
+                            .chatBoxId(newChatBox.getId())
+                            .accountUsername(accountId2)
+                            .joinedAt(new Date())
+                            .build();
 
-                memberRepo.saveAll(Arrays.asList(member1, member2));
+            memberRepo.saveAll(Arrays.asList(member1, member2));
 
-                return newChatBox;
-        }
+            return newChatBox;
+    }
 
-        @Override
-        public ChatBox createGroupChatBox(String name, String createdBy, String... accountIds) {
-                ChatBox newChatBox = ChatBox.builder()
-                                .isGroup(true)
-                                .name(name)
-                                .createdAt(new Date())
-                                .createdBy(createdBy)
-                                .build();
-                newChatBox = chatBoxRepo.save(newChatBox);
+    @Override
+    public ChatBox createGroupChatBox(String name, String createdBy, String... accountIds) {
+            ChatBox newChatBox = ChatBox.builder()
+                            .isGroup(true)
+                            .name(name)
+                            .createdAt(new Date())
+                            .createdBy(createdBy)
+                            .build();
+            newChatBox = chatBoxRepo.save(newChatBox);
 
-                List<ChatBoxMember> members = new ArrayList<>();
-                for (String accountId : accountIds) {
-                        ChatBoxMember member = ChatBoxMember.builder()
-                                        .chatBoxId(newChatBox.getId())
-                                        .accountUsername(accountId)
-                                        .joinedAt(new Date())
-                                        .build();
-                        members.add(member);
-                }
-                memberRepo.saveAll(members);
+            List<ChatBoxMember> members = new ArrayList<>();
+            for (String accountId : accountIds) {
+                    ChatBoxMember member = ChatBoxMember.builder()
+                                    .chatBoxId(newChatBox.getId())
+                                    .accountUsername(accountId)
+                                    .joinedAt(new Date())
+                                    .build();
+                    members.add(member);
+            }
+            memberRepo.saveAll(members);
 
-                return newChatBox;
-        }
+            return newChatBox;
+    }
 
-        @Override
-        public Page<ChatBox> getOneToOneChatBoxesForAccount(Pageable pageable) {
-                var context = SecurityContextHolder.getContext();
-                String username = context.getAuthentication().getName();
+    @Override
+    public Page<ChatBox> getOneToOneChatBoxesForAccount(Pageable pageable) {
+            var context = SecurityContextHolder.getContext();
+            String username = context.getAuthentication().getName();
 
-                Account currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(username)
-                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+            Account currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(username)
+                            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 
-                List<ChatBoxMember> memberships = memberRepo.findByAccountUsername(currentAccount.getUsername());
-                List<String> chatBoxIds = memberships.stream()
-                                .map(ChatBoxMember::getChatBoxId)
-                                .distinct()
-                                .toList();
+            List<ChatBoxMember> memberships = memberRepo.findByAccountUsername(currentAccount.getUsername());
+            List<String> chatBoxIds = memberships.stream()
+                            .map(ChatBoxMember::getChatBoxId)
+                            .distinct()
+                            .toList();
 
-                return chatBoxRepo.findByIdInAndIsGroupFalse(chatBoxIds, pageable);
-        }
+            return chatBoxRepo.findByIdInAndIsGroupFalse(chatBoxIds, pageable);
+    }
 
-        @Override
-        public Page<ChatBox> getAllChatBoxesForCurrentAccount(Pageable pageable) {
-                var context = SecurityContextHolder.getContext();
-                String username = context.getAuthentication().getName();
+    @Override
+    public Page<ChatBox> getAllChatBoxesForCurrentAccount(Pageable pageable) {
+            var context = SecurityContextHolder.getContext();
+            String username = context.getAuthentication().getName();
 
-                Account currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(username)
-                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+            Account currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(username)
+                            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 
-                // Lấy tất cả chatbox mà user tham gia
-                List<ChatBoxMember> memberships = memberRepo.findByAccountUsername(currentAccount.getUsername());
-                List<String> chatBoxIds = memberships.stream()
-                                .map(ChatBoxMember::getChatBoxId)
-                                .distinct()
-                                .toList();
+            // Lấy tất cả chatbox mà user tham gia
+            List<ChatBoxMember> memberships = memberRepo.findByAccountUsername(currentAccount.getUsername());
+            List<String> chatBoxIds = memberships.stream()
+                            .map(ChatBoxMember::getChatBoxId)
+                            .distinct()
+                            .toList();
 
-                // Trả về tất cả chatbox (cả 1-1 và group)
-                return chatBoxRepo.findByIdIn(chatBoxIds, pageable);
-        }
+            // Trả về tất cả chatbox (cả 1-1 và group)
+            return chatBoxRepo.findByIdIn(chatBoxIds, pageable);
+    }
 
 }

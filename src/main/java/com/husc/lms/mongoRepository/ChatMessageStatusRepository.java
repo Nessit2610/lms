@@ -10,4 +10,6 @@ import java.util.List;
 public interface ChatMessageStatusRepository extends MongoRepository<ChatMessageStatus, String> {
 
     List<ChatMessageStatus> findByChatBoxIdAndIsReadFalse(String chatBoxId);
+
+    List<ChatMessageStatus> findByChatBoxIdAndAccountUsernameAndIsReadFalse(String chatBoxId, String accountUsername);
 }

@@ -6,13 +6,12 @@ import java.util.List;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.husc.lms.dto.request.NotificationRequest;
+import com.husc.lms.dto.response.ChatMessageNotificationDto;
 import com.husc.lms.dto.response.CommentNotificationResponse;
 import com.husc.lms.entity.Account;
-
 import com.husc.lms.entity.Notification;
-
 import com.husc.lms.enums.NotificationType;
-
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.NotificationRepository;
 import com.husc.lms.repository.StudentCourseRepository;
@@ -23,52 +22,15 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
-	private final StudentCourseRepository studentCourseRepository;
+    private final StudentCourseRepository studentCourseRepository;
     private final StudentLessonChapterProgressRepository studentLessonchapterProgressRepository;
     private final AccountRepository accountRepository;
     private final NotificationRepository notificationRepository;
 
-//    public void notifyStudentsOnNewComment(Chapter chapter, String commentContent) {
-//        Course course = chapter.getLesson().getCourse();
-//
-//        // Bước 1: Lấy tất cả		 học viên đã đăng ký khóa học
-//        List<StudentCourse> studentCourses = studentCourseRepository.findByCourse(course);
-//
-//        // Bước 2: Kiểm tra ai đã học tới chapter này
-//        for (StudentCourse sc : studentCourses) {
-//            boolean hasReachedChapter = studentLessonchapterProgressRepository
-//                .existsByStudentAndChapter(sc.getStudent(), chapter);  // Cập nhật để kiểm tra accountId
-//
-//            if (hasReachedChapter) {
-////                // Bước 3: Tạo notification
-////                CommentNotification notification = CommentNotification.builder()
-////                        .account(sc.getStudent().getAccount())  // Dùng account thay vì student
-////                        .chapter(chapter)
-////                        .message("Có bình luận mới trong chương bạn đã học: " + commentContent)
-////                        .isRead(false)
-////                        .createdDate(new Date())
-////                        .build();
-////
-////                commentNotificationRepository.save(notification);
-//            	if (hasReachedChapter) {
-//                    // Bước 3: Tạo notification
-//                    Notification notification = Notification.builder()
-//                            .receiveAccount(sc.getStudent().getAccount())  // Dùng account thay vì student
-//                            .chapter(chapter)
-//                            .content("Có bình luận mới trong chương bạn đã học: " + commentContent)
-//                            .createdAt(new Date())
-//                            .build();
-//
-//                    notificationRepository.save(notification);
-//                }
-//            }
-//        }
-//    }
-//    
     public CommentNotificationResponse getAllUnreadCommentNotificationOfAccount() {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        Account account =	 accountRepository.findByUsernameAndDeletedDateIsNull(username)
+        Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
         // Lấy tất cả notification COMMENT của người dùng
@@ -99,6 +61,41 @@ public class NotificationService {
 
         // Truyền cả account và danh sách notifications để xử lý chính xác
         notificationRepository.setNotificationAsReadByAccount(notifications);
+    }
+
+    public List<ChatMessageNotificationDto> getUnreadChatMessageNotificationsForCurrentUser() {
+        // Implementation of the method
+        return null; // Placeholder return, actual implementation needed
+    }
+
+    public Notification createNotificationForChatMessage(String recipientUsername, String senderDisplayName,
+            String chatBoxName, String chatMessageId, String chatBoxId, String shortContent) {
+        // Implementation of the method
+        return null; // Placeholder return, actual implementation needed
+    }
+
+    public Notification createAndSendChatMessageNotification(
+            String recipientUsername,
+            String senderDisplayName,
+            String chatBoxName, // or chatBoxId to derive name
+            String chatMessageId,
+            String chatBoxId,
+            String shortContent, // e.g., first few words of the message
+            boolean isRecipientActiveInBox // New parameter
+    ) {
+        // Implementation of the method
+        return null; // Placeholder return, actual implementation needed
+    }
+
+    public Notification createChatMessageNotificationLogic(
+            String recipientUsername,
+            String senderDisplayName,
+            String chatBoxName,
+            String chatMessageId,
+            String chatBoxId,
+            String shortContent) {
+        // Implementation of the method
+        return null; // Placeholder return, actual implementation needed
     }
 
 }

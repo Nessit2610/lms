@@ -49,8 +49,6 @@ public class TestStudentResultService {
 	@Autowired
 	private TestStudentAnswerRepository testStudentAnswerRepository;
 	
-	
-	
 	@Autowired
 	private AccountRepository accountRepository;
 	
