@@ -1,5 +1,7 @@
 package com.husc.lms.repository;
 
+import java.util.Set;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,6 +36,9 @@ public interface StudentGroupRepository extends JpaRepository<StudentGroup,Strin
 	                                           @Param("keyword") String keyword,
 	                                           Pageable pageable);
 
+    @Query("SELECT sg.student.id FROM StudentGroup sg WHERE sg.group.id = :groupId")
+    Set<String> findStudentIdsByGroupId(@Param("groupId") String groupId);
 
-	
+
+	boolean existsByStudentAndGroup(Student student, Group group);
 }

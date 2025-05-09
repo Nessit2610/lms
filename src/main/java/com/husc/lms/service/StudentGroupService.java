@@ -1,6 +1,8 @@
 package com.husc.lms.service;
 
 import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -47,19 +49,34 @@ public class StudentGroupService {
 	@Autowired
 	private StudentMapper studentMapper;
 	
-	public Boolean addListStudentToGroup(StudentGroupRequest request) {
-		Group group = groupRepository.findById(request.getGroupId()).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
-		for(String id : request.getStudentIds()) {
-			Student student = studentRepository.findById(id).get();
-			StudentGroup studentGroup = StudentGroup.builder()
-					.group(group)
-					.student(student)
-					.joinAt(new Date())
-					.build();
-			studentGroupRepository.save(studentGroup);
-		}
-		return true;
+	public boolean addListStudentToGroup(StudentGroupRequest request) {
+	    Group group = groupRepository.findById(request.getGroupId())
+	            .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
+
+	    List<Student> students = studentRepository.findAllById(request.getStudentIds());
+	    Set<String> existingStudentIds = studentGroupRepository.findStudentIdsByGroupId(group.getId());
+
+	    for (Student student : students) {
+	        if (existingStudentIds.contains(student.getId())) {
+	            continue;
+	        }
+
+	        StudentGroup studentGroup = StudentGroup.builder()
+	                .group(group)
+	                .student(student)
+	                .joinAt(new Date()) 
+	                .build();
+
+	        studentGroupRepository.save(studentGroup);
+	    }
+
+	    if (students.size() < request.getStudentIds().size()) {
+	        throw new AppException(ErrorCode.STUDENT_NOT_FOUND);
+	    }
+
+	    return true;
 	}
+
 	
 	public Boolean deleteStudentOfGroup(String groupId, String studentId) {
 		Group group = groupRepository.findById(groupId).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));

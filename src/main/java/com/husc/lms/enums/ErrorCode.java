@@ -56,7 +56,8 @@ public enum ErrorCode {
 	CHATBOX_NOT_FOUND(1034,"Chatbox not found", HttpStatus.NOT_FOUND),
 	CHATBOX_MEMBER_NOT_FOUND(1035,"No ChatMember in this ChatBox", HttpStatus.NOT_FOUND),
 	RESULT_NOT_FOUND(1036,"RESULT_NOT_FOUND", HttpStatus.NOT_FOUND),
-	INVALID_PARAMETER(1037,"Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST);
+	STUDENT_ALREADY_IN_GROUP(1037, "Sinh viên này đã tham gia vào nhóm", HttpStatus.BAD_REQUEST),
+	INVALID_PARAMETER(1038,"Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST);
   
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
 		this.Code = code;
