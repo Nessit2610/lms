@@ -117,7 +117,9 @@ public class TestStudentResultService {
 	        TestQuestion testQuestion = testQuestionRepository.findById(request.getQuestionId()).orElseThrow(()-> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 	        
 	        boolean isCorrect = normalizeAnswer(request.getAnswer()).equals(normalizeAnswer(testQuestion.getCorrectAnswers()));
-	        
+	        System.out.println("Request answer set: " + normalizeAnswer(request.getAnswer()));
+	        System.out.println("Correct answer set: " + normalizeAnswer(testQuestion.getCorrectAnswers()));
+
 	        if (isCorrect) {
 	            correctCount++;
 	            totalScore += testQuestion.getPoint();
@@ -159,8 +161,8 @@ public class TestStudentResultService {
 	
 	private Set<String> normalizeAnswer(String answer) {
 	    return Arrays.stream(answer.split(","))
-	        .map(String::trim)  
-	        .map(String::toUpperCase)  
-	        .collect(Collectors.toSet());
+	        .map(String::trim)           
+	        .map(String::toUpperCase)    
+	        .collect(Collectors.toSet()); 
 	}
 }
