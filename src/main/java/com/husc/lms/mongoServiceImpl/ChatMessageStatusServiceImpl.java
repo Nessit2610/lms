@@ -17,13 +17,23 @@ public class ChatMessageStatusServiceImpl implements ChatMessageStatusService {
     private final ChatMessageStatusRepository chatMessageStatusRepository;
 
     @Override
-    public void markAllUnreadMessagesAsRead(String chatBoxId) {
-        List<ChatMessageStatus> unreadMessages = chatMessageStatusRepository.findByChatBoxIdAndIsReadFalse(chatBoxId);
-        Date now = new Date();
-        for (ChatMessageStatus message : unreadMessages) {
-            message.setRead(true);
-            message.setReadAt(now);
+    public void markMessagesAsRead(String chatBoxId, String username) {
+        // Find all unread statuses for the given user in the given chatbox
+        // This requires a custom method in ChatMessageStatusRepository
+        List<ChatMessageStatus> unreadStatuses = chatMessageStatusRepository
+                .findByChatBoxIdAndAccountUsernameAndIsReadFalse(chatBoxId, username);
+
+        if (unreadStatuses != null && !unreadStatuses.isEmpty()) {
+            unreadStatuses.forEach(status -> {
+                status.setRead(true);
+                status.setReadAt(new Date());
+            });
+            chatMessageStatusRepository.saveAll(unreadStatuses);
+            System.out.println("[DEBUG] ChatMessageStatusService: Marked " + unreadStatuses.size() +
+                    " messages as read for user '" + username + "' in chatBoxId '" + chatBoxId + "'.");
+        } else {
+            System.out.println("[DEBUG] ChatMessageStatusService: No unread messages found for user '" + username +
+                    "' in chatBoxId '" + chatBoxId + "' to mark as read.");
         }
-        chatMessageStatusRepository.saveAll(unreadMessages);
     }
 }
