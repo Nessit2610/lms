@@ -2,8 +2,11 @@ package com.husc.lms.service;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -94,23 +97,18 @@ public class TestStudentResultService {
 	    var context = SecurityContextHolder.getContext();
 	    String name = context.getAuthentication().getName();
 	    
-	    // Tìm tài khoản và sinh viên
-	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name)
-	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));  // Thêm ngoại lệ cho tài khoản không tồn tại
-	    Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));  // Thêm ngoại lệ cho sinh viên không tồn tại
 	    
-	    // Lấy thông tin bài kiểm tra
+	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name)
+	        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND)); 
+	    Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));  
+	   
 	    TestInGroup testInGroup = testInGroupRepository.findById(submitTestRequets.getTestId())
 	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 	    
-	    // Lấy kết quả bài kiểm tra của sinh viên
-	    TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup)
-	        .orElseThrow(() -> new AppException(ErrorCode.RESULT_NOT_FOUND));  // Thêm ngoại lệ nếu không tìm thấy kết quả kiểm tra
 	    
-	    // Lấy danh sách câu hỏi của bài kiểm tra (tối ưu việc gọi nhiều lần)
-	    List<TestQuestion> testQuestions = testQuestionRepository.findByTestInGroup(testInGroup);
+	    TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup)
+	        .orElseThrow(() -> new AppException(ErrorCode.RESULT_NOT_FOUND)); 
 
-	    // Tạo danh sách câu trả lời
 	    int correctCount = 0;
 	    int totalScore = 0;
 
@@ -118,7 +116,7 @@ public class TestStudentResultService {
 	        
 	        TestQuestion testQuestion = testQuestionRepository.findById(request.getQuestionId()).orElseThrow(()-> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 	        
-	        boolean isCorrect = request.getAnswer().equals(testQuestion.getCorrectAnswers());
+	        boolean isCorrect = normalizeAnswer(request.getAnswer()).equals(normalizeAnswer(testQuestion.getCorrectAnswers()));
 	        
 	        if (isCorrect) {
 	            correctCount++;
@@ -157,5 +155,12 @@ public class TestStudentResultService {
 		TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup).orElseThrow(() -> new AppException(ErrorCode.RESULT_NOT_FOUND));
 	
 		return testStudentResultMapper.toTestStudentResultResponse(testStudentResult);
+	}
+	
+	private Set<String> normalizeAnswer(String answer) {
+	    return Arrays.stream(answer.split(","))
+	        .map(String::trim)  
+	        .map(String::toUpperCase)  
+	        .collect(Collectors.toSet());
 	}
 }
