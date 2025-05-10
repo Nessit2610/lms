@@ -21,4 +21,5 @@ public class CommentReplyResponse {
     private String avatarReply;
     private String detail;
     private OffsetDateTime createdDate;
+    private Integer replyCount;
 }
