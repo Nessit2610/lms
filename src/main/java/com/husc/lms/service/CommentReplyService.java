@@ -97,18 +97,7 @@ public class CommentReplyService {
                                 .build();
                 CommentReply savedReply = commentReplyRepository.save(commentReply);
 
-                // --- Bắt đầu: Gửi cập nhật số lượng reply ---
                 int newReplyCountAfterSave = commentReplyRepository.countByComment(parentComment);
-                Map<String, Object> replyCountUpdatePayloadOnSave = new HashMap<>();
-                replyCountUpdatePayloadOnSave.put("type", "REPLY_COUNT_UPDATE");
-                replyCountUpdatePayloadOnSave.put("commentId", parentComment.getId());
-                replyCountUpdatePayloadOnSave.put("newReplyCount", newReplyCountAfterSave);
-
-                String chapterCommentsTopic = "/topic/comments/chapter/" + parentComment.getChapter().getId();
-                messagingTemplate.convertAndSend(chapterCommentsTopic, replyCountUpdatePayloadOnSave);
-                System.out.println("Sent REPLY_COUNT_UPDATE (after save) for comment " + parentComment.getId() +
-                                " to " + chapterCommentsTopic + " with new count " + newReplyCountAfterSave);
-                // --- Kết thúc: Gửi cập nhật số lượng reply ---
 
                 // Gửi CommentReadStatus + Notification cho giáo viên
                 Account teacherAccount = course.getTeacher().getAccount();
@@ -212,6 +201,7 @@ public class CommentReplyService {
                                 .avatarReply(avatarReply)
                                 .detail(savedReply.getDetail())
                                 .createdDate(savedReply.getCreatedDate())
+                                .replyCount(newReplyCountAfterSave)
                                 .build();
         }
 
@@ -275,45 +265,70 @@ public class CommentReplyService {
                                 .build();
         }
 
-        public Boolean deleteCommentReply(CommentReplyUpdateMessage message) {
-                CommentReply deleteCommentReply = commentReplyRepository.findById(message.getCommentReplyId())
-                                .filter(comment -> comment.getDeletedDate() == null)
+        @Transactional
+        public CommentReplyResponse deleteCommentReply(CommentReplyUpdateMessage message) {
+                CommentReply commentReplyToDelete = commentReplyRepository.findById(message.getCommentReplyId())
+                                .filter(reply -> reply.getDeletedDate() == null)
                                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
-                Account replyAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameReply())
+                Account requestingAccount = accountRepository
+                                .findByUsernameAndDeletedDateIsNull(message.getUsernameReply())
                                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
 
-                if (!deleteCommentReply.getReplyAccount().getId().equals(replyAccount.getId())) {
+                if (!commentReplyToDelete.getReplyAccount().getId().equals(requestingAccount.getId())) {
                         throw new AppException(ErrorCode.OWNER_NOT_MATCH);
                 }
 
-                deleteCommentReply.setDeletedBy(message.getUsernameReply());
-                deleteCommentReply.setDeletedDate(OffsetDateTime.now());
+                String deletedReplyId = commentReplyToDelete.getId();
+                String detailOfDeletedReply = commentReplyToDelete.getDetail();
+                OffsetDateTime createdDateOfDeletedReply = commentReplyToDelete.getCreatedDate();
 
-                commentReplyRepository.save(deleteCommentReply);
+                Account ownerAccountOfParentComment = commentReplyToDelete.getComment().getAccount();
+                Account replyAccountOfDeletedReply = commentReplyToDelete.getReplyAccount();
 
-                // --- Bắt đầu: Gửi cập nhật số lượng reply sau khi xóa ---
-                Comment parentComment = deleteCommentReply.getComment();
+                commentReplyToDelete.setDeletedBy(message.getUsernameReply());
+                commentReplyToDelete.setDeletedDate(OffsetDateTime.now());
+                commentReplyRepository.save(commentReplyToDelete);
+
+                Comment parentComment = commentReplyToDelete.getComment();
+                int newReplyCountForParent = 0;
+                String parentCommentIdStr = null;
+
                 if (parentComment != null) {
-                        // Đảm bảo bạn có phương thức này trong CommentReplyRepository
-                        // hoặc một cách tương đương để đếm reply chưa bị xóa.
-                        int newReplyCountAfterDelete = commentReplyRepository
+                        parentCommentIdStr = parentComment.getId();
+                        newReplyCountForParent = commentReplyRepository
                                         .countByComment(parentComment);
-
-                        Map<String, Object> replyCountUpdatePayloadOnDelete = new HashMap<>();
-                        replyCountUpdatePayloadOnDelete.put("type", "REPLY_COUNT_UPDATE");
-                        replyCountUpdatePayloadOnDelete.put("commentId", parentComment.getId());
-                        replyCountUpdatePayloadOnDelete.put("newReplyCount", newReplyCountAfterDelete);
-
-                        String chapterCommentsTopic = "/topic/comments/chapter/" + parentComment.getChapter().getId();
-                        messagingTemplate.convertAndSend(chapterCommentsTopic, replyCountUpdatePayloadOnDelete);
-                        System.out.println("Sent REPLY_COUNT_UPDATE (after delete) for comment " + parentComment.getId()
-                                        +
-                                        " to " + chapterCommentsTopic + " with new count " + newReplyCountAfterDelete);
                 }
-                // --- Kết thúc: Gửi cập nhật số lượng reply sau khi xóa ---
 
-                return true;
+                String fullnameReply = "";
+                String avatarReply = "";
+                if (replyAccountOfDeletedReply.getStudent() != null) {
+                        fullnameReply = replyAccountOfDeletedReply.getStudent().getFullName();
+                        avatarReply = replyAccountOfDeletedReply.getStudent().getAvatar();
+                } else if (replyAccountOfDeletedReply.getTeacher() != null) {
+                        fullnameReply = replyAccountOfDeletedReply.getTeacher().getFullName();
+                        avatarReply = replyAccountOfDeletedReply.getTeacher().getAvatar();
+                }
+
+                String fullnameOwner = "";
+                if (ownerAccountOfParentComment.getStudent() != null) {
+                        fullnameOwner = ownerAccountOfParentComment.getStudent().getFullName();
+                } else if (ownerAccountOfParentComment.getTeacher() != null) {
+                        fullnameOwner = ownerAccountOfParentComment.getTeacher().getFullName();
+                }
+
+                return CommentReplyResponse.builder()
+                                .commentId(parentCommentIdStr)
+                                .commentReplyId(deletedReplyId)
+                                .usernameOwner(ownerAccountOfParentComment.getUsername())
+                                .fullnameOwner(fullnameOwner)
+                                .usernameReply(replyAccountOfDeletedReply.getUsername())
+                                .fullnameReply(fullnameReply)
+                                .avatarReply(avatarReply)
+                                .detail(detailOfDeletedReply)
+                                .createdDate(createdDateOfDeletedReply)
+                                .replyCount(newReplyCountForParent)
+                                .build();
         }
 
 }

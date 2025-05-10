@@ -17,44 +17,44 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CommentReplyWebSocketController {
 	private final CommentReplyService commentReplyService;
-	
+
 	@MessageMapping("/comment-reply")
 	@SendTo("/topic/comment-replies")
 	public APIResponse<CommentReplyResponse> handleCommentReply(CommentReplyMessage message) {
-	    try {
-	        return APIResponse.<CommentReplyResponse>builder()
+		try {
+			return APIResponse.<CommentReplyResponse>builder()
 					.result(commentReplyService.saveCommentReplyWithReadStatusAndNotification(message))
 					.build();
-	        		
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return null;
-	    }
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
-	
+
 	@MessageMapping("/comment-reply/update")
 	@SendTo("/topic/comment-replies")
 	public APIResponse<CommentReplyUpdateMessageResponse> updateCommentReply(CommentReplyUpdateMessage message) {
-	    try {
-	        return APIResponse.<CommentReplyUpdateMessageResponse>builder()
+		try {
+			return APIResponse.<CommentReplyUpdateMessageResponse>builder()
 					.result(commentReplyService.updateCommentReply(message))
 					.build();
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return null;
-	    }
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
-	
+
 	@MessageMapping("/comment-reply/delete")
 	@SendTo("/topic/comment-replies")
-	public APIResponse<Boolean> deleteComment(CommentReplyUpdateMessage message) {
-	    try {
-	        return APIResponse.<Boolean>builder()
-	            .result(commentReplyService.deleteCommentReply(message))
-	            .build();
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	        return null;
-	    }
+	public APIResponse<CommentReplyResponse> deleteComment(CommentReplyUpdateMessage message) {
+		try {
+			return APIResponse.<CommentReplyResponse>builder()
+					.result(commentReplyService.deleteCommentReply(message))
+					.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 }
