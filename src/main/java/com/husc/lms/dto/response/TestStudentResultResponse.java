@@ -1,5 +1,6 @@
 package com.husc.lms.dto.response;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -29,9 +30,9 @@ public class TestStudentResultResponse {
 
     private double score; 
 
-    private Date startedAt;
+    private OffsetDateTime startedAt;
     
-    private Date submittedAt;
+    private OffsetDateTime submittedAt;
     
     private List<TestStudentAnswerResponse> testStudentAnswer;
 }

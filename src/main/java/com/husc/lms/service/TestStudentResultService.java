@@ -2,6 +2,8 @@ package com.husc.lms.service;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -66,24 +68,31 @@ public class TestStudentResultService {
 	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 
 	    
-	    LocalDateTime now = LocalDateTime.now();
+	    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+	    OffsetDateTime startedAt = testInGroup.getStartedAt();
+	    OffsetDateTime expiredAt = testInGroup.getExpiredAt();
 
-	    if (now.isBefore(testInGroup.getStartedAt())) {
+	    if (now.isBefore(startedAt)) {
 	        throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);
 	    }
 
-	    if (now.isAfter(testInGroup.getExpiredAt())) {
+	    if (now.isAfter(expiredAt)) {
 	        throw new AppException(ErrorCode.TEST_IS_EXPIRED);
 	    }
 
-	    if (!testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup).isEmpty()) {
+	    boolean alreadyStarted = !testStudentResultRepository
+	        .findByStudentAndTestInGroup(student, testInGroup)
+	        .isEmpty();
+
+	    if (alreadyStarted) {
 	        throw new AppException(ErrorCode.TEST_ALREADY_STARTED);
 	    }
+
 
 	    TestStudentResult testStudentResult = TestStudentResult.builder()
 	            .student(student)
 	            .testInGroup(testInGroup)
-	            .startedAt(new Date())
+	            .startedAt(OffsetDateTime.now(ZoneOffset.UTC))
 	            .build();
 
 	    testStudentResultRepository.save(testStudentResult);
@@ -134,7 +143,7 @@ public class TestStudentResultService {
 	    }
 
 	    
-	    testStudentResult.setSubmittedAt(new Date());
+	    testStudentResult.setSubmittedAt(OffsetDateTime.now(ZoneOffset.UTC));
 	    testStudentResult.setScore(totalScore);
 	    testStudentResult.setTotalCorrect(correctCount);
 	    

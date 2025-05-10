@@ -1,5 +1,6 @@
 package com.husc.lms.dto.response;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -20,11 +21,11 @@ public class TestInGroupResponse {
 
     private String description;
     
-    private Date startedAt;
+    private OffsetDateTime startedAt;
     
-    private Date createdAt;
+    private OffsetDateTime createdAt;
 
-    private Date expiredAt;
+    private OffsetDateTime expiredAt;
     
     private List<TestQuestionResponse> questions;
 }

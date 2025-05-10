@@ -1,6 +1,7 @@
 package com.husc.lms.service;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
@@ -42,13 +43,13 @@ public class TestInGroupService {
 	public TestInGroupResponse createTestInGroup(TestInGroupRequest request) {
 		Group group = groupRepository.findById(request.getGroupId()).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
 		TestInGroup testInGroup = TestInGroup.builder()
-				.title(request.getTitle())
-				.description(request.getDescription())
-				.group(group)
-				.startedAt(request.getStartedAt())
-				.createdAt(LocalDateTime.now(ZoneOffset.UTC))
-				.expiredAt(request.getExpiredAt())
-				.build();
+		        .title(request.getTitle())
+		        .description(request.getDescription())
+		        .group(group)
+		        .startedAt(request.getStartedAt().atOffset(ZoneOffset.UTC))
+		        .createdAt(OffsetDateTime.now(ZoneOffset.UTC))
+		        .expiredAt(request.getExpiredAt().atOffset(ZoneOffset.UTC))
+		        .build();
 		testInGroup = testInGroupRepository.save(testInGroup);
 		List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
 		testInGroup.setQuestions(listQuestions);
