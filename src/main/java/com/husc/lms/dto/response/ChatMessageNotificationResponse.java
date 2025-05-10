@@ -1,13 +1,17 @@
 package com.husc.lms.dto.response;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class ChatMessageNotificationDto {
+public class ChatMessageNotificationResponse {
     private String notificationId;
     private String detail; // Content of the notification message
     private Date createdAt;
