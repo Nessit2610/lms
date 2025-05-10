@@ -21,33 +21,14 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class NotificationController {
 	private final NotificationService notificationService;
-	
+
 	@GetMapping("/comments/unread")
 	public CommentNotificationResponse getUnreadCommentNotifications() {
 		return notificationService.getAllUnreadCommentNotificationOfAccount();
 	}
-	
-//    @PostMapping("/comments/read")
-//    public void setNotificationAsReadByAccount(@RequestBody List<Notification> notifications) {
-//        notificationService.setNotificationAsReadByAccount(notifications);
-//    }
+
 	@PostMapping("/comments/read")
 	public void setNotificationAsReadByAccount(@RequestBody List<NotificationRequest> notificationRequests) {
-	    // Chuyển đổi từ NotificationRequest sang Notification
-	    List<Notification> notifications = notificationRequests.stream()
-	        .map(this::convertToNotification) // Sử dụng phương thức chuyển đổi
-	        .collect(Collectors.toList());
-
-	    notificationService.setNotificationAsReadByAccount(notifications);
-	}
-
-	private Notification convertToNotification(NotificationRequest request) {
-	    return Notification.builder()
-	        .id(request.getId())
-	        .type(request.getType())
-	        .isRead(request.isRead())
-	        .description(request.getDescription())
-	        .createdAt(request.getCreatedAt()) 
-	        .build();
+		notificationService.markCommentNotificationsAsRead(notificationRequests);
 	}
 }
