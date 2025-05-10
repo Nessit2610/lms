@@ -68,19 +68,23 @@ public class TestStudentResultService {
 	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 
 	    
-	    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);  // Lấy thời gian hiện tại theo UTC
-	    OffsetDateTime startedAt = testInGroup.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);  // Chuyển đổi thời gian bắt đầu về UTC nếu nó không phải UTC
-	    OffsetDateTime expiredAt = testInGroup.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);  // Chuyển đổi thời gian hết hạn về UTC nếu nó không phải UTC
+	 // Lấy thời gian hiện tại theo UTC
+	    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);  
+
+	    // Chuyển đổi thời gian bắt đầu và hết hạn về UTC (nếu không phải UTC)
+	    OffsetDateTime startedAt = testInGroup.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
+	    OffsetDateTime expiredAt = testInGroup.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
 
 	    // Kiểm tra nếu thời gian hiện tại trước thời gian bắt đầu
 	    if (now.isBefore(startedAt)) {
-	        throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);
+	        throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);  // Nếu chưa đến thời gian bắt đầu
 	    }
 
 	    // Kiểm tra nếu thời gian hiện tại sau thời gian hết hạn
 	    if (now.isAfter(expiredAt)) {
-	        throw new AppException(ErrorCode.TEST_IS_EXPIRED);
+	        throw new AppException(ErrorCode.TEST_IS_EXPIRED);  // Nếu đã quá thời gian hết hạn
 	    }
+
 
 
 

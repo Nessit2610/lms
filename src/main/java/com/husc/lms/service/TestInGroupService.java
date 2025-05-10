@@ -43,14 +43,20 @@ public class TestInGroupService {
 	
 	public TestInGroupResponse createTestInGroup(TestInGroupRequest request) {
 		Group group = groupRepository.findById(request.getGroupId()).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
-		TestInGroup testInGroup = TestInGroup.builder()
-		        .title(request.getTitle())
-		        .description(request.getDescription())
-		        .group(group)
-		        .startedAt(request.getStartedAt().atOffset(ZoneOffset.UTC))
-		        .createdAt(OffsetDateTime.now(ZoneId.systemDefault()))
-		        .expiredAt(request.getExpiredAt().atOffset(ZoneOffset.UTC))
-		        .build();
+		// Chuyển đổi thời gian bắt đầu và kết thúc sang UTC
+	    OffsetDateTime startedAtUtc = request.getStartedAt().atOffset(ZoneOffset.UTC);
+	    OffsetDateTime expiredAtUtc = request.getExpiredAt().atOffset(ZoneOffset.UTC);
+
+	 // Tạo đối tượng TestInGroup với thời gian chuẩn
+	    TestInGroup testInGroup = TestInGroup.builder()
+	            .title(request.getTitle())
+	            .description(request.getDescription())
+	            .group(group)
+	            .startedAt(startedAtUtc)  // Lưu thời gian bắt đầu theo UTC
+	            .createdAt(OffsetDateTime.now(ZoneOffset.UTC))  // Lưu thời gian tạo theo UTC
+	            .expiredAt(expiredAtUtc)  // Lưu thời gian hết hạn theo UTC
+	            .build();
+	    
 		testInGroup = testInGroupRepository.save(testInGroup);
 		List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
 		testInGroup.setQuestions(listQuestions);
