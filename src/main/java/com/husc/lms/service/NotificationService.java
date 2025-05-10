@@ -77,15 +77,6 @@ public class NotificationService {
 
         List<Notification> notificationsToUpdate = notificationRequests.stream()
                 .map(request -> {
-                    // Khi chuyển đổi từ Request, chúng ta cần đảm bảo rằng Notification này thuộc
-                    // về Account hiện tại
-                    // Tuy nhiên, phương thức setNotificationAsReadByAccount trong repository có thể
-                    // đã xử lý việc này
-                    // hoặc cần điều chỉnh để chỉ cập nhật những thông báo thuộc account này.
-                    // Hiện tại, builder không set Account, điều này có thể là một thiếu sót nếu
-                    // repository không kiểm tra.
-                    // Giả sử rằng ID của Notification là đủ để xác định và repository sẽ xử lý
-                    // quyền.
                     return Notification.builder()
                             .id(request.getId()) // ID của notification cần đánh dấu đã đọc
                             .type(request.getType()) // Có thể không cần thiết nếu chỉ dựa vào ID
