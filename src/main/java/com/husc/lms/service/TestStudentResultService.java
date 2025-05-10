@@ -68,17 +68,21 @@ public class TestStudentResultService {
 	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 
 	    
-	    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-	    OffsetDateTime startedAt = testInGroup.getStartedAt();
-	    OffsetDateTime expiredAt = testInGroup.getExpiredAt();
+	    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);  // Lấy thời gian hiện tại theo UTC
+	    OffsetDateTime startedAt = testInGroup.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);  // Chuyển đổi thời gian bắt đầu về UTC nếu nó không phải UTC
+	    OffsetDateTime expiredAt = testInGroup.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);  // Chuyển đổi thời gian hết hạn về UTC nếu nó không phải UTC
 
+	    // Kiểm tra nếu thời gian hiện tại trước thời gian bắt đầu
 	    if (now.isBefore(startedAt)) {
 	        throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);
 	    }
 
+	    // Kiểm tra nếu thời gian hiện tại sau thời gian hết hạn
 	    if (now.isAfter(expiredAt)) {
 	        throw new AppException(ErrorCode.TEST_IS_EXPIRED);
 	    }
+
+
 
 	    boolean alreadyStarted = !testStudentResultRepository
 	        .findByStudentAndTestInGroup(student, testInGroup)

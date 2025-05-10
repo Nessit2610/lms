@@ -2,6 +2,7 @@ package com.husc.lms.service;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
@@ -47,7 +48,7 @@ public class TestInGroupService {
 		        .description(request.getDescription())
 		        .group(group)
 		        .startedAt(request.getStartedAt().atOffset(ZoneOffset.UTC))
-		        .createdAt(OffsetDateTime.now(ZoneOffset.UTC))
+		        .createdAt(OffsetDateTime.now(ZoneId.systemDefault()))
 		        .expiredAt(request.getExpiredAt().atOffset(ZoneOffset.UTC))
 		        .build();
 		testInGroup = testInGroupRepository.save(testInGroup);
