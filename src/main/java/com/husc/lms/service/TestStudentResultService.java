@@ -1,6 +1,7 @@
 package com.husc.lms.service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -64,15 +65,14 @@ public class TestStudentResultService {
 	        .findById(testId)
 	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 
-	    Instant now = Instant.now();
-	    Instant startedAt = testInGroup.getStartedAt().toInstant();
-	    Instant expiredAt = testInGroup.getExpiredAt().toInstant();
+	    
+	    LocalDateTime now = LocalDateTime.now();
 
-	    if (now.isBefore(startedAt)) {
+	    if (now.isBefore(testInGroup.getStartedAt())) {
 	        throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);
 	    }
 
-	    if (now.isAfter(expiredAt)) {
+	    if (now.isAfter(testInGroup.getExpiredAt())) {
 	        throw new AppException(ErrorCode.TEST_IS_EXPIRED);
 	    }
 

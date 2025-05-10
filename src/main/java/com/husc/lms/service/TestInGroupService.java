@@ -1,5 +1,6 @@
 package com.husc.lms.service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -44,7 +45,7 @@ public class TestInGroupService {
 				.description(request.getDescription())
 				.group(group)
 				.startedAt(request.getStartedAt())
-				.createdAt(new Date())
+				.createdAt(LocalDateTime.now())
 				.expiredAt(request.getExpiredAt())
 				.build();
 		testInGroup = testInGroupRepository.save(testInGroup);

@@ -1,5 +1,6 @@
 package com.husc.lms.dto.request;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -24,10 +25,10 @@ public class TestInGroupRequest {
 
     private String description;
     
-    private Date startedAt;
+    private LocalDateTime startedAt;
     
     @NotNull
-    private Date expiredAt;
+    private LocalDateTime expiredAt;
     
     @NotNull
     private List<TestQuestionRequest> listQuestionRequest;

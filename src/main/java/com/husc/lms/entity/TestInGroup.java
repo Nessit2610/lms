@@ -1,5 +1,6 @@
 package com.husc.lms.entity;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -40,11 +41,11 @@ public class TestInGroup {
     @JoinColumn(name = "groupId")
     private Group group;
 
-    private Date createdAt;
+    private LocalDateTime createdAt;
 
-    private Date startedAt;
+    private LocalDateTime startedAt;
     
-    private Date expiredAt;
+    private LocalDateTime expiredAt;
 
     @OneToMany(mappedBy = "testInGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestQuestion> questions;
