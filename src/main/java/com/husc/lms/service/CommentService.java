@@ -217,6 +217,7 @@ public class CommentService {
                                         .avatar(commentAvatar)
                                         .detail(comment.getDetail())
                                         .createdDate(comment.getCreatedDate())
+                                        .updateDate(comment.getUpdateDateAt())
                                         .countOfReply(countOfReply)
                                         .build();
                 });
@@ -268,6 +269,7 @@ public class CommentService {
                                         .fullnameOwner(fullnameOwner)
                                         .detail(reply.getDetail())
                                         .createdDate(reply.getCreatedDate())
+                                        .updateDate(reply.getUpdateDateAt())
                                         .build();
                 });
         }
@@ -437,24 +439,16 @@ public class CommentService {
                                 .courseId(savedComment.getCourse().getId())
                                 .commentId(savedComment.getId())
                                 .username(account.getUsername())
-                                .fullname(
-                                                account.getStudent() != null
-                                                                && account.getStudent().getFullName() != null
-                                                                                ? account.getStudent().getFullName()
-                                                                                : (account.getTeacher() != null
-                                                                                                && account.getTeacher()
-                                                                                                                .getFullName() != null
-                                                                                                                                ? account.getTeacher()
-                                                                                                                                                .getFullName()
-                                                                                                                                : ""))
-                                .avatar(
-                                                account.getStudent() != null && account.getStudent().getAvatar() != null
-                                                                ? account.getStudent().getAvatar()
-                                                                : (account.getTeacher() != null && account.getTeacher()
-                                                                                .getAvatar() != null
-                                                                                                ? account.getTeacher()
-                                                                                                                .getAvatar()
-                                                                                                : ""))
+                                .fullname(account.getStudent() != null && account.getStudent().getFullName() != null
+                                                ? account.getStudent().getFullName()
+                                                : (account.getTeacher() != null && account.getTeacher().getFullName() != null
+                                                        ? account.getTeacher().getFullName()
+                                                        : ""))
+                                .avatar(account.getStudent() != null && account.getStudent().getAvatar() != null
+                                            	? account.getStudent().getAvatar()
+                                                : (account.getTeacher() != null && account.getTeacher().getAvatar() != null
+                                                        ? account.getTeacher().getAvatar()
+                                                        : ""))
                                 .detail(comment.getDetail())
                                 .createdDate(comment.getCreatedDate())
                                 .commentReplyResponses(List.of())
