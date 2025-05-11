@@ -241,6 +241,7 @@ public class CommentService {
                         Account replyAccount = reply.getReplyAccount();
                         String replyAvatar = "";
                         String replyFullname = "";
+                        Account ownerAccount = reply.getOwnerAccount();
                         String fullnameOwner = "";
 
                         if (replyAccount.getStudent() != null) {
@@ -251,10 +252,10 @@ public class CommentService {
                                 replyFullname = replyAccount.getTeacher().getFullName();
                         }
 
-                        if (replyAccount.getStudent() != null) {
-                                fullnameOwner = replyAccount.getStudent().getFullName();
+                        if (ownerAccount.getStudent() != null) {
+                                fullnameOwner = ownerAccount.getStudent().getFullName();
                         } else if (replyAccount.getTeacher() != null) {
-                                fullnameOwner = replyAccount.getTeacher().getFullName();
+                                fullnameOwner = ownerAccount.getTeacher().getFullName();
                         }
 
                         return CommentReplyResponse.builder()
@@ -263,7 +264,8 @@ public class CommentService {
                                         .usernameReply(replyAccount.getUsername())
                                         .avatarReply(replyAvatar)
                                         .fullnameReply(replyFullname)
-                                        .usernameOwner(fullnameOwner)
+                                        .usernameOwner(ownerAccount.getUsername())
+                                        .fullnameOwner(fullnameOwner)
                                         .detail(reply.getDetail())
                                         .createdDate(reply.getCreatedDate())
                                         .build();
