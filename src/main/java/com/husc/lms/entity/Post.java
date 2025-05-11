@@ -38,6 +38,8 @@ public class Post {
 	
 	private String title;
 	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "teacherId")
 	private Teacher teacher;
 	
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
