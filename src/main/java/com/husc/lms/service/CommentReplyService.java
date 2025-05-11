@@ -235,7 +235,7 @@ public class CommentReplyService {
                 Account replyAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameReply())
                                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-                if (!changeCommentReply.getOwnerAccount().equals(replyAccount)) {
+                if (!changeCommentReply.getOwnerAccount().getId().equals(replyAccount.getId())) {
                         throw new AppException(ErrorCode.OWNER_NOT_MATCH); // hoặc tạo error code phù hợp
                 }
 
