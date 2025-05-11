@@ -38,6 +38,8 @@ public class Post {
 	
 	private String title;
 	
+	private Teacher teacher;
+	
 	@OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<PostFile> files;
 	

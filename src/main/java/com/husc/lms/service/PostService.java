@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,15 +16,19 @@ import com.husc.lms.dto.request.FileUploadRequest;
 import com.husc.lms.dto.request.PostRequest;
 import com.husc.lms.dto.response.PostResponse;
 import com.husc.lms.dto.update.PostUpdateRequest;
+import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Post;
 import com.husc.lms.entity.PostFile;
+import com.husc.lms.entity.Teacher;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.PostMapper;
+import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.GroupRepository;
 import com.husc.lms.repository.PostFileRepository;
 import com.husc.lms.repository.PostRepository;
+import com.husc.lms.repository.TeacherRepository;
 
 @Service
 public class PostService {
@@ -41,9 +46,22 @@ public class PostService {
 	private PostFileRepository postFileRepository;
 	
 	@Autowired
+	private TeacherRepository teacherRepository;
+	
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
 	private PostMapper postMapper;
 	
 	public PostResponse createPost(PostRequest request) {
+		
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+		Teacher teacher = teacherRepository.findByAccount(account);
+		
 	    Group group = groupRepository.findById(request.getGroupId())
 	            .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
@@ -51,6 +69,7 @@ public class PostService {
 	            .group(group)
 	            .title(request.getTitle())
 	            .text(request.getText())
+	            .teacher(teacher)
 	            .createdAt(new Date())
 	            .build();
 
