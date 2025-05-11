@@ -14,6 +14,7 @@ import com.husc.lms.entity.CommentReply;
 
 @Repository
 public interface CommentReplyRepository extends JpaRepository<CommentReply, String> {
+    @Query("SELECT cr FROM CommentReply cr WHERE cr.comment = :comment AND cr.deletedDate IS NULL ORDER BY cr.createdDate ASC")
     Page<CommentReply> findByComment(Comment comment, Pageable pageable);
 
     List<CommentReply> findByCommentIdIn(List<String> commentIds);
