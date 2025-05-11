@@ -17,6 +17,7 @@ public class StudentRequest {
 		    regexp = "^[a-zA-Z0-9._%+-]+@husc\\.edu\\.vn$",
 		    message = "INVALID_EMAIL_DOMAIN"
 	)
+	@NotNull(message = "NOT_NULL")
 	private String email;
 	
 	@NotNull(message = "NOT_NULL")

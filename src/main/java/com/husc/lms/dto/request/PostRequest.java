@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PostRequest {
 	
-	@NotNull
+	@NotNull(message = "NOT_NULL")
 	private String groupId;
 	
     private String title;

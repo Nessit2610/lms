@@ -26,16 +26,14 @@ public class GlobalExceptionHandler {
 	
 	private static final String MIN_ATTRIBUTES = "min";
 	
-//	@ExceptionHandler(value = Exception.class)
-//	public ResponseEntity<APIResponse> handlingRuntimeException(Exception exception){
-//		APIResponse apiResponse = new APIResponse();
-//		apiResponse.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
-//		apiResponse.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
-//		return ResponseEntity.badRequest().body(apiResponse);
-//	} 	
-//	
-	
-	
+	@ExceptionHandler(value = Exception.class)
+	public ResponseEntity<APIResponse> handlingRuntimeException(Exception exception){
+		APIResponse apiResponse = new APIResponse();
+		apiResponse.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getCode());
+		apiResponse.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
+		return ResponseEntity.badRequest().body(apiResponse);
+	} 	
+		
 	@ExceptionHandler(value = AppException.class)
 	public ResponseEntity<APIResponse> handlingAppException(AppException exception){
 		
@@ -108,7 +106,7 @@ public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(MaxUploadSizeExceededException.class)
 	public ResponseEntity<APIResponse> handleMaxSizeException(MaxUploadSizeExceededException exception) {
-	    ErrorCode errorCode = ErrorCode.FILE_SIZE_EXCEEDED; // Định nghĩa mã lỗi tương ứng
+	    ErrorCode errorCode = ErrorCode.FILE_SIZE_EXCEEDED; 
 	    APIResponse apiResponse = new APIResponse();
 	    apiResponse.setCode(errorCode.getCode());
 	    apiResponse.setMessage(errorCode.getMessage());
