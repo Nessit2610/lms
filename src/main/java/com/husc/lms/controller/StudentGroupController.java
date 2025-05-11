@@ -47,17 +47,17 @@ public class StudentGroupController {
 	
 	@GetMapping("/getstudent")
 	public APIResponse<Page<StudentViewResponse>> getStudentsOfGroup(@RequestParam("groupId") String groupId ,
-																		@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
-																		@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) {
+																	@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																	@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) {
 		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(studentGroupService.getStudentsOfGroup(groupId, pageNumber, pageSize))
 				.build();
 	}
 	@GetMapping("/seachstudent")
 	public APIResponse<Page<StudentViewResponse>> seachStudentsInGroup(@RequestParam("groupId") String groupId ,
-																			@RequestParam("keyword") String keyword,
-																			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
-																			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) {
+																		@RequestParam("keyword") String keyword,
+																		@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																		@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize) {
 		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(studentGroupService.searchStudentsInGroup(groupId, keyword, pageNumber, pageSize))
 				.build();

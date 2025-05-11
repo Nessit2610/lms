@@ -11,7 +11,6 @@ import com.husc.lms.dto.response.StudentLessonProgressResponse;
 import com.husc.lms.service.StudentLessonProgressService;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 

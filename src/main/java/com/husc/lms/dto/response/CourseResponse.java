@@ -3,9 +3,6 @@ package com.husc.lms.dto.response;
 import java.util.Date;
 import java.util.List;
 
-import com.husc.lms.dto.request.CourseRequest;
-import com.husc.lms.entity.Lesson;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

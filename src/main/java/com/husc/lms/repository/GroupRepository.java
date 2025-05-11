@@ -7,7 +7,6 @@ import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Teacher;
-import java.util.List;
 
 
 @Repository

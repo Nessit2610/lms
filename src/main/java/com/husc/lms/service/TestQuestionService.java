@@ -12,7 +12,6 @@ import com.husc.lms.entity.TestInGroup;
 import com.husc.lms.entity.TestQuestion;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.QuestionEnum;
-import com.husc.lms.enums.StatusCourse;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.TestQuestionMapper;
 import com.husc.lms.repository.TestInGroupRepository;

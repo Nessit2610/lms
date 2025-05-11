@@ -57,7 +57,8 @@ public enum ErrorCode {
 	RESULT_NOT_FOUND(1036,"RESULT_NOT_FOUND", HttpStatus.NOT_FOUND),
 	STUDENT_ALREADY_IN_GROUP(1037, "Sinh viên này đã tham gia vào nhóm", HttpStatus.BAD_REQUEST),
 	INVALID_PARAMETER(1038,"Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST),
-	NOT_NULL(1039,"Không được để trống",HttpStatus.BAD_REQUEST);
+	NOT_NULL(1039,"Không được để trống",HttpStatus.BAD_REQUEST),
+	FILE_NOT_FOUND(1040,"Không tìm thấy file",HttpStatus.NOT_FOUND);
   
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
 		this.Code = code;

@@ -1,14 +1,12 @@
 package com.husc.lms.service;
 
 import java.util.Date;
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.provisioning.GroupManager;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.GroupRequest;
@@ -79,7 +77,7 @@ public class GroupService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(()-> new AppException(ErrorCode.CODE_ERROR.ACCOUNT_NOT_FOUND));
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(()-> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		Teacher teacher = teacherRepository.findByAccount(account);
 		
 		Pageable pageable = PageRequest.of(page, size);

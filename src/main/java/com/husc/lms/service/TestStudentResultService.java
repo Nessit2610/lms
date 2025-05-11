@@ -1,22 +1,21 @@
 package com.husc.lms.service;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.AnswerRequest;
 import com.husc.lms.dto.request.SubmitTestRequets;
+import com.husc.lms.dto.response.TestResultViewResponse;
 import com.husc.lms.dto.response.TestStudentResultResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Student;
@@ -173,6 +172,18 @@ public class TestStudentResultService {
 	
 		return testStudentResultMapper.toTestStudentResultResponse(testStudentResult);
 	}
+	
+	
+	public Page<TestResultViewResponse> getAllResult(String testId, int pageNumber , int pageSize){
+		Pageable pageable = PageRequest.of(pageNumber, pageSize);
+		TestInGroup testInGroup = testInGroupRepository.findById(testId)
+		        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+		    
+		Page<TestStudentResult> testResults = testStudentResultRepository.findByTestInGroup(testInGroup, pageable);
+		
+		return testResults.map(testStudentResultMapper::toTestResultViewResponse);
+	}
+	
 	
 	private Set<String> normalizeAnswer(String answer) {
 	    return Arrays.stream(answer.split(","))

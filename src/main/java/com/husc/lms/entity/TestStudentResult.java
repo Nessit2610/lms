@@ -1,7 +1,6 @@
 package com.husc.lms.entity;
 
 import java.time.OffsetDateTime;
-import java.util.Date;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;

@@ -34,7 +34,6 @@ import com.husc.lms.dto.response.ChapterResponse;
 import com.husc.lms.dto.update.ChapterUpdateRequest;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Lesson;
-import com.husc.lms.entity.LessonMaterial;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.ChapterMapper;

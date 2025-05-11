@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.husc.lms.dto.request.FileUploadRequest;
 import com.husc.lms.dto.request.PostRequest;
 import com.husc.lms.dto.response.PostResponse;
+import com.husc.lms.dto.update.PostUpdateRequest;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Post;
 import com.husc.lms.entity.PostFile;
@@ -75,6 +76,48 @@ public class PostService {
 
 	    return postMapper.toPostResponse(post);
 	}
+
+	public PostResponse updatePost(PostUpdateRequest request) {
+	    Post post = postRepository.findById(request.getPostId())
+	            .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+
+	    if (request.getTitle() != null) {
+	        post.setTitle(request.getTitle());
+	    }
+
+	    if (request.getText() != null) {
+	        post.setText(request.getText());
+	    }
+
+	    List<FileUploadRequest> uploads = request.getFileUploadRequests();
+	    if (uploads != null && !uploads.isEmpty()) {
+	        List<PostFile> existingFiles = post.getFiles() != null ? post.getFiles() : new ArrayList<>();
+
+	        for (FileUploadRequest fileRequest : uploads) {
+	            MultipartFile file = fileRequest.getFile();
+	            String type = fileRequest.getType();
+
+	            if (file == null || file.isEmpty() || type == null || type.trim().isEmpty()) {
+	                continue;
+	            }
+
+	            boolean isDuplicate = existingFiles.stream().anyMatch(existing ->
+	                    existing.getFileName().equals(file.getOriginalFilename())
+	            );
+
+	            if (isDuplicate) continue;
+
+	            PostFile pf = postFileService.creatPostFile(post, file, type);
+	            existingFiles.add(pf);
+	        }
+
+	        post.setFiles(existingFiles);
+	    }
+
+	    post = postRepository.save(post);
+	    return postMapper.toPostResponse(post);
+	}
+
 
 	
 	public Boolean deletePost(String postId) {

@@ -1,8 +1,6 @@
 package com.husc.lms.entity;
 
 import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.Set;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
