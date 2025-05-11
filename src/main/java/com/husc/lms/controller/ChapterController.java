@@ -36,7 +36,10 @@ import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.ChapterRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.ChapterResponse;
+import com.husc.lms.dto.update.ChapterUpdateRequest;
 import com.husc.lms.service.ChapterService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/chapter")
@@ -47,26 +50,18 @@ public class ChapterController {
 	
 	
 	@PostMapping("/create")
-	public APIResponse<ChapterResponse> createChapter(@RequestParam("lessonId") String lessonid,
-													@RequestParam("name") String name,
-													@RequestParam("order") int order,
-													@RequestParam("file") MultipartFile file,
-													@RequestParam("type")String type){
+	public APIResponse<ChapterResponse> createChapter(@RequestBody @Valid ChapterRequest chapterRequest){
 		return APIResponse.<ChapterResponse>builder()
-				.result(chapterService.createChapter(lessonid, name, order, file, type))
+				.result(chapterService.createChapter(chapterRequest))
 				.build();
 		
 	}	
 	// Luu y, type : image , video , file
 	
 	@PutMapping("/update")
-	public APIResponse<ChapterResponse> updateChapter(@RequestParam("chapterId") String chapterId,
-			@RequestParam("name") String name,
-			@RequestParam("order") int order,
-			@RequestParam("file") MultipartFile file,
-			@RequestParam("type")String type){
+	public APIResponse<ChapterResponse> updateChapter(@RequestBody @Valid ChapterUpdateRequest request){
 		return APIResponse.<ChapterResponse>builder()
-				.result(chapterService.updateChapter(chapterId, name, order, file, type))
+				.result(chapterService.updateChapter(request))
 				.build();
 	}
 	

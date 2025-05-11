@@ -41,7 +41,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         @Override
         public ChatMessage sendMessage(String chatBoxId, String senderAccount, String content) {
                 Account acc = accountRepo.findByUsernameAndDeletedDateIsNull(senderAccount)
-                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND,
+                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
                                                 "Sender account not found: " + senderAccount));
 
                 ChatBox chatBox = chatBoxRepo.findById(chatBoxId)

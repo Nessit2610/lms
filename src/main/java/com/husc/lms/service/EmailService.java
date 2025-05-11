@@ -94,7 +94,7 @@ public class EmailService {
     		}
     		
     		if(!accountRepository.existsByUsername(toEmail)) {
-    			throw new AppException(ErrorCode.ACCOUNT_NOTFOUND);
+    			throw new AppException(ErrorCode.ACCOUNT_NOT_FOUND);
     		}
     		
     		MimeMessage message = mailSender.createMimeMessage();
@@ -103,7 +103,7 @@ public class EmailService {
     		helper.setSubject("Xác nhận đặt lại mật khẩu cho tài khoản - HUSC LMS");
     		helper.setFrom(new InternetAddress("husclms@gmail.com", "HUSC LMS"));
     		String newPassword = generateRandomPassword();
-    		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(toEmail).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+    		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(toEmail).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
     		account.setPassword(passwordEncoder.encode(newPassword));
     		accountRepository.save(account);
     		String htmlContent = buildHtmlContentPassword(newPassword);

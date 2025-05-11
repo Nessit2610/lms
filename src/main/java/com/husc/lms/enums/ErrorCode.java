@@ -14,7 +14,6 @@ public enum ErrorCode {
 	UNCATEGORIZED_EXCEPTION(1002,"Uncategorized error",HttpStatus.INTERNAL_SERVER_ERROR),
 	PASSWORD_INVALID(1004,"Password must be at least 8 characters",HttpStatus.BAD_REQUEST),
 	INVALID_KEY(1005,"Invalid message key",HttpStatus.BAD_REQUEST),
-	ACCOUNT_NOTFOUND(1006,"Account not found",HttpStatus.BAD_REQUEST),
 	USER_UNAUTHENTICATED(1007, "Unauthenticated",HttpStatus.UNAUTHORIZED),
 	UNAUTHORIZED(1008, "You do not have permission",HttpStatus.FORBIDDEN),
 	ROLE_NOT_FOUND(1009, "Role not found", HttpStatus.BAD_REQUEST),
@@ -57,7 +56,8 @@ public enum ErrorCode {
 	CHATBOX_MEMBER_NOT_FOUND(1035,"No ChatMember in this ChatBox", HttpStatus.NOT_FOUND),
 	RESULT_NOT_FOUND(1036,"RESULT_NOT_FOUND", HttpStatus.NOT_FOUND),
 	STUDENT_ALREADY_IN_GROUP(1037, "Sinh viên này đã tham gia vào nhóm", HttpStatus.BAD_REQUEST),
-	INVALID_PARAMETER(1038,"Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST);
+	INVALID_PARAMETER(1038,"Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST),
+	NOT_NULL(1039,"Không được để trống",HttpStatus.BAD_REQUEST);
   
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
 		this.Code = code;

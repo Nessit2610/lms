@@ -84,7 +84,7 @@ public class CourseService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		Teacher teacher = teacherRepository.findByAccount(account);
 		
 		Major major = majorRepository.findById(request.getMajorId()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
@@ -167,7 +167,7 @@ public class CourseService {
 		
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		
 		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;

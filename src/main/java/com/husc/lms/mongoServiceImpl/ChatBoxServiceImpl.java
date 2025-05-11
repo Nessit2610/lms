@@ -105,7 +105,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
             String username = context.getAuthentication().getName();
 
             Account currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(username)
-                            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+                            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
             List<ChatBoxMember> memberships = memberRepo.findByAccountUsername(currentAccount.getUsername());
             List<String> chatBoxIds = memberships.stream()
@@ -122,7 +122,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
             String username = context.getAuthentication().getName();
 
             Account currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(username)
-                            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+                            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
             // Lấy tất cả chatbox mà user tham gia
             List<ChatBoxMember> memberships = memberRepo.findByAccountUsername(currentAccount.getUsername());

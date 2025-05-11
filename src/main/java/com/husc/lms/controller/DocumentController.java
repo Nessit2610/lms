@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,9 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.husc.lms.constant.Constant;
+import com.husc.lms.dto.request.DocumentRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.DocumentResponse;
 import com.husc.lms.service.DocumentService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/document")
@@ -35,13 +39,9 @@ public class DocumentController {
 	private DocumentService documentService;
 	
 	@PostMapping("/create")
-	public APIResponse<DocumentResponse> createDocument(@RequestParam("title") String title,
-														@RequestParam("description") String description,
-														@RequestParam("majorId") String majorId,
-														@RequestParam("file") MultipartFile file,
-														@RequestParam("type") String type){
+	public APIResponse<DocumentResponse> createDocument(@RequestBody @Valid DocumentRequest request){
 		return APIResponse.<DocumentResponse>builder()
-				.result(documentService.createDocument(title, description, description, majorId, file, type))
+				.result(documentService.createDocument(request))
 				.build();
 	}
 	

@@ -86,7 +86,7 @@ public class AccountService {
         try {
         	account = accountRepository.save(account);
         } catch (DataIntegrityViolationException exception) {
-            throw new AppException(ErrorCode.ACCOUNT_NOTFOUND);
+            throw new AppException(ErrorCode.ACCOUNT_NOT_FOUND);
         }
 
         return accountMapper.toAccountResponse(account);
@@ -114,7 +114,7 @@ public class AccountService {
         try {
         	account = accountRepository.save(account);
         } catch (DataIntegrityViolationException exception) {
-            throw new AppException(ErrorCode.ACCOUNT_NOTFOUND);
+            throw new AppException(ErrorCode.ACCOUNT_NOT_FOUND);
         }
 
         return accountMapper.toAccountResponse(account);
@@ -124,7 +124,7 @@ public class AccountService {
 	    var context = SecurityContextHolder.getContext();
 	    String username = context.getAuthentication().getName();
 
-	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username).orElseThrow( () -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username).orElseThrow( () -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
 	    if (!passwordEncoder.matches(request.getOldPassword(), account.getPassword())) {
 	        throw new AppException(ErrorCode.OLD_PASSWORD_INCORRECT);

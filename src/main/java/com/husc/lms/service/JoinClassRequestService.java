@@ -166,7 +166,7 @@ public class JoinClassRequestService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
 		

@@ -31,6 +31,7 @@ import com.husc.lms.constant.Constant;
 import com.husc.lms.constant.TriFunction;
 import com.husc.lms.dto.request.ChapterRequest;
 import com.husc.lms.dto.response.ChapterResponse;
+import com.husc.lms.dto.update.ChapterUpdateRequest;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.LessonMaterial;
@@ -52,54 +53,54 @@ public class ChapterService {
 	@Autowired
 	private LessonRepository lessonRepository;
 	
-	public ChapterResponse createChapter(String lessonId, String name, int order, MultipartFile file, String type) {
+	public ChapterResponse createChapter(ChapterRequest request) {
 		var context = SecurityContextHolder.getContext();
 		String nameAccount = context.getAuthentication().getName();
-		Lesson lesson = lessonRepository.findById(lessonId).get();
-		if (chapterRepository.existsByLessonAndOrderAndDeletedDateIsNull(lesson, order)) {
+		Lesson lesson = lessonRepository.findById(request.getLessonId()).get();
+		if (chapterRepository.existsByLessonAndOrderAndDeletedDateIsNull(lesson, request.getOrder())) {
 	        throw new AppException(ErrorCode.CHAPTER_ORDER_DUPLICATE);
 	    }
-		String extension = fileExtension.apply(file.getOriginalFilename());
-		validateFileExtension(type, extension);
+		String extension = fileExtension.apply(request.getFile().getOriginalFilename());
+		validateFileExtension(request.getType(), extension);
 		Chapter chapter = Chapter.builder()
-				.name(name)
-				.order(order)
+				.name(request.getName())
+				.order(request.getOrder())
 				.lesson(lesson)
 				.createdBy(nameAccount)
 				.createdDate(new Date())
 				.build();
 		chapter = chapterRepository.save(chapter);
 		String chapterId = chapter.getId();
-		uploadFile(chapterId, file, type);
+		uploadFile(chapterId, request.getFile(), request.getType());
 		return chapterMapper.toChapterResponse(chapter);
 	}
 	
-	public ChapterResponse updateChapter(String chapterId, String name, int order, MultipartFile file, String type) {
+	public ChapterResponse updateChapter(ChapterUpdateRequest request) {
 	    var context = SecurityContextHolder.getContext();
 	    String nameAccount = context.getAuthentication().getName();
 
-	    Chapter chapter = chapterRepository.findById(chapterId)
+	    Chapter chapter = chapterRepository.findById(request.getChapterId())
 	        .orElseThrow(() -> new AppException(ErrorCode.CHAPTER_NOT_FOUND));
 
 	    Lesson lesson = chapter.getLesson();
 
 	    boolean isOrderExist = chapterRepository
-	        .findByLessonAndOrderAndDeletedDateIsNull(lesson, order)
-	        .map(existing -> !existing.getId().equals(chapterId)) 
+	        .findByLessonAndOrderAndDeletedDateIsNull(lesson, request.getOrder())
+	        .map(existing -> !existing.getId().equals(request.getChapterId())) 
 	        .orElse(false);
 
 	    if (isOrderExist) {
 	        throw new AppException(ErrorCode.CHAPTER_ORDER_DUPLICATE); 
 	    }
 
-	    chapter.setName(name);
-	    chapter.setOrder(order);
-	    chapter.setType(type);
+	    chapter.setName(request.getName());
+	    chapter.setOrder(request.getOrder());
+	    chapter.setType(request.getType());
 	    chapter.setLastModifiedBy(nameAccount);
 	    chapter.setLastModifiedDate(new Date());
 
 	    chapter = chapterRepository.save(chapter);
-	    uploadFile(chapterId, file, type);
+	    uploadFile(request.getChapterId(), request.getFile(), request.getType());
 
 	    return chapterMapper.toChapterResponse(chapter);
 	}

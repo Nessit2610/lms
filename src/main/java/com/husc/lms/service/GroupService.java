@@ -79,7 +79,7 @@ public class GroupService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(()-> new AppException(ErrorCode.CODE_ERROR.ACCOUNT_NOTFOUND));
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(()-> new AppException(ErrorCode.CODE_ERROR.ACCOUNT_NOT_FOUND));
 		Teacher teacher = teacherRepository.findByAccount(account);
 		
 		Pageable pageable = PageRequest.of(page, size);
