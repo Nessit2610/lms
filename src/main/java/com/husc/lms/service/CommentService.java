@@ -226,8 +226,16 @@ public class CommentService {
                 Comment comment = commentRepository.findById(commentId)
                                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
-                Pageable replyPageable = PageRequest.of(pageNumber, pageSize);
-                Page<CommentReply> pagedReplies = commentReplyRepository.findByComment(comment, replyPageable);
+                if (pageSize < 0) {
+                        throw new IllegalArgumentException("pageSize must be non-negative.");
+                }
+
+                int actualOffset = pageNumber; // pageNumber is 0-indexed for offset
+                int actualLimit = pageSize + 1;
+                Sort sort = Sort.by(Sort.Direction.DESC, "createdDate");
+                Pageable customReplyPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
+
+                Page<CommentReply> pagedReplies = commentReplyRepository.findByComment(comment, customReplyPageable);
 
                 return pagedReplies.map(reply -> {
                         Account replyAccount = reply.getReplyAccount();
@@ -271,92 +279,6 @@ public class CommentService {
 
                 return commentRepository.findUnreadCommentsByCourseId(courseId, pageRequest);
         }
-
-        // public Page<CommentOfCourseResponse>
-        // getTotalUnreadCommentsOfCourseForTeacher(int pageNumber, int pageSize) {
-        // var context = SecurityContextHolder.getContext();
-        // String name = context.getAuthentication().getName();
-        //
-        // Account teacherAccount =
-        // accountRepository.findByUsernameAndDeletedDateIsNull(name)
-        // .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
-        //
-        // if (teacherAccount.getTeacher() == null) {
-        // return Page.empty();
-        // }
-        //
-        // Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        //
-        // Page<Course> coursesOfTeacher =
-        // courseRepository.findByTeacherAndDeletedDateIsNull(teacherAccount.getTeacher(),
-        // pageable);
-        //
-        // Page<CommentOfCourseResponse> result = coursesOfTeacher.map(courseOfTeacher
-        // -> {
-        //
-        // int totalCommentsOfCourse =
-        // commentReadStatusRepository.countAllValidCommentReadStatusesByCourse(courseOfTeacher)
-        // +
-        // commentReadStatusRepository.countAllValidCommentReplyReadStatusesByCourse(courseOfTeacher);
-        // int totalUnreadCommentOfCourse =
-        // commentReadStatusRepository.countUnreadValidCommentReadStatusesByCourse(courseOfTeacher)
-        // +
-        // commentReadStatusRepository.countUnreadValidCommentReplyReadStatusesByCourse(courseOfTeacher);
-        //
-        // List<CommentOfCourseResponse.CommentOfLesson> commentOfLesson =
-        // courseOfTeacher.getLesson().stream().map(lessonOfCourse -> {
-        // int totalCommentOfLesson =
-        // commentReadStatusRepository.countAllValidCommentReadStatusesByLessonInCourse(lessonOfCourse)
-        // +
-        // commentReadStatusRepository.countAllValidCommentReplyReadStatusesByLessonInCourse(lessonOfCourse);
-        // int totalUnreadCommentsOfLesson =
-        // commentReadStatusRepository.countUnreadCommentReadStatusesByLessonInCourse(lessonOfCourse)
-        // +
-        // commentReadStatusRepository.countUnreadCommentReplyReadStatusesByLessonInCourse(lessonOfCourse);
-        //
-        // List<CommentOfCourseResponse.CommentOfChapter> commentOfChapter =
-        // lessonOfCourse.getChapter().stream().map(chapterOfLesson -> {
-        // int totalCommentOfChapter =
-        // commentReadStatusRepository.countAllValidCommentReadStatusesByChapter(chapterOfLesson)
-        // +
-        // commentReadStatusRepository.countAllValidCommentReplyReadStatusesByChapter(chapterOfLesson);
-        // int totalUnreadCommentsOfChapter =
-        // commentReadStatusRepository.countUnreadCommentReadStatusesByChapter(chapterOfLesson)
-        // +
-        // commentReadStatusRepository.countUnreadCommentReplyReadStatusesByChapter(chapterOfLesson);
-        //
-        // return CommentOfCourseResponse.CommentOfChapter.builder()
-        // .chapterId(chapterOfLesson.getId())
-        // .chapterName(chapterOfLesson.getName())
-        // .chapterOrder(chapterOfLesson.getOrder())
-        // .totalCommentsOfChapter(totalCommentOfChapter)
-        // .totalUnreadCommentsOfChapter(totalUnreadCommentsOfChapter)
-        // .build();
-        // }).toList();
-        //
-        // return CommentOfCourseResponse.CommentOfLesson.builder()
-        // .lessonId(lessonOfCourse.getId())
-        // .lessonName(lessonOfCourse.getDescription())
-        // .lessonOrder(lessonOfCourse.getOrder())
-        // .totalCommentsOfLesson(totalCommentOfLesson)
-        // .totalUnreadCommentsOfLesson(totalUnreadCommentsOfLesson)
-        // .commentsOfChapter(commentOfChapter)
-        // .build();
-        // }).toList();
-        //
-        // return CommentOfCourseResponse.builder()
-        // .courseId(courseOfTeacher.getId())
-        // .courseName(courseOfTeacher.getName())
-        // .totalCommentsOfCourse(totalCommentsOfCourse)
-        // .totalUnreadCommentsfCourse(totalUnreadCommentOfCourse)
-        // .commentsOfLesson(commentOfLesson)
-        // .build();
-        //
-        // });
-        //
-        // return result;
-        //
-        // }
 
         public Page<CommentOfCourseResponse> getCoursesWithUnreadComments(int pageNumber, int pageSize) {
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -558,7 +480,7 @@ public class CommentService {
                 Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameOwner())
                                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
-                if (!changeComment.getAccount().equals(ownerAccount)) {
+                if (!changeComment.getAccount().getId().equals(ownerAccount.getId())) {
                         throw new AppException(ErrorCode.OWNER_NOT_MATCH); // hoặc tạo error code phù hợp
                 }
 
