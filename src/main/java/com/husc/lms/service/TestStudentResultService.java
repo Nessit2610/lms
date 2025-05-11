@@ -161,11 +161,8 @@ public class TestStudentResultService {
 	}
 
 	
-	public TestStudentResultResponse getDetail(String testId) {
-		var context = SecurityContextHolder.getContext();
-		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+	public TestStudentResultResponse getDetail(String studentId, String testId) {
+		Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		TestInGroup testInGroup = testInGroupRepository.findById(testId).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 		
 		TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup).orElseThrow(() -> new AppException(ErrorCode.RESULT_NOT_FOUND));

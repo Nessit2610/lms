@@ -37,9 +37,10 @@ public class TestStudentResultController {
 	}
 	
 	@GetMapping("/gettestdetail")
-	public APIResponse<TestStudentResultResponse> getTestDetail(@RequestParam("testId") String testId){
+	public APIResponse<TestStudentResultResponse> getTestDetail(@RequestParam("studentId") String studentId,
+																@RequestParam("testId") String testId){
 		return APIResponse.<TestStudentResultResponse>builder()
-				.result(testStudentResultService.getDetail(testId))
+				.result(testStudentResultService.getDetail(studentId,testId))
 				.build();
 	}
 	
