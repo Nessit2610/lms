@@ -52,6 +52,7 @@ import com.husc.lms.repository.StudentRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageImpl;
 
 @Service
 @RequiredArgsConstructor
@@ -183,18 +184,37 @@ public class CommentService {
                         throw new IllegalArgumentException("pageSize must be non-negative.");
                 }
 
-                int actualOffset = pageNumber;
+                int actualOffset = pageNumber * pageSize; // Correct offset calculation
                 int actualLimit = pageSize + 1;
 
                 // The sort order is derived from the repository method name convention
                 Sort sort = Sort.by(Sort.Direction.DESC, "createdDate");
-                Pageable customPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
+                // Use Spring's PageRequest for offset and limit if your repository supports it
+                // directly
+                // or adjust OffsetLimitPageRequest if it's a custom implementation for
+                // offset/limit.
+                // For now, assuming OffsetLimitPageRequest is designed for raw offset and
+                // limit.
+                Pageable fetchPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
 
-                Page<Comment> pagedComments = commentRepository.findByChapterAndDeletedDateIsNullOrderByCreatedDateDesc(
-                                chapter,
-                                customPageable);
+                Page<Comment> fetchedCommentsPage = commentRepository
+                                .findByChapterAndDeletedDateIsNullOrderByCreatedDateDesc(
+                                                chapter,
+                                                fetchPageable);
 
-                return pagedComments.map(comment -> {
+                List<Comment> comments = fetchedCommentsPage.getContent();
+                boolean hasNext = comments.size() > pageSize;
+
+                List<Comment> commentsToReturn = hasNext ? comments.subList(0, pageSize) : comments;
+
+                // Create a new Pageable for the returned Page, reflecting the requested
+                // pageSize
+                Pageable returnPageable = PageRequest.of(pageNumber, pageSize, sort);
+
+                Page<Comment> finalCommentPage = new PageImpl<>(commentsToReturn, returnPageable,
+                                fetchedCommentsPage.getTotalElements());
+
+                return finalCommentPage.map(comment -> {
                         Account commentAccount = comment.getAccount();
                         String usernameOwner = commentAccount.getUsername();
                         String commentAvatar = "";
@@ -231,14 +251,27 @@ public class CommentService {
                         throw new IllegalArgumentException("pageSize must be non-negative.");
                 }
 
-                int actualOffset = pageNumber; // pageNumber is 0-indexed for offset
+                int actualOffset = pageNumber * pageSize; // Correct offset calculation
                 int actualLimit = pageSize + 1;
                 Sort sort = Sort.by(Sort.Direction.DESC, "createdDate");
-                Pageable customReplyPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
+                // Assuming OffsetLimitPageRequest is designed for raw offset and limit.
+                Pageable fetchPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
 
-                Page<CommentReply> pagedReplies = commentReplyRepository.findByComment(comment, customReplyPageable);
+                Page<CommentReply> fetchedRepliesPage = commentReplyRepository.findByComment(comment, fetchPageable);
 
-                return pagedReplies.map(reply -> {
+                List<CommentReply> replies = fetchedRepliesPage.getContent();
+                boolean hasNext = replies.size() > pageSize;
+
+                List<CommentReply> repliesToReturn = hasNext ? replies.subList(0, pageSize) : replies;
+
+                // Create a new Pageable for the returned Page, reflecting the requested
+                // pageSize
+                Pageable returnPageable = PageRequest.of(pageNumber, pageSize, sort);
+
+                Page<CommentReply> finalReplyPage = new PageImpl<>(repliesToReturn, returnPageable,
+                                fetchedRepliesPage.getTotalElements());
+
+                return finalReplyPage.map(reply -> {
                         Account replyAccount = reply.getReplyAccount();
                         String replyAvatar = "";
                         String replyFullname = "";
@@ -255,7 +288,7 @@ public class CommentService {
 
                         if (ownerAccount.getStudent() != null) {
                                 fullnameOwner = ownerAccount.getStudent().getFullName();
-                        } else if (replyAccount.getTeacher() != null) {
+                        } else if (ownerAccount.getTeacher() != null) { // Corrected: was replyAccount.getTeacher()
                                 fullnameOwner = ownerAccount.getTeacher().getFullName();
                         }
 
@@ -441,14 +474,16 @@ public class CommentService {
                                 .username(account.getUsername())
                                 .fullname(account.getStudent() != null && account.getStudent().getFullName() != null
                                                 ? account.getStudent().getFullName()
-                                                : (account.getTeacher() != null && account.getTeacher().getFullName() != null
-                                                        ? account.getTeacher().getFullName()
-                                                        : ""))
+                                                : (account.getTeacher() != null
+                                                                && account.getTeacher().getFullName() != null
+                                                                                ? account.getTeacher().getFullName()
+                                                                                : ""))
                                 .avatar(account.getStudent() != null && account.getStudent().getAvatar() != null
-                                            	? account.getStudent().getAvatar()
-                                                : (account.getTeacher() != null && account.getTeacher().getAvatar() != null
-                                                        ? account.getTeacher().getAvatar()
-                                                        : ""))
+                                                ? account.getStudent().getAvatar()
+                                                : (account.getTeacher() != null
+                                                                && account.getTeacher().getAvatar() != null
+                                                                                ? account.getTeacher().getAvatar()
+                                                                                : ""))
                                 .detail(comment.getDetail())
                                 .createdDate(comment.getCreatedDate())
                                 .commentReplyResponses(List.of())
