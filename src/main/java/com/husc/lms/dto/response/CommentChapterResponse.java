@@ -19,6 +19,7 @@ public class CommentChapterResponse {
 	private String avatar;
 	private String detail;
 	private OffsetDateTime createdDate;
+	private OffsetDateTime updateDate;
 	private int countOfReply;
 //	private List<CommentReplyResponse> commentReplyResponses;
 

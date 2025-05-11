@@ -201,6 +201,7 @@ public class CommentReplyService {
                                 .avatarReply(avatarReply)
                                 .detail(savedReply.getDetail())
                                 .createdDate(savedReply.getCreatedDate())
+                                .updateDate(savedReply.getUpdateDateAt())
                                 .replyCount(newReplyCountAfterSave)
                                 .build();
         }
