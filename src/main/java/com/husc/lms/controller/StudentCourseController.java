@@ -62,9 +62,9 @@ public class StudentCourseController {
 	
 	@GetMapping("/searchstudentnotin")
 	public APIResponse<Page<StudentViewResponse>> searchStudentNotInCourse(@RequestParam("courseId") String courseId,
-			@RequestParam("keyword") String keyword,
-			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
-			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+																			@RequestParam("keyword") String keyword,
+																			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(studentCourseService.searchStudentNotInCourse(courseId,keyword,pageNumber,pageSize))
 				.build();

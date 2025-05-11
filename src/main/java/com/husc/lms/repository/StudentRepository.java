@@ -1,7 +1,6 @@
 package com.husc.lms.repository;
 
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Account;
-import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Group;
 
 @Repository

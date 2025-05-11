@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.JoinClassRequest;
 import com.husc.lms.entity.Course;
-import java.util.List;
 import com.husc.lms.entity.Student;
 
 

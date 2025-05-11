@@ -1,6 +1,6 @@
 package com.husc.lms.entity;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -40,11 +40,11 @@ public class TestInGroup {
     @JoinColumn(name = "groupId")
     private Group group;
 
-    private Date createdAt;
+    private OffsetDateTime createdAt;
 
-    private Date startedAt;
+    private OffsetDateTime startedAt;
     
-    private Date expiredAt;
+    private OffsetDateTime expiredAt;
 
     @OneToMany(mappedBy = "testInGroup", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestQuestion> questions;

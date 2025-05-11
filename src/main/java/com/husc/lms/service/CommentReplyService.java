@@ -233,7 +233,7 @@ public class CommentReplyService {
                                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
                 Account replyAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameReply())
-                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
                 if (!changeCommentReply.getOwnerAccount().equals(replyAccount)) {
                         throw new AppException(ErrorCode.OWNER_NOT_MATCH); // hoặc tạo error code phù hợp
@@ -273,7 +273,7 @@ public class CommentReplyService {
 
                 Account requestingAccount = accountRepository
                                 .findByUsernameAndDeletedDateIsNull(message.getUsernameReply())
-                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
                 if (!commentReplyToDelete.getReplyAccount().getId().equals(requestingAccount.getId())) {
                         throw new AppException(ErrorCode.OWNER_NOT_MATCH);

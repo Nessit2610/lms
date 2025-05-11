@@ -332,136 +332,7 @@
                 const li = document.createElement('li');
                 li.className = `notification-item ${notification.read ? '' : 'unread'}`;
                 li.innerHTML = `
-                    <div class="notification-content">
-                        ${notification.description}
-                    </div>
-                    <div class="notification-time">${formatTimeAgo(new Date(notification.createdAt))}</div>
-                `;
-                notificationList.appendChild(li);
-            });
-        }
-
-        function addNewNotification(notification) {
-            const notificationList = document.querySelector('.notification-list');
-            const emptyMessage = notificationList.querySelector('.notification-item');
-
-            if (emptyMessage && emptyMessage.textContent.includes('Chưa có thông báo mới')) {
-                notificationList.innerHTML = '';
-            }
-
-            const li = document.createElement('li');
-            li.className = 'notification-item unread';
-            li.innerHTML = `
-                <div class="notification-content">
-                    ${notification.description}
-                </div>
-                <div class="notification-time">Vừa xong</div>
-            `;
-
-            notificationList.insertBefore(li, notificationList.firstChild);
-            updateNotificationBadge();
-            showNotificationAlert();
-        }
-
-        function formatTimeAgo(date) {
-            const now = new Date();
-            const seconds = Math.floor((now - date) / 1000);
-            const minutes = Math.floor(seconds / 60);
-            const hours = Math.floor(minutes / 60);
-            const days = Math.floor(hours / 24);
-
-            if (days > 7) {
-                return date.toLocaleDateString('vi-VN', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            } else if (days > 0) {
-                return `${days} ngày trước`;
-            } else if (hours > 0) {
-                return `${hours} giờ trước`;
-            } else if (minutes > 0) {
-                return `${minutes} phút trước`;
-            } else {
-                return 'Vừa xong';
-            }
-        }
-
-        function updateNotificationBadge(count) {
-            const badge = document.querySelector('.notification-badge');
-            if (count !== undefined) {
-                badge.textContent = count;
-                badge.style.display = count > 0 ? 'flex' : 'none';
-            } else {
-                const unreadCount = document.querySelectorAll('.notification-item.unread').length;
-                badge.textContent = unreadCount;
-                badge.style.display = unreadCount > 0 ? 'flex' : 'none';
-            }
-        }
-
-        function markAllAsRead(event) {
-            event.stopPropagation();
-            const unreadItems = document.querySelectorAll('.notification-item.unread');
-            unreadItems.forEach(item => {
-                item.classList.remove('unread');
-            });
-            updateNotificationBadge(0);
-        }
-
-        function toggleNotifications() {
-            const panel = document.getElementById('notificationPanel');
-            panel.classList.toggle('show');
-        }
-
-        function showNotificationAlert() {
-            const bell = document.querySelector('.notification-icon');
-            bell.classList.add('shake');
-            setTimeout(() => {
-                bell.classList.remove('shake');
-            }, 1000);
-        }
-
-        document.addEventListener('DOMContentLoaded', function () {
-            const token = localStorage.getItem("token");
-            if (token) {
-                fetch("http://localhost:8080/lms/auth/introspect", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({ token: token })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.code === 0 && data.result && data.result.valid === true) {
-                            connectWebSocket();
-                            loadUnreadNotifications();
-                        } else {
-                            window.location.href = "/src/main/resources/static/loginn.html";
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Lỗi xác thực token:", error);
-                        window.location.href = "/src/main/resources/static/loginn.html";
-                    });
-            } else {
-                window.location.href = "/src/main/resources/static/loginn.html";
-            }
-        });
-
-        document.addEventListener('click', function (event) {
-            const panel = document.getElementById('notificationPanel');
-            const bell = document.querySelector('.notification-bell');
-            if (!bell.contains(event.target) && panel.classList.contains('show')) {
-                panel.classList.remove('show');
-            }
-        });
-
-        // Thêm CSS cho hiệu ứng shake
-        const style = document.createElement('style');
-        style.textContent = `
+     
             @keyframes shake {
                 0% { transform: rotate(0); }
                 15% { transform: rotate(5deg); }
@@ -476,9 +347,9 @@
             .notification-icon.shake {
                 animation: shake 0.5s ease-in-out;
             }
-        `;
-        document.head.appendChild(style);
-    </script>
+        ;
+		document.head.appendChild(style);
+	</script>
 </body>
 
 </html>

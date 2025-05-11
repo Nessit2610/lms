@@ -1,6 +1,6 @@
 package com.husc.lms.dto.response;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -20,11 +20,11 @@ public class TestInGroupResponse {
 
     private String description;
     
-    private Date startedAt;
+    private OffsetDateTime startedAt;
     
-    private Date createdAt;
+    private OffsetDateTime createdAt;
 
-    private Date expiredAt;
+    private OffsetDateTime expiredAt;
     
     private List<TestQuestionResponse> questions;
 }

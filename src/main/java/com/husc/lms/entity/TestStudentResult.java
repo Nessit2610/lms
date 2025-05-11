@@ -1,6 +1,6 @@
 package com.husc.lms.entity;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
@@ -43,9 +43,9 @@ public class TestStudentResult {
 
     private double score; // Điểm
 
-    private Date startedAt;
+    private OffsetDateTime startedAt;
 
-    private Date submittedAt;
+    private OffsetDateTime submittedAt;
 
     @OneToMany(mappedBy = "testStudentResult", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestStudentAnswer> testStudentAnswer;

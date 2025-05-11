@@ -1,19 +1,21 @@
 package com.husc.lms.service;
 
-import java.time.Instant;
-import java.util.ArrayList;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.AnswerRequest;
 import com.husc.lms.dto.request.SubmitTestRequets;
+import com.husc.lms.dto.response.TestResultViewResponse;
 import com.husc.lms.dto.response.TestStudentResultResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Student;
@@ -58,32 +60,46 @@ public class TestStudentResultService {
 	public boolean startTest(String testId) {	
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 	    TestInGroup testInGroup = testInGroupRepository
 	        .findById(testId)
 	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 
-	    Instant now = Instant.now();
-	    Instant startedAt = testInGroup.getStartedAt().toInstant();
-	    Instant expiredAt = testInGroup.getExpiredAt().toInstant();
+	    
+	 // Lấy thời gian hiện tại theo UTC
+	    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);  
 
+	    // Chuyển đổi thời gian bắt đầu và hết hạn về UTC (nếu không phải UTC)
+	    OffsetDateTime startedAt = testInGroup.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
+	    OffsetDateTime expiredAt = testInGroup.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
+
+	    // Kiểm tra nếu thời gian hiện tại trước thời gian bắt đầu
 	    if (now.isBefore(startedAt)) {
-	        throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);
+	        throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);  // Nếu chưa đến thời gian bắt đầu
 	    }
 
+	    // Kiểm tra nếu thời gian hiện tại sau thời gian hết hạn
 	    if (now.isAfter(expiredAt)) {
-	        throw new AppException(ErrorCode.TEST_IS_EXPIRED);
+	        throw new AppException(ErrorCode.TEST_IS_EXPIRED);  // Nếu đã quá thời gian hết hạn
 	    }
 
-	    if (!testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup).isEmpty()) {
+
+
+
+	    boolean alreadyStarted = !testStudentResultRepository
+	        .findByStudentAndTestInGroup(student, testInGroup)
+	        .isEmpty();
+
+	    if (alreadyStarted) {
 	        throw new AppException(ErrorCode.TEST_ALREADY_STARTED);
 	    }
+
 
 	    TestStudentResult testStudentResult = TestStudentResult.builder()
 	            .student(student)
 	            .testInGroup(testInGroup)
-	            .startedAt(new Date())
+	            .startedAt(OffsetDateTime.now(ZoneOffset.UTC))
 	            .build();
 
 	    testStudentResultRepository.save(testStudentResult);
@@ -134,7 +150,7 @@ public class TestStudentResultService {
 	    }
 
 	    
-	    testStudentResult.setSubmittedAt(new Date());
+	    testStudentResult.setSubmittedAt(OffsetDateTime.now(ZoneOffset.UTC));
 	    testStudentResult.setScore(totalScore);
 	    testStudentResult.setTotalCorrect(correctCount);
 	    
@@ -145,17 +161,38 @@ public class TestStudentResultService {
 	}
 
 	
-	public TestStudentResultResponse getDetail(String testId) {
-		var context = SecurityContextHolder.getContext();
-		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+	public TestStudentResultResponse getDetail(String studentId, String testId) {
+		Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		TestInGroup testInGroup = testInGroupRepository.findById(testId).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 		
 		TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup).orElseThrow(() -> new AppException(ErrorCode.RESULT_NOT_FOUND));
 	
 		return testStudentResultMapper.toTestStudentResultResponse(testStudentResult);
 	}
+	
+	public TestStudentResultResponse getDetailofStudent(String testId) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+		
+		TestInGroup testInGroup = testInGroupRepository.findById(testId).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+		TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup).orElseThrow(() -> new AppException(ErrorCode.RESULT_NOT_FOUND));
+		
+		return testStudentResultMapper.toTestStudentResultResponse(testStudentResult);
+	}
+	
+	
+	public Page<TestResultViewResponse> getAllResult(String testId, int pageNumber , int pageSize){
+		Pageable pageable = PageRequest.of(pageNumber, pageSize);
+		TestInGroup testInGroup = testInGroupRepository.findById(testId)
+		        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+		    
+		Page<TestStudentResult> testResults = testStudentResultRepository.findByTestInGroup(testInGroup, pageable);
+		
+		return testResults.map(testStudentResultMapper::toTestResultViewResponse);
+	}
+	
 	
 	private Set<String> normalizeAnswer(String answer) {
 	    return Arrays.stream(answer.split(","))

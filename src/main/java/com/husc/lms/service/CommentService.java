@@ -361,7 +361,7 @@ public class CommentService {
         public Page<CommentOfCourseResponse> getCoursesWithUnreadComments(int pageNumber, int pageSize) {
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 Account teacherAccount = accountRepository.findByUsernameAndDeletedDateIsNull(username)
-                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
                 if (teacherAccount.getTeacher() == null) {
                         return Page.empty();
@@ -556,7 +556,7 @@ public class CommentService {
                                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
                 Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameOwner())
-                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
                 if (!changeComment.getAccount().equals(ownerAccount)) {
                         throw new AppException(ErrorCode.OWNER_NOT_MATCH); // hoặc tạo error code phù hợp
@@ -592,7 +592,7 @@ public class CommentService {
                                 .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
 
                 Account ownerAccount = accountRepository.findByUsernameAndDeletedDateIsNull(message.getUsernameOwner())
-                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
                 if (!deleteComment.getAccount().getId().equals(ownerAccount.getId())) {
                         throw new AppException(ErrorCode.OWNER_NOT_MATCH);

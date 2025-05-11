@@ -9,15 +9,25 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
-public class FileUploadRequest {
+public class DocumentRequest {
 
+	@NotNull(message = "NOT_NULL")
+	private String title;
+	
+	private String description;
+	
+	@NotNull(message = "NOT_NULL")
+	private String status;
+	
+	@NotNull(message = "NOT_NULL")
+	private String majorId;
+	
 	@NotNull(message = "NOT_NULL")
 	private MultipartFile file;
 	
 	@NotNull(message = "NOT_NULL")
-    private String type;
-    
+	private String type;
 }

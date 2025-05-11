@@ -3,7 +3,7 @@ package com.husc.lms.dto.response;
 import java.util.Date;
 import java.util.List;
 
-import com.husc.lms.entity.PostFile;
+import com.husc.lms.entity.Teacher;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,6 +23,8 @@ public class PostResponse {
 	private String text;
 	
 	private Date createdAt;
+	
+	private TeacherResponse teacher;
 	
 	private List<PostFileResponse> files;
 }

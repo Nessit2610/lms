@@ -4,10 +4,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -20,7 +18,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.CourseRequest;
@@ -29,7 +26,6 @@ import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.update.CourseUpdateRequest;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
-import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.Major;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Teacher;
@@ -84,7 +80,7 @@ public class CourseService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		Teacher teacher = teacherRepository.findByAccount(account);
 		
 		Major major = majorRepository.findById(request.getMajorId()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
@@ -167,7 +163,7 @@ public class CourseService {
 		
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		
 		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;

@@ -1,7 +1,6 @@
 package com.husc.lms.dto.response;
 
 import java.util.Date;
-import java.util.List;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

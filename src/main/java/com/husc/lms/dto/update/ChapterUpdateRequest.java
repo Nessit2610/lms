@@ -1,4 +1,4 @@
-package com.husc.lms.dto.request;
+package com.husc.lms.dto.update;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,12 +12,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class FileUploadRequest {
-
-	@NotNull(message = "NOT_NULL")
-	private MultipartFile file;
+public class ChapterUpdateRequest {
 	
 	@NotNull(message = "NOT_NULL")
-    private String type;
-    
+	private String chapterId;
+	
+	@NotNull(message = "NOT_NULL")
+	private String name;
+	
+	@NotNull(message = "NOT_NULL")
+	private int order;
+	
+	@NotNull(message = "NOT_NULL")
+	private MultipartFile file; 
+	
+	@NotNull(message = "NOT_NULL")
+	private String type;
+	
 }

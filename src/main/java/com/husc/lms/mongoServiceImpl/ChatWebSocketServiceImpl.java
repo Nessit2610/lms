@@ -44,7 +44,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                         throw new AppException(ErrorCode.INVALID_PARAMETER, "Current account username is required.");
                 }
                 Account currentAccount = accountRepository.findByUsernameAndDeletedDateIsNull(currentAccountUsername)
-                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOTFOUND,
+                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
                                                 "Current account (creator) not found: " + currentAccountUsername));
 
                 String currentAccountFullname = currentAccount.getStudent() != null

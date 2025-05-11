@@ -8,7 +8,6 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,7 +22,6 @@ import com.husc.lms.dto.request.StudentRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.dto.response.StudentResponse;
-import com.husc.lms.entity.Student;
 import com.husc.lms.service.StudentService;
 
 import jakarta.validation.Valid;
@@ -57,9 +55,9 @@ public class StudentController {
 	}
 	@GetMapping("/searchnotingroup")
 	public APIResponse<Page<StudentViewResponse>> searchStudentNotInGroup(@RequestParam("groupId") String groupId,
-			@RequestParam("keyword") String keyword,
-			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
-			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+																		@RequestParam("keyword") String keyword,
+																		@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																		@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<StudentViewResponse>>builder()
 				.result(studentService.searchStudentsNotInGroup(groupId, keyword, pageNumber, pageSize))
 				.build();

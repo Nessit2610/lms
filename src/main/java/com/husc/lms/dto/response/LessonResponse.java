@@ -2,9 +2,6 @@ package com.husc.lms.dto.response;
 
 import java.util.List;
 
-import com.husc.lms.entity.LessonMaterial;
-import com.husc.lms.entity.LessonQuiz;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

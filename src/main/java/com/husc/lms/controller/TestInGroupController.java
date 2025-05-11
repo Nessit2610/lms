@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.request.TestInGroupRequest;
 import com.husc.lms.dto.response.APIResponse;
-import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.response.TestInGroupResponse;
 import com.husc.lms.dto.response.TestInGroupViewResponse;
 import com.husc.lms.service.TestInGroupService;

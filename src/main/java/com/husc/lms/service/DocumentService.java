@@ -30,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.husc.lms.configuration.LimitedInputStream;
 import com.husc.lms.constant.Constant;
 import com.husc.lms.constant.TriFunction;
+import com.husc.lms.dto.request.DocumentRequest;
 import com.husc.lms.dto.response.DocumentResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Document;
@@ -60,31 +61,31 @@ public class DocumentService {
 	@Autowired
 	private DocumentMapper documentMapper;
 	
-	public DocumentResponse createDocument(String title, String description, String status, String majorId, MultipartFile file, String type) {
-		String extension = fileExtension.apply(file.getOriginalFilename());
-		validateFileExtension(type, extension);
+	public DocumentResponse createDocument(DocumentRequest request) {
+		String extension = fileExtension.apply(request.getFile().getOriginalFilename());
+		validateFileExtension(request.getType(), extension);
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		
-		String statuss = switch (status) {
+		String statuss = switch (request.getType()) {
         case "PRIVATE" -> DocumentStatus.PRIVATE.name();
         case "PUBLIC" -> DocumentStatus.PUBLIC.name();
         default -> throw new AppException(ErrorCode.CODE_ERROR);
 		};
 		
-		Major major = majorRepository.findById(majorId).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
+		Major major = majorRepository.findById(request.getMajorId()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
 		Document document = Document.builder()
 				.account(account)
-				.title(title)
-				.description(description)
+				.title(request.getTitle())
+				.description(request.getDescription())
 				.status(statuss)
 				.major(major)
 				.createdAt(new Date())
 				.build();
 		document = documentRepository.save(document);
 		String id = document.getId();
-		uploadFile(id, file, type);
+		uploadFile(id, request.getFile(), request.getType());
 		DocumentResponse documentResponse = documentMapper.toDocumentResponse(document);
 		Object object = accountService.getAccountDetails(account.getId());
 		documentResponse.setObject(object);

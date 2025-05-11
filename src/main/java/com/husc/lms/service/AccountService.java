@@ -3,7 +3,6 @@ package com.husc.lms.service;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -32,9 +31,6 @@ import com.husc.lms.repository.TeacherRepository;
 import com.husc.lms.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
-
-
-
 
 @Service
 @RequiredArgsConstructor
@@ -86,7 +82,7 @@ public class AccountService {
         try {
         	account = accountRepository.save(account);
         } catch (DataIntegrityViolationException exception) {
-            throw new AppException(ErrorCode.ACCOUNT_NOTFOUND);
+            throw new AppException(ErrorCode.ACCOUNT_NOT_FOUND);
         }
 
         return accountMapper.toAccountResponse(account);
@@ -114,7 +110,7 @@ public class AccountService {
         try {
         	account = accountRepository.save(account);
         } catch (DataIntegrityViolationException exception) {
-            throw new AppException(ErrorCode.ACCOUNT_NOTFOUND);
+            throw new AppException(ErrorCode.ACCOUNT_NOT_FOUND);
         }
 
         return accountMapper.toAccountResponse(account);
@@ -124,7 +120,7 @@ public class AccountService {
 	    var context = SecurityContextHolder.getContext();
 	    String username = context.getAuthentication().getName();
 
-	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username).orElseThrow( () -> new AppException(ErrorCode.ACCOUNT_NOTFOUND));
+	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username).orElseThrow( () -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
 	    if (!passwordEncoder.matches(request.getOldPassword(), account.getPassword())) {
 	        throw new AppException(ErrorCode.OLD_PASSWORD_INCORRECT);

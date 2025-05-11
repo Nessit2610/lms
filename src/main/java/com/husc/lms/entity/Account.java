@@ -3,7 +3,6 @@ package com.husc.lms.entity;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 

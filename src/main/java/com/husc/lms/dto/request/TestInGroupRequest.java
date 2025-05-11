@@ -1,9 +1,8 @@
 package com.husc.lms.dto.request;
 
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.List;
 
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,10 +23,10 @@ public class TestInGroupRequest {
 
     private String description;
     
-    private Date startedAt;
+    private OffsetDateTime startedAt;
     
     @NotNull
-    private Date expiredAt;
+    private OffsetDateTime expiredAt;
     
     @NotNull
     private List<TestQuestionRequest> listQuestionRequest;

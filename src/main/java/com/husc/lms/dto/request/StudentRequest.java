@@ -1,5 +1,6 @@
 package com.husc.lms.dto.request;
 
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,9 +19,12 @@ public class StudentRequest {
 	)
 	private String email;
 	
+	@NotNull(message = "NOT_NULL")
     private String password;
     
+	@NotNull(message = "NOT_NULL")
     private String fullName;
 
+	@NotNull(message = "NOT_NULL")
     private String majorId;
 }
