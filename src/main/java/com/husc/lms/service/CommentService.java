@@ -180,21 +180,15 @@ public class CommentService {
                 Chapter chapter = chapterRepository.findById(chapterId)
                                 .orElseThrow(() -> new RuntimeException("Chapter not found"));
 
-                if (pageSize < 0) {
-                        throw new IllegalArgumentException("pageSize must be non-negative.");
+                if (pageSize < 1) {
+                        throw new IllegalArgumentException("pageSize must be 1 or greater.");
                 }
 
-                int actualOffset = pageNumber * pageSize; // Correct offset calculation
+                int actualOffset = pageNumber;
                 int actualLimit = pageSize + 1;
 
-                // The sort order is derived from the repository method name convention
                 Sort sort = Sort.by(Sort.Direction.DESC, "createdDate");
-                // Use Spring's PageRequest for offset and limit if your repository supports it
-                // directly
-                // or adjust OffsetLimitPageRequest if it's a custom implementation for
-                // offset/limit.
-                // For now, assuming OffsetLimitPageRequest is designed for raw offset and
-                // limit.
+
                 Pageable fetchPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
 
                 Page<Comment> fetchedCommentsPage = commentRepository
@@ -207,9 +201,7 @@ public class CommentService {
 
                 List<Comment> commentsToReturn = hasNext ? comments.subList(0, pageSize) : comments;
 
-                // Create a new Pageable for the returned Page, reflecting the requested
-                // pageSize
-                Pageable returnPageable = PageRequest.of(pageNumber, pageSize, sort);
+                Pageable returnPageable = PageRequest.of(pageNumber / pageSize, pageSize, sort);
 
                 Page<Comment> finalCommentPage = new PageImpl<>(commentsToReturn, returnPageable,
                                 fetchedCommentsPage.getTotalElements());
@@ -247,14 +239,14 @@ public class CommentService {
                 Comment comment = commentRepository.findById(commentId)
                                 .orElseThrow(() -> new RuntimeException("Comment not found"));
 
-                if (pageSize < 0) {
-                        throw new IllegalArgumentException("pageSize must be non-negative.");
+                if (pageSize < 1) {
+                        throw new IllegalArgumentException("pageSize must be 1 or greater.");
                 }
 
-                int actualOffset = pageNumber * pageSize; // Correct offset calculation
+                int actualOffset = pageNumber;
                 int actualLimit = pageSize + 1;
                 Sort sort = Sort.by(Sort.Direction.DESC, "createdDate");
-                // Assuming OffsetLimitPageRequest is designed for raw offset and limit.
+
                 Pageable fetchPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
 
                 Page<CommentReply> fetchedRepliesPage = commentReplyRepository.findByComment(comment, fetchPageable);
@@ -264,9 +256,7 @@ public class CommentService {
 
                 List<CommentReply> repliesToReturn = hasNext ? replies.subList(0, pageSize) : replies;
 
-                // Create a new Pageable for the returned Page, reflecting the requested
-                // pageSize
-                Pageable returnPageable = PageRequest.of(pageNumber, pageSize, sort);
+                Pageable returnPageable = PageRequest.of(pageNumber / pageSize, pageSize, sort);
 
                 Page<CommentReply> finalReplyPage = new PageImpl<>(repliesToReturn, returnPageable,
                                 fetchedRepliesPage.getTotalElements());
@@ -288,7 +278,7 @@ public class CommentService {
 
                         if (ownerAccount.getStudent() != null) {
                                 fullnameOwner = ownerAccount.getStudent().getFullName();
-                        } else if (ownerAccount.getTeacher() != null) { // Corrected: was replyAccount.getTeacher()
+                        } else if (ownerAccount.getTeacher() != null) {
                                 fullnameOwner = ownerAccount.getTeacher().getFullName();
                         }
 
