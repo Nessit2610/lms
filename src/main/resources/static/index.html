@@ -5,8 +5,37 @@
     <meta charset="UTF-8">
     <title>Trang chính</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .main-content {
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
         .notification-bell {
             position: fixed;
             top: 20px;
@@ -18,28 +47,28 @@
         .notification-icon {
             position: relative;
             display: inline-block;
-            padding: 10px;
+            padding: 12px;
             background: white;
             border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             transition: all 0.3s ease;
         }
 
         .notification-icon:hover {
             transform: scale(1.1);
-            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
         .notification-icon i {
             font-size: 24px;
-            color: #3498db;
+            color: #667eea;
         }
 
         .notification-badge {
             position: absolute;
             top: -5px;
             right: -5px;
-            background-color: #e74c3c;
+            background-color: #e53e3e;
             color: white;
             border-radius: 50%;
             padding: 4px 8px;
@@ -51,6 +80,21 @@
             justify-content: center;
             font-weight: bold;
             border: 2px solid white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         .notification-panel {
@@ -61,14 +105,10 @@
             max-height: 500px;
             background-color: white;
             border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
             display: none;
             z-index: 1000;
             overflow-y: auto;
-        }
-
-        .notification-panel.show {
-            display: block;
             animation: slideIn 0.3s ease;
         }
 
@@ -86,23 +126,23 @@
 
         .notification-header {
             padding: 15px 20px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #e2e8f0;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background-color: #f8f9fa;
+            background-color: #f8fafc;
             border-radius: 12px 12px 0 0;
         }
 
         .notification-header h3 {
             margin: 0;
             font-size: 18px;
-            color: #2c3e50;
+            color: #2d3748;
             font-weight: 500;
         }
 
         .mark-all-read {
-            color: #3498db;
+            color: #667eea;
             font-size: 14px;
             cursor: pointer;
             padding: 5px 10px;
@@ -111,7 +151,7 @@
         }
 
         .mark-all-read:hover {
-            background-color: #ebf5fb;
+            background-color: #ebf4ff;
         }
 
         .notification-list {
@@ -122,47 +162,90 @@
 
         .notification-item {
             padding: 15px 20px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid #e2e8f0;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .notification-item:hover {
-            background-color: #f8f9fa;
+            background-color: #f8fafc;
         }
 
         .notification-item.unread {
-            background-color: #ebf5fb;
-        }
-
-        .notification-item:last-child {
-            border-bottom: none;
-            border-radius: 0 0 12px 12px;
+            background-color: #ebf4ff;
         }
 
         .notification-content {
             font-size: 14px;
-            color: #34495e;
+            color: #2d3748;
             margin-bottom: 5px;
             line-height: 1.4;
         }
 
         .notification-time {
             font-size: 12px;
-            color: #95a5a6;
+            color: #718096;
+        }
+
+        .welcome-section {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .welcome-section h2 {
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem;
+        }
+
+        .action-button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
     </style>
 </head>
 
 <body>
-    <h1 id="greeting" style="display:none;">Hello</h1>
-    <button id="toTest" style="display:none;" onclick="window.location.href='/src/main/resources/static/test.html'">Đi
-        tới Test</button>
+    <div class="header">
+        <h1>Hệ thống LMS</h1>
+    </div>
+
+    <div class="main-content">
+        <div class="welcome-section">
+            <h2>Chào mừng đến với hệ thống LMS</h2>
+            <div class="action-buttons">
+                <button class="action-button" onclick="window.location.href='/src/main/resources/static/test.html'">
+                    <i class="fas fa-book"></i> Xem khóa học
+                </button>
+            </div>
+        </div>
+    </div>
 
     <div class="notification-bell" onclick="toggleNotifications()">
         <div class="notification-icon">
             <i class="fas fa-bell"></i>
-            <span class="notification-badge">3</span>
+            <span class="notification-badge">0</span>
         </div>
         <div class="notification-panel" id="notificationPanel">
             <div class="notification-header">
@@ -170,38 +253,25 @@
                 <span class="mark-all-read" onclick="markAllAsRead(event)">Đánh dấu đã đọc</span>
             </div>
             <ul class="notification-list">
-                <li class="notification-item unread">
+                <li class="notification-item">
                     <div class="notification-content">
-                        Bạn có một bình luận mới từ khóa học Java
+                        Chưa có thông báo mới
                     </div>
-                    <div class="notification-time">5 phút trước</div>
-                </li>
-                <li class="notification-item unread">
-                    <div class="notification-content">
-                        Giảng viên đã thêm tài liệu mới
-                    </div>
-                    <div class="notification-time">1 giờ trước</div>
-                </li>
-                <li class="notification-item unread">
-                    <div class="notification-content">
-                        Bài kiểm tra sẽ bắt đầu trong 30 phút
-                    </div>
-                    <div class="notification-time">2 giờ trước</div>
                 </li>
             </ul>
         </div>
     </div>
 
     <script>
-        let stompClient = window.stompClient;
+        let stompClient = null;
 
         function connectWebSocket() {
-            if (window.stompClient && window.stompClient.connected) {
+            if (stompClient && stompClient.connected) {
                 console.log("WebSocket đã được kết nối");
                 return;
             }
 
-            const socket = new WebSocket("ws://localhost:8080/lms/ws");
+            const socket = new SockJS('http://localhost:8080/lms/ws');
             stompClient = Stomp.over(socket);
             stompClient.connect({}, function (frame) {
                 console.log("Kết nối WebSocket thành công:", frame);
@@ -221,10 +291,11 @@
                     loadUnreadNotifications();
                 });
 
-                // Lưu stompClient vào window object
                 window.stompClient = stompClient;
-                // Đánh dấu đã kết nối trong sessionStorage
                 sessionStorage.setItem('wsConnected', 'true');
+            }, function (error) {
+                console.error("Lỗi kết nối WebSocket:", error);
+                setTimeout(connectWebSocket, 5000);
             });
         }
 
@@ -240,7 +311,6 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    console.log("Dữ liệu thông báo:", data);
                     if (data && data.notifications) {
                         displayNotifications(data.notifications);
                         updateNotificationBadge(data.unreadCount);
@@ -254,14 +324,13 @@
             notificationList.innerHTML = '';
 
             if (!notifications || notifications.length === 0) {
-                notificationList.innerHTML = '<li class="notification-item">Không có thông báo mới</li>';
+                notificationList.innerHTML = '<li class="notification-item">Chưa có thông báo mới</li>';
                 return;
             }
 
             notifications.forEach(notification => {
                 const li = document.createElement('li');
                 li.className = `notification-item ${notification.read ? '' : 'unread'}`;
-
                 li.innerHTML = `
                     <div class="notification-content">
                         ${notification.description}
@@ -274,11 +343,10 @@
 
         function addNewNotification(notification) {
             const notificationList = document.querySelector('.notification-list');
+            const emptyMessage = notificationList.querySelector('.notification-item');
 
-            // Xóa message "không có thông báo" nếu có
-            const emptyMessage = notificationList.querySelector('.empty-notification');
-            if (emptyMessage) {
-                emptyMessage.remove();
+            if (emptyMessage && emptyMessage.textContent.includes('Chưa có thông báo mới')) {
+                notificationList.innerHTML = '';
             }
 
             const li = document.createElement('li');
@@ -290,21 +358,9 @@
                 <div class="notification-time">Vừa xong</div>
             `;
 
-            // Thêm thông báo mới vào đầu danh sách
             notificationList.insertBefore(li, notificationList.firstChild);
-
-            // Cập nhật badge
             updateNotificationBadge();
-
-            // Hiển thị notification panel
-            const panel = document.getElementById('notificationPanel');
-            if (!panel.classList.contains('show')) {
-                panel.classList.add('show');
-                showNotificationAlert();
-                setTimeout(() => {
-                    panel.classList.remove('show');
-                }, 3000);
-            }
+            showNotificationAlert();
         }
 
         function formatTimeAgo(date) {
@@ -359,7 +415,14 @@
             panel.classList.toggle('show');
         }
 
-        // Khởi tạo khi trang load
+        function showNotificationAlert() {
+            const bell = document.querySelector('.notification-icon');
+            bell.classList.add('shake');
+            setTimeout(() => {
+                bell.classList.remove('shake');
+            }, 1000);
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             const token = localStorage.getItem("token");
             if (token) {
@@ -373,10 +436,6 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.code === 0 && data.result && data.result.valid === true) {
-                            document.getElementById("greeting").style.display = "block";
-                            document.getElementById("toTest").style.display = "inline-block";
-
-                            // Kết nối WebSocket và load notifications
                             connectWebSocket();
                             loadUnreadNotifications();
                         } else {
@@ -399,15 +458,6 @@
                 panel.classList.remove('show');
             }
         });
-
-        // Thêm hiệu ứng khi có thông báo mới
-        function showNotificationAlert() {
-            const bell = document.querySelector('.notification-icon');
-            bell.classList.add('shake');
-            setTimeout(() => {
-                bell.classList.remove('shake');
-            }, 1000);
-        }
 
         // Thêm CSS cho hiệu ứng shake
         const style = document.createElement('style');

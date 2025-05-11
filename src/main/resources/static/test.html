@@ -5,8 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LMS Course Viewer</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -17,8 +19,8 @@
         body {
             font-family: 'Roboto', sans-serif;
             line-height: 1.6;
-            color: #333;
-            background-color: #f5f7fa;
+            color: #2d3748;
+            background-color: #f8fafc;
             padding: 2rem;
         }
 
@@ -27,96 +29,73 @@
             margin: 0 auto;
         }
 
-        h2,
-        h3 {
-            color: #2c3e50;
-            margin-bottom: 1.5rem;
-            font-weight: 500;
-        }
-
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 2rem;
             background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h2 {
+            color: #2d3748;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 1rem;
         }
 
         button {
-            background-color: #3498db;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 0.8rem 1.5rem;
-            border-radius: 4px;
+            border-radius: 8px;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: background-color 0.3s ease;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         button:hover {
-            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
 
         .course {
             background: white;
-            border-radius: 8px;
+            border-radius: 12px;
             padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .course:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+        }
+
+        .course-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 1rem;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
-        .lesson {
-            background: #f8f9fa;
-            border-radius: 6px;
-            padding: 1rem;
-            margin: 1rem 0;
-            border-left: 4px solid #3498db;
-        }
-
-        .chapter {
-            background: white;
-            border-radius: 6px;
-            padding: 1rem;
-            margin: 0.8rem 0;
-            border: 1px solid #e1e8ed;
-        }
-
-        .material,
-        .quiz {
-            margin: 0.8rem 0;
-            padding: 0.8rem;
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-
-        .comments {
-            list-style: none;
-            margin-top: 1rem;
-        }
-
-        .comments li {
-            background: #f8f9fa;
-            padding: 0.8rem;
-            margin: 0.5rem 0;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 0.8rem;
-            margin: 0.5rem 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #3498db;
+        .course-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2d3748;
         }
 
         .course-info {
@@ -124,27 +103,95 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1rem;
             margin: 1rem 0;
+            padding: 1rem;
+            background: #f8fafc;
+            border-radius: 8px;
         }
 
         .course-info-item {
-            background: #f8f9fa;
-            padding: 0.8rem;
-            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
-        .course-info-item em {
-            color: #7f8c8d;
-            font-style: normal;
+        .course-info-label {
+            color: #718096;
             font-size: 0.9rem;
         }
 
-        .toggle-button {
-            background-color: #2ecc71;
-            margin-top: 1rem;
+        .course-info-value {
+            color: #2d3748;
+            font-weight: 500;
         }
 
-        .toggle-button:hover {
-            background-color: #27ae60;
+        .lesson {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .lesson-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .lesson-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #2d3748;
+        }
+
+        .material,
+        .quiz {
+            background: white;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .material-title,
+        .quiz-title {
+            font-weight: 500;
+            color: #4a5568;
+            margin-bottom: 0.5rem;
+        }
+
+        .material-link {
+            color: #667eea;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .material-link:hover {
+            text-decoration: underline;
+        }
+
+        .chapter {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .chapter-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .chapter-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #2d3748;
         }
 
         .comment-section {
@@ -152,7 +199,7 @@
             background: white;
             border-radius: 8px;
             padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
         .comment-header {
@@ -160,22 +207,24 @@
             align-items: center;
             margin-bottom: 1rem;
             padding-bottom: 0.5rem;
-            border-bottom: 2px solid #f0f0f0;
+            border-bottom: 2px solid #e2e8f0;
         }
 
         .comment-header h4 {
             margin: 0;
-            color: #2c3e50;
+            color: #2d3748;
             font-size: 1.1rem;
+            font-weight: 500;
         }
 
         .comment-count {
             margin-left: auto;
-            background: #e1f5fe;
-            color: #0288d1;
+            background: #ebf4ff;
+            color: #667eea;
             padding: 0.25rem 0.75rem;
             border-radius: 12px;
             font-size: 0.9rem;
+            font-weight: 500;
         }
 
         .comment-form {
@@ -193,20 +242,20 @@
             width: 100%;
             padding: 1rem;
             padding-right: 3rem;
-            border: 2px solid #e0e0e0;
+            border: 2px solid #e2e8f0;
             border-radius: 8px;
             font-size: 0.95rem;
             transition: all 0.3s ease;
         }
 
         .comment-input:focus {
-            border-color: #3498db;
+            border-color: #667eea;
             outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .send-button {
-            background: #3498db;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
             padding: 0.8rem 1.5rem;
@@ -214,15 +263,14 @@
             cursor: pointer;
             font-weight: 500;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .send-button:hover {
-            background: #2980b9;
-            transform: translateY(-1px);
-        }
-
-        .send-button:active {
-            transform: translateY(0);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
         }
 
         .comments-list {
@@ -236,9 +284,9 @@
         .comment-item {
             padding: 1rem;
             margin-bottom: 1rem;
-            background: #f8f9fa;
+            background: #f8fafc;
             border-radius: 8px;
-            border-left: 4px solid #3498db;
+            border-left: 4px solid #667eea;
             animation: fadeIn 0.3s ease;
         }
 
@@ -254,13 +302,9 @@
             }
         }
 
-        .comment-item:last-child {
-            margin-bottom: 0;
-        }
-
         .comment-content {
             margin-bottom: 0.5rem;
-            color: #2c3e50;
+            color: #2d3748;
             font-size: 0.95rem;
         }
 
@@ -269,23 +313,105 @@
             align-items: center;
             gap: 1rem;
             font-size: 0.85rem;
-            color: #7f8c8d;
+            color: #718096;
         }
 
         .comment-author {
-            color: #34495e;
+            color: #4a5568;
             font-weight: 500;
         }
 
         .comment-time {
-            color: #95a5a6;
+            color: #a0aec0;
         }
 
-        .empty-comments {
-            text-align: center;
-            padding: 2rem;
-            color: #7f8c8d;
-            font-style: italic;
+        .reply-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .reply-button:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .reply-form {
+            display: none;
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            border-left: 2px solid #667eea;
+        }
+
+        .reply-form.show {
+            display: block;
+        }
+
+        .reply-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .reply-input:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .reply-send-button {
+            background: #48bb78;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .reply-send-button:hover {
+            background: #38a169;
+            transform: translateY(-1px);
+        }
+
+        .replies-list {
+            margin-top: 0.5rem;
+            padding-left: 1rem;
+            border-left: 2px solid #667eea;
+        }
+
+        .reply-item {
+            padding: 0.8rem;
+            margin-bottom: 0.5rem;
+            background: #f8fafc;
+            border-radius: 6px;
+        }
+
+        .reply-content {
+            font-size: 0.9rem;
+            color: #2d3748;
+        }
+
+        .reply-metadata {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8rem;
+            color: #718096;
+            margin-top: 0.3rem;
         }
 
         .loading-spinner {
@@ -293,7 +419,7 @@
             width: 20px;
             height: 20px;
             border: 2px solid #f3f3f3;
-            border-top: 2px solid #3498db;
+            border-top: 2px solid #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             position: absolute;
@@ -312,6 +438,13 @@
             }
         }
 
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #718096;
+            font-style: italic;
+        }
+
         @media (max-width: 768px) {
             body {
                 padding: 1rem;
@@ -328,82 +461,17 @@
             .send-button {
                 width: 100%;
             }
-        }
 
-        .reply-button {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 0.3rem 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            margin-top: 0.5rem;
-            transition: all 0.3s ease;
-        }
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                text-align: center;
+            }
 
-        .reply-button:hover {
-            background: #2980b9;
-        }
-
-        .reply-form {
-            display: none;
-            margin-top: 0.5rem;
-            padding-left: 1rem;
-            border-left: 2px solid #3498db;
-        }
-
-        .reply-form.show {
-            display: block;
-        }
-
-        .reply-input {
-            width: 100%;
-            padding: 0.5rem;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-bottom: 0.5rem;
-        }
-
-        .reply-send-button {
-            background: #2ecc71;
-            color: white;
-            border: none;
-            padding: 0.3rem 0.8rem;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-
-        .reply-send-button:hover {
-            background: #27ae60;
-        }
-
-        .replies-list {
-            margin-top: 0.5rem;
-            padding-left: 1rem;
-            border-left: 2px solid #3498db;
-        }
-
-        .reply-item {
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
-            background: #f1f5f9;
-            border-radius: 4px;
-        }
-
-        .reply-content {
-            font-size: 0.9rem;
-            color: #2c3e50;
-        }
-
-        .reply-metadata {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.8rem;
-            color: #7f8c8d;
-            margin-top: 0.3rem;
+            .header-buttons {
+                width: 100%;
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -412,17 +480,19 @@
     <div class="container">
         <div class="header">
             <h2>Danh sách khóa học</h2>
-            <div>
-                <button onclick="loadCourses()">Tải khóa học</button>
+            <div class="header-buttons">
+                <button onclick="loadCourses()">
+                    <i class="fas fa-sync-alt"></i>
+                    Tải khóa học
+                </button>
+                <button onclick="window.location.href='/src/main/resources/static/index.html'">
+                    <i class="fas fa-home"></i>
+                    Trang chủ
+                </button>
             </div>
         </div>
 
-        <ul id="courseList"></ul>
-
-        <div class="websocket-section">
-            <h3>Thông báo thời gian thực</h3>
-            <ul id="messages"></ul>
-        </div>
+        <div id="courseList"></div>
     </div>
 
     <script>
@@ -489,7 +559,7 @@
                                 </li>
                             `).join('')
                     :
-                    '<li class="empty-comments">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</li>'
+                    '<li class="empty-state">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</li>'
                 }
                     </ul>
                 </div>
@@ -499,7 +569,7 @@
         function updateCommentInUI(content) {
             const commentsList = document.getElementById(`comments-${content.chapterId}`);
             if (commentsList) {
-                const emptyMessage = commentsList.querySelector('.empty-comments');
+                const emptyMessage = commentsList.querySelector('.empty-state');
                 if (emptyMessage) {
                     emptyMessage.remove();
                 }
@@ -588,12 +658,13 @@
                 }
 
                 const replyMessage = {
-                    ownerAccountId: ownerUsername,
-                    replyAccountId: replyUsername,
+                    parentCommentId: commentId,
                     chapterId: chapterId,
                     courseId: courseId,
-                    parentCommentId: commentId,
-                    detail: reply
+                    lessonId: lessonId,
+                    detail: reply,
+                    ownerUsername: ownerUsername,
+                    replyUsername: replyUsername
                 };
 
                 console.log("Sending reply message:", replyMessage);
@@ -628,7 +699,7 @@
                 return window.stompClient;
             }
 
-            const socket = new WebSocket("ws://localhost:8080/lms/ws");
+            const socket = new SockJS('http://localhost:8080/lms/ws');
             const stompClient = Stomp.over(socket);
 
             return new Promise((resolve, reject) => {
@@ -703,7 +774,7 @@
                     lessonId: lessonId,
                     chapterId: chapterId,
                     courseId: courseId,
-                    accountId: username
+                    username: username
                 }));
 
                 commentInput.value = '';
@@ -734,19 +805,25 @@
                 const courseList = document.getElementById("courseList");
                 courseList.innerHTML = "";
 
-                data.result.forEach(course => {
-                    const li = document.createElement("li");
-                    li.innerHTML = `
-                    <div class="course">
-                            <strong>${course.name}</strong> - ${course.description || 'Không có mô tả'}<br/>
-                            <em>Giảng viên:</em> ${course.teacher ? `${course.teacher.fullName} (${course.teacher.email})` : 'Chưa có giảng viên'}<br/>
-                            <em>Ngành:</em> ${course.major || 'Chưa có ngành'}<br/>
-                        <em>Thời gian học:</em> ${new Date(course.startDate).toLocaleDateString()} - ${new Date(course.endDate).toLocaleDateString()}<br/>
-                            <button onclick="loadCourseDetail('${course.id}')">Xem bài học</button>
-                        <ul id="lessons-${course.id}" style="display:none;"></ul>
-                    </div>`;
-                    courseList.appendChild(li);
-                });
+                // Kiểm tra xem data.result.content có tồn tại và là mảng không
+                if (data && data.result && data.result.content && Array.isArray(data.result.content)) {
+                    data.result.content.forEach(course => {
+                        const li = document.createElement("li");
+                        li.innerHTML = `
+                        <div class="course">
+                                <strong>${course.name}</strong> - ${course.description || 'Không có mô tả'}<br/>
+                                <em>Giảng viên:</em> ${course.teacher ? `${course.teacher.fullName} (${course.teacher.email})` : 'Chưa có giảng viên'}<br/>
+                                <em>Ngành:</em> ${course.major || 'Chưa có ngành'}<br/>
+                            <em>Thời gian học:</em> ${new Date(course.startDate).toLocaleDateString()} - ${new Date(course.endDate).toLocaleDateString()}<br/>
+                                <button onclick="loadCourseDetail('${course.id}')">Xem bài học</button>
+                            <ul id="lessons-${course.id}" style="display:none;"></ul>
+                        </div>`;
+                        courseList.appendChild(li);
+                    });
+                } else {
+                    console.error('Invalid data format:', data);
+                    alert('Dữ liệu trả về không đúng định dạng. Vui lòng thử lại sau.');
+                }
             } catch (error) {
                 console.error('Error loading courses:', error);
                 alert('Có lỗi xảy ra khi tải khóa học. Vui lòng thử lại sau.');
@@ -842,22 +919,56 @@
                         `;
 
                         // Gọi API để lấy comments cũ
-                        fetch(`http://localhost:8080/lms/comments/chapter/${chapter.id}`, {
+                        fetch("http://localhost:8080/lms/comments/unreadCommentsOfChapter/details", {
                             method: "GET",
                             headers: {
-                                "Authorization": "Bearer " + token
+                                "Authorization": "Bearer " + token,
+                                "chapterId": chapter.id,
+                                "pageNumber": "0",
+                                "pageSize": "10"
                             }
                         })
                             .then(response => response.json())
                             .then(commentsData => {
-                                if (commentsData) {
+                                if (commentsData && commentsData.result && commentsData.result.content) {
+                                    const comments = commentsData.result.content || [];
                                     const commentsContainer = chapterLi.querySelector(`#comments-container-${chapter.id}`);
                                     const commentsHtml = displayComments({
                                         id: chapter.id,
                                         lessonId: lesson.id,
                                         courseId: courseId
-                                    }, commentsData);
+                                    }, comments);
                                     commentsContainer.innerHTML = commentsHtml;
+
+                                    // Gọi API lấy reply cho từng comment
+                                    comments.forEach(comment => {
+                                        fetch("http://localhost:8080/lms/comments/unreadCommentsOfChapter/details/reply", {
+                                            method: "GET",
+                                            headers: {
+                                                "Authorization": "Bearer " + token,
+                                                "commentId": comment.commentId,
+                                                "pageNumber": "0",
+                                                "pageSize": "10"
+                                            }
+                                        })
+                                            .then(response => response.json())
+                                            .then(replyData => {
+                                                if (replyData && replyData.result && replyData.result.content) {
+                                                    const repliesList = commentsContainer.querySelector(`#replies-${comment.commentId}`);
+                                                    if (repliesList) {
+                                                        repliesList.innerHTML = replyData.result.content.map(reply => `
+                                                        <div class="reply-item">
+                                                            <div class="reply-content">${reply.detail || ''}</div>
+                                                            <div class="reply-metadata">
+                                                                <span class="comment-author">${reply.usernameReply || 'Anonymous'}</span>
+                                                                <span class="comment-time">${formatTimeAgo(reply.createdDate)}</span>
+                                                            </div>
+                                                        </div>
+                                                    `).join('');
+                                                    }
+                                                }
+                                            });
+                                    });
                                 }
                             })
                             .catch(error => {

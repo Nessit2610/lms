@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Hộp thoại Chat</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3/build/jwt-decode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 300px;
+            background-color: #ffffff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        .user-search-container {
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 15px;
+        }
+
+        .user-search-container input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        .user-search-container button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .user-search-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .chat-list-container {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .chat-list-container h3 {
+            margin-top: 0;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .chat-list-item {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: background-color 0.2s ease;
+        }
+
+        .chat-list-item:hover {
+            background-color: #f0f8ff;
+        }
+
+        .chat-list-item.active {
+            background-color: #e6f3ff;
+            font-weight: bold;
+        }
+
+        .chat-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .chat-info .chat-name {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 3px;
+        }
+
+        .chat-info .last-message {
+            font-size: 12px;
+            color: #777;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 180px;
+        }
+
+
+        .chat-area {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #e5ddd5;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            background-color: #007bff;
+            color: white;
+            font-size: 18px;
+            border-bottom: 1px solid #0056b3;
+        }
+
+        .messages-container {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message {
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            max-width: 70%;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message.sent {
+            background-color: #dcf8c6;
+            align-self: flex-end;
+            border-bottom-right-radius: 3px;
+        }
+
+        .message.received {
+            background-color: #ffffff;
+            align-self: flex-start;
+            border-bottom-left-radius: 3px;
+        }
+
+        .message .sender-name {
+            font-size: 0.75em;
+            color: #555;
+            margin-bottom: 3px;
+            font-weight: bold;
+        }
+
+        .message .message-content {
+            font-size: 0.9em;
+            padding-right: 30px;
+        }
+
+        .message-time-container {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-size: 0.7em;
+            color: #aaa;
+            margin-top: 3px;
+            position: absolute;
+            bottom: 5px;
+            right: 10px;
+        }
+
+        .message-time {
+            margin-right: 5px;
+        }
+
+        .status-indicator {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .sent-indicator {
+            color: #888;
+        }
+
+        .read-indicator {
+            color: #4fc3f7;
+        }
+
+        .message-input-container {
+            display: flex;
+            padding: 15px;
+            background-color: #f0f0f0;
+            border-top: 1px solid #ccc;
+        }
+
+        .message-input-container input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            margin-right: 10px;
+        }
+
+        .message-input-container button {
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+
+        .message-input-container button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="user-search-container">
+            <input type="text" id="usernameInput" placeholder="Nhập username...">
+            <button id="startChatButton">Bắt đầu Chat</button>
+        </div>
+        <div class="chat-list-container">
+            <h3>Cuộc trò chuyện</h3>
+            <ul id="chatList" style="list-style-type: none; padding: 0; margin: 0;">
+                <!-- Chat items will be populated here -->
+            </ul>
+        </div>
+    </div>
+
+    <div class="chat-area">
+        <div class="chat-header" id="chatHeader">
+            Chọn một cuộc trò chuyện
+        </div>
+        <div class="messages-container" id="messagesContainer">
+            <!-- Messages will be populated here -->
+        </div>
+        <div class="message-input-container">
+            <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." disabled>
+            <button id="sendMessageButton" disabled>Gửi</button>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080/lms';
+        let stompClient = null;
+        let currentChatBoxId = null;
+        let currentUser = null;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const token = localStorage.getItem("token");
+            if (token) {
+                try {
+                    const decodedToken = jwt_decode(token);
+                    console.log("Decoded Token Payload:", decodedToken);
+
+                    const usernameFromToken = decodedToken.sub || decodedToken.username || decodedToken.name;
+                    const fullNameFromToken = decodedToken.fullName || decodedToken.name || usernameFromToken;
+
+                    if (usernameFromToken) {
+                        currentUser = {
+                            username: usernameFromToken,
+                            fullName: fullNameFromToken
+                        };
+                        console.log("Current user set from decoded token:", currentUser);
+
+                        const nowInSeconds = Math.floor(Date.now() / 1000);
+                        if (decodedToken.exp && decodedToken.exp < nowInSeconds) {
+                            console.warn("Token has expired. Redirecting to login.");
+                            redirectToLogin();
+                            return;
+                        }
+
+                        document.getElementById('messageInput').disabled = false;
+                        document.getElementById('sendMessageButton').disabled = false;
+                        connectWebSocket(token);
+                        loadChatBoxes(token);
+                    } else {
+                        console.error("Username (e.g., 'sub' or 'username') not found in decoded JWT payload.", decodedToken);
+                        redirectToLogin();
+                    }
+                } catch (error) {
+                    console.error("Error decoding token or token is invalid:", error);
+                    redirectToLogin();
+                }
+            } else {
+                redirectToLogin();
+            }
+
+            document.getElementById('startChatButton').addEventListener('click', searchUserAndCreateChat);
+            document.getElementById('sendMessageButton').addEventListener('click', sendMessage);
+            document.getElementById('messageInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') {
+                    sendMessage();
+                }
+            });
+        });
+
+        function redirectToLogin() {
+            window.location.href = "/src/main/resources/static/loginn.html";
+        }
+
+        function connectWebSocket(token) {
+            const socket = new SockJS(`${API_BASE_URL}/ws`);
+            stompClient = Stomp.over(socket);
+            stompClient.debug = null;
+
+            stompClient.connect({}, function (frame) {
+                console.log("Kết nối WebSocket thành công:", frame);
+
+                stompClient.subscribe(`/user/${currentUser.username}/queue/notifications`, function (message) {
+                    const notification = JSON.parse(message.body);
+                    console.log("Nhận thông báo chatbox mới/cập nhật từ /queue/notifications:", notification);
+                    if (notification.chatBoxId && notification.listMemmber) {
+                        addOrUpdateChatBoxToList(notification, true);
+                    }
+                });
+            }, function (error) {
+                console.error("Lỗi kết nối WebSocket:", error);
+            });
+        }
+
+        function loadChatBoxes(token) {
+            fetch(`${API_BASE_URL}/chatBox?pageSize=100`, {
+                headers: { "Authorization": "Bearer " + token }
+            })
+                .then(response => response.json())
+                .then(apiResponse => {
+                    if (apiResponse.result && apiResponse.result.content) {
+                        displayChatBoxes(apiResponse.result.content);
+                    } else {
+                        console.error("Không thể tải danh sách chat:", apiResponse);
+                    }
+                })
+                .catch(error => console.error("Lỗi khi tải danh sách chat:", error));
+        }
+
+        function getChatNameForDisplay(chatBox) {
+            if (chatBox.name) return chatBox.name;
+            if (!chatBox.isGroup && chatBox.listMemmber && currentUser) {
+                const otherMember = chatBox.listMemmber.find(m => m.memberAccountUsername !== currentUser.username);
+                return otherMember ? otherMember.memberFullname || otherMember.memberAccountUsername : "Chat cá nhân";
+            }
+            return chatBox.id;
+        }
+
+        function displayChatBoxes(chatBoxes) {
+            const chatList = document.getElementById('chatList');
+            chatList.innerHTML = '';
+            chatBoxes.forEach(chatBox => {
+                addOrUpdateChatBoxToList(chatBox, false);
+            });
+        }
+
+        function addOrUpdateChatBoxToList(chatBoxData, isNewNotification) {
+            const chatList = document.getElementById('chatList');
+            let chatBoxId = chatBoxData.id || chatBoxData.chatBoxId;
+
+            let existingItem = document.getElementById(`chatbox-${chatBoxId}`);
+            if (existingItem) {
+                if (isNewNotification) chatList.prepend(existingItem);
+                return;
+            }
+
+            const listItem = document.createElement('li');
+            listItem.className = 'chat-list-item';
+            listItem.id = `chatbox-${chatBoxId}`;
+            listItem.setAttribute('data-chatbox-id', chatBoxId);
+
+            let displayName = "Unknown Chat";
+            let members = [];
+
+            if (isNewNotification) {
+                displayName = chatBoxData.nameOfChatBox || getChatNameForDisplay(chatBoxData);
+                members = chatBoxData.listMemmber;
+            } else {
+                displayName = chatBoxData.name || `Chat ID: ${chatBoxId.substring(0, 8)}`;
+            }
+            listItem.setAttribute('data-chatbox-name', displayName);
+
+            const avatarInitial = displayName.substring(0, 1).toUpperCase();
+            listItem.innerHTML = `
+                <div class="chat-avatar">${avatarInitial}</div>
+                <div class="chat-info">
+                    <div class="chat-name">${displayName}</div>
+                    <div class="last-message">Nhấp để mở chat...</div>
+                </div>
+            `;
+            listItem.addEventListener('click', () => openChatBox(chatBoxId, displayName, members));
+
+            if (isNewNotification) {
+                chatList.prepend(listItem);
+            } else {
+                chatList.appendChild(listItem);
+            }
+        }
+
+        function searchUserAndCreateChat() {
+            const anotherUsername = document.getElementById('usernameInput').value.trim();
+            if (!anotherUsername) {
+                alert("Vui lòng nhập username.");
+                return;
+            }
+            if (anotherUsername === currentUser?.username) {
+                alert("Bạn không thể chat với chính mình.");
+                return;
+            }
+            if (!currentUser || !currentUser.username) {
+                alert("Không thể xác định người dùng hiện tại. Vui lòng thử đăng nhập lại.");
+                console.error("currentUser is not set or username is missing before sending chat create request. CurrentUser:", currentUser);
+                return;
+            }
+
+            if (stompClient && stompClient.connected) {
+                const chatBoxCreateRequest = {
+                    anotherAccounts: [anotherUsername],
+                    currentAccountUsername: currentUser.username
+                };
+                console.log("Sending /chat.create payload:", JSON.stringify(chatBoxCreateRequest));
+                stompClient.send("/app/chat.create", {}, JSON.stringify(chatBoxCreateRequest));
+                console.log("Yêu cầu tạo chat đã gửi cho:", anotherUsername, "bởi", currentUser.username);
+                document.getElementById('usernameInput').value = '';
+            } else {
+                alert("Chưa kết nối WebSocket. Vui lòng thử lại.");
+            }
+        }
+
+        let currentChatSubscription = null;
+
+        function openChatBox(chatBoxId, chatName, members) {
+            if (currentChatSubscription) {
+                currentChatSubscription.unsubscribe();
+                console.log("Unsubscribed from previous chat:", currentChatBoxId);
+            }
+
+            currentChatBoxId = chatBoxId;
+            document.getElementById('chatHeader').textContent = chatName || `Chat ID: ${chatBoxId}`;
+            document.getElementById('messagesContainer').innerHTML = '';
+            document.getElementById('messageInput').disabled = false;
+            document.getElementById('sendMessageButton').disabled = false;
+
+            document.querySelectorAll('.chat-list-item').forEach(item => item.classList.remove('active'));
+            document.getElementById(`chatbox-${chatBoxId}`)?.classList.add('active');
+
+            console.log(`Đang mở chat: ${chatBoxId}`);
+            markMessagesAsReadOnServer(chatBoxId);
+            loadMessagesForChatBox(chatBoxId);
+
+            if (stompClient && stompClient.connected) {
+                currentChatSubscription = stompClient.subscribe(`/topic/chatbox/${chatBoxId}`, function (message) {
+                    const chatMessage = JSON.parse(message.body);
+                    console.log("Nhận tin nhắn mới:", chatMessage);
+                    displayMessage(chatMessage);
+                });
+                console.log("Subscribed to /topic/chatbox/" + chatBoxId);
+            } else {
+                console.error("WebSocket chưa kết nối để subscribe vào topic chat.");
+            }
+        }
+
+        function markMessagesAsReadOnServer(chatBoxIdToMark) {
+            const token = localStorage.getItem("token");
+            if (!token || !chatBoxIdToMark) return;
+
+            fetch(`${API_BASE_URL}/chatBox/${chatBoxIdToMark}/messages/markAsRead`, {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                },
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        console.error(`Error marking messages as read. Status: ${response.status}`);
+                        response.text().then(text => console.error("Server error response for markAsRead:", text));
+                    } else {
+                        console.log(`Successfully sent markAsRead for chatBoxId: ${chatBoxIdToMark}`);
+                    }
+                })
+                .catch(error => {
+                    console.error("Network error or other issue marking messages as read:", error);
+                });
+        }
+
+        function loadMessagesForChatBox(chatBoxIdToLoad) {
+            const token = localStorage.getItem("token");
+            console.warn(`API backend đang được gọi: GET /chatBox/${chatBoxIdToLoad}/messages để tải tin nhắn cũ.`);
+
+            fetch(`${API_BASE_URL}/chatBox/${chatBoxIdToLoad}/messages?page=0&size=50&sort=createdAt,desc`, {
+                headers: { "Authorization": "Bearer " + token }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Lỗi HTTP: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(apiResponse => {
+                    if (apiResponse.result && apiResponse.result.content) {
+                        const messages = apiResponse.result.content.reverse();
+                        messages.forEach(msg => displayMessage(msg, true));
+                        const messagesContainer = document.getElementById('messagesContainer');
+                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                    } else if (apiResponse.code !== 0) {
+                        console.error("Lỗi tải tin nhắn:", apiResponse.message || "Lỗi không xác định từ API");
+                        document.getElementById('messagesContainer').innerHTML = `<p style="text-align:center; color:darkgray;">Chưa có tin nhắn nào.</p>`;
+                    } else {
+                        document.getElementById('messagesContainer').innerHTML = `<p style="text-align:center; color:darkgray;">Chưa có tin nhắn nào.</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error(`Lỗi khi tải tin nhắn cho chat box ${chatBoxIdToLoad}:`, error);
+                    const messagesContainer = document.getElementById('messagesContainer');
+                    messagesContainer.innerHTML = `<p style="text-align:center; color:red;">Không thể tải tin nhắn. ${error.message}.</p>`;
+                });
+        }
+
+        function displayMessage(messageData, isLoadingHistory = false) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+
+            const senderName = messageData.senderFullName || messageData.senderAccount;
+            let statusIndicator = '';
+
+            if (messageData.senderAccount === currentUser.username) {
+                messageDiv.classList.add('sent');
+                statusIndicator = '<span class="status-indicator sent-indicator">✓</span>';
+            } else {
+                messageDiv.classList.add('received');
+                statusIndicator = '<span class="status-indicator read-indicator">✓✓</span>';
+            }
+
+            messageDiv.innerHTML = `
+                <div class="sender-name">${senderName}</div>
+                <div class="message-content">${messageData.content}</div>
+                <div class="message-time-container">
+                    <span class="message-time">${formatTimestamp(messageData.createdAt)}</span>
+                    ${statusIndicator}
+                </div>
+            `;
+
+            if (isLoadingHistory) {
+                messagesContainer.insertBefore(messageDiv, messagesContainer.firstChild);
+            } else {
+                messagesContainer.appendChild(messageDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+
+            if (!isLoadingHistory && messagesContainer.scrollHeight - messagesContainer.scrollTop > messagesContainer.clientHeight + 100) {
+            } else if (!isLoadingHistory) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '';
+            return new Date(timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function sendMessage() {
+            const messageContent = document.getElementById('messageInput').value.trim();
+            if (!messageContent || !currentChatBoxId) {
+                return;
+            }
+
+            if (!currentUser || !currentUser.username) {
+                alert("Lỗi: Không thể xác định người gửi. Vui lòng tải lại trang.");
+                return;
+            }
+
+            if (stompClient && stompClient.connected) {
+                const chatMessageSenderRequest = {
+                    chatBoxId: currentChatBoxId,
+                    senderAccount: currentUser.username,
+                    content: messageContent
+                };
+                stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessageSenderRequest));
+                document.getElementById('messageInput').value = '';
+            } else {
+                alert("Chưa kết nối WebSocket. Không thể gửi tin nhắn.");
+            }
+        }
+
+    </script>
+</body>
+
+</html>
