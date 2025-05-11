@@ -42,6 +42,9 @@ public class Teacher {
 
     @OneToMany(mappedBy = "teacher")
     private List<Course> course;
+    
+    @OneToMany(mappedBy = "teacher")
+    private List<Post> posts;
 
     private String avatar;
 
