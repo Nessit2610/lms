@@ -170,6 +170,18 @@ public class TestStudentResultService {
 		return testStudentResultMapper.toTestStudentResultResponse(testStudentResult);
 	}
 	
+	public TestStudentResultResponse getDetailofStudent(String testId) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+		
+		TestInGroup testInGroup = testInGroupRepository.findById(testId).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+		TestStudentResult testStudentResult = testStudentResultRepository.findByStudentAndTestInGroup(student, testInGroup).orElseThrow(() -> new AppException(ErrorCode.RESULT_NOT_FOUND));
+		
+		return testStudentResultMapper.toTestStudentResultResponse(testStudentResult);
+	}
+	
 	
 	public Page<TestResultViewResponse> getAllResult(String testId, int pageNumber , int pageSize){
 		Pageable pageable = PageRequest.of(pageNumber, pageSize);

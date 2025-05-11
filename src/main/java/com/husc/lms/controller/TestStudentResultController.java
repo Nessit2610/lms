@@ -36,11 +36,18 @@ public class TestStudentResultController {
 				.build();
 	}
 	
-	@GetMapping("/gettestdetail")
+	@GetMapping("/gettestresult")
 	public APIResponse<TestStudentResultResponse> getTestDetail(@RequestParam("studentId") String studentId,
 																@RequestParam("testId") String testId){
 		return APIResponse.<TestStudentResultResponse>builder()
 				.result(testStudentResultService.getDetail(studentId,testId))
+				.build();
+	}
+	
+	@GetMapping("/gettestdetail")
+	public APIResponse<TestStudentResultResponse> getTestDetail(@RequestParam("testId") String testId){
+		return APIResponse.<TestStudentResultResponse>builder()
+				.result(testStudentResultService.getDetailofStudent(testId))
 				.build();
 	}
 	
