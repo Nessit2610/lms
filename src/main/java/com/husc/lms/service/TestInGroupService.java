@@ -40,8 +40,8 @@ public class TestInGroupService {
 	public TestInGroupResponse createTestInGroup(TestInGroupRequest request) {
 		Group group = groupRepository.findById(request.getGroupId()).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
 		// Chuyển đổi thời gian bắt đầu và kết thúc sang UTC
-	    OffsetDateTime startedAtUtc = request.getStartedAt().atOffset(ZoneOffset.UTC);
-	    OffsetDateTime expiredAtUtc = request.getExpiredAt().atOffset(ZoneOffset.UTC);
+		OffsetDateTime startedAtUtc = request.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
+		OffsetDateTime expiredAtUtc = request.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
 
 	 // Tạo đối tượng TestInGroup với thời gian chuẩn
 	    TestInGroup testInGroup = TestInGroup.builder()
