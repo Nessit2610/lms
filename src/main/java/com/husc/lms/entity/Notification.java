@@ -1,5 +1,6 @@
 package com.husc.lms.entity;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -50,5 +51,5 @@ public class Notification {
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    private Date createdAt;
+    private OffsetDateTime createdAt;
 }

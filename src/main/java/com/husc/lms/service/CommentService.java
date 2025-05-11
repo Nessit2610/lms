@@ -489,7 +489,7 @@ public class CommentService {
                                         .type(NotificationType.COMMENT)
                                         .description(comment.getDetail())
                                         .isRead(false)
-                                        .createdAt(new Date())
+                                        .createdAt(OffsetDateTime.now())
                                         .build());
                 }
 

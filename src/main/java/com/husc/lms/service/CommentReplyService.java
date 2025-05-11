@@ -113,7 +113,7 @@ public class CommentReplyService {
                                         .account(teacherAccount)
                                         .commentReply(savedReply)
                                         .description(savedReply.getDetail())
-                                        .createdAt(new Date())
+                                        .createdAt(OffsetDateTime.now())
                                         .type(NotificationType.COMMENT_REPLY)
                                         .isRead(false)
                                         .build());
@@ -140,7 +140,7 @@ public class CommentReplyService {
                                         .type(NotificationType.COMMENT_REPLY)
                                         .description(message.getDetail())
                                         .isRead(false)
-                                        .createdAt(new Date())
+                                        .createdAt(OffsetDateTime.now())
                                         .build());
 
                         Map<String, Object> payload = buildNotificationPayload(ownerAccount, savedReply, chapter,
@@ -160,7 +160,7 @@ public class CommentReplyService {
                                                 .type(NotificationType.COMMENT_REPLY)
                                                 .description(message.getDetail())
                                                 .isRead(false)
-                                                .createdAt(new Date())
+                                                .createdAt(OffsetDateTime.now())
                                                 .build());
 
                                 Map<String, Object> payload = buildNotificationPayload(ownerAccount, savedReply,
