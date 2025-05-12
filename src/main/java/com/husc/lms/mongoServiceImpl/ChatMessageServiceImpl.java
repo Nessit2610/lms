@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.husc.lms.entity.Account;
 import com.husc.lms.enums.ErrorCode;
@@ -40,7 +41,8 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         private final ChatMessageStatusRepository chatMessageStatusRepository;
 
         @Override
-        public ChatMessage sendMessage(String chatBoxId, String senderAccount, String content) {
+        public ChatMessage sendMessage(String chatBoxId, String senderAccount, String content, MultipartFile file,
+                        String fileType) {
                 Account acc = accountRepo.findByUsernameAndDeletedDateIsNull(senderAccount)
                                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
                                                 "Sender account not found: " + senderAccount));
@@ -49,15 +51,33 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                                 .orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND,
                                                 "ChatBox not found with id: " + chatBoxId));
 
-                ChatMessage message = ChatMessage.builder()
+                ChatMessage.ChatMessageBuilder messageBuilder = ChatMessage.builder()
                                 .chatBoxId(chatBoxId)
                                 .senderAccount(senderAccount)
                                 .content(content)
-                                .createdAt(OffsetDateTime.now())
-                                .build();
+                                .createdAt(OffsetDateTime.now());
+
+                String filePath = null;
+                String originalFilename = null;
+
+                if (file != null && !file.isEmpty()) {
+                        originalFilename = file.getOriginalFilename();
+
+                        messageBuilder.path(filePath);
+                        messageBuilder.type(fileType);
+                        messageBuilder.filename(originalFilename);
+                }
+
+                ChatMessage message = messageBuilder.build();
                 message = messageRepo.save(message);
 
                 chatBox.setLastMessage(content);
+                if (file != null && !file.isEmpty() && (content == null || content.trim().isEmpty())) {
+                        chatBox.setLastMessage(
+                                        "[" + (fileType != null ? fileType : "File") + ": " + originalFilename + "]");
+                } else {
+                        chatBox.setLastMessage(content);
+                }
                 chatBox.setLastMessageAt(message.getCreatedAt());
                 chatBox.setLastMessageBy(senderAccount);
                 chatBoxRepo.save(chatBox);
