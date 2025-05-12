@@ -46,6 +46,8 @@ public class TestStudentResult {
     private OffsetDateTime startedAt;
 
     private OffsetDateTime submittedAt;
+    
+    private String status;
 
     @OneToMany(mappedBy = "testStudentResult", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<TestStudentAnswer> testStudentAnswer;
