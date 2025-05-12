@@ -1,5 +1,6 @@
 package com.husc.lms.mongoServiceImpl;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -52,7 +53,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
             // Tạo chatbox mới nếu chưa tồn tại
             ChatBox newChatBox = ChatBox.builder()
                             .isGroup(false)
-                            .createdAt(new Date())
+                            .createdAt(OffsetDateTime.now())
                             .createdBy(accountId1)
                             .build();
             newChatBox = chatBoxRepo.save(newChatBox);
@@ -61,13 +62,13 @@ public class ChatBoxServiceImpl implements ChatBoxService {
             ChatBoxMember member1 = ChatBoxMember.builder()
                             .chatBoxId(newChatBox.getId())
                             .accountUsername(accountId1)
-                            .joinedAt(new Date())
+                            .joinedAt(OffsetDateTime.now())
                             .build();
 
             ChatBoxMember member2 = ChatBoxMember.builder()
                             .chatBoxId(newChatBox.getId())
                             .accountUsername(accountId2)
-                            .joinedAt(new Date())
+                            .joinedAt(OffsetDateTime.now())
                             .build();
 
             memberRepo.saveAll(Arrays.asList(member1, member2));
@@ -80,7 +81,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
             ChatBox newChatBox = ChatBox.builder()
                             .isGroup(true)
                             .name(name)
-                            .createdAt(new Date())
+                            .createdAt(OffsetDateTime.now())
                             .createdBy(createdBy)
                             .build();
             newChatBox = chatBoxRepo.save(newChatBox);
@@ -90,7 +91,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
                     ChatBoxMember member = ChatBoxMember.builder()
                                     .chatBoxId(newChatBox.getId())
                                     .accountUsername(accountId)
-                                    .joinedAt(new Date())
+                                    .joinedAt(OffsetDateTime.now())
                                     .build();
                     members.add(member);
             }

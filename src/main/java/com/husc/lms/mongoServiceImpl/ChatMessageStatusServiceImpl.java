@@ -8,6 +8,7 @@ import com.husc.lms.mongoEntity.ChatMessageStatus;
 
 import lombok.RequiredArgsConstructor;
 import java.util.List;
+import java.time.OffsetDateTime;
 import java.util.Date;
 
 @Service
@@ -18,15 +19,13 @@ public class ChatMessageStatusServiceImpl implements ChatMessageStatusService {
 
     @Override
     public void markMessagesAsRead(String chatBoxId, String username) {
-        // Find all unread statuses for the given user in the given chatbox
-        // This requires a custom method in ChatMessageStatusRepository
         List<ChatMessageStatus> unreadStatuses = chatMessageStatusRepository
                 .findByChatBoxIdAndAccountUsernameAndIsReadFalse(chatBoxId, username);
 
         if (unreadStatuses != null && !unreadStatuses.isEmpty()) {
             unreadStatuses.forEach(status -> {
                 status.setRead(true);
-                status.setReadAt(new Date());
+                status.setReadAt(OffsetDateTime.now());
             });
             chatMessageStatusRepository.saveAll(unreadStatuses);
             System.out.println("[DEBUG] ChatMessageStatusService: Marked " + unreadStatuses.size() +

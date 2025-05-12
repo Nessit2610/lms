@@ -26,6 +26,7 @@ import com.husc.lms.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 
 @Service
@@ -52,7 +53,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                                 .chatBoxId(chatBoxId)
                                 .senderAccount(senderAccount)
                                 .content(content)
-                                .createdAt(new Date())
+                                .createdAt(OffsetDateTime.now())
                                 .build();
                 message = messageRepo.save(message);
 
@@ -78,7 +79,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                                         .chatBoxId(chatBoxId)
                                         .accountUsername(member.getAccountUsername())
                                         .isRead(isSender)
-                                        .readAt(isSender ? new Date() : null)
+                                        .readAt(isSender ? OffsetDateTime.now() : null)
                                         .build();
                         statuses.add(status);
                 }
