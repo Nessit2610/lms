@@ -24,6 +24,7 @@ import com.husc.lms.entity.TestQuestion;
 import com.husc.lms.entity.TestStudentAnswer;
 import com.husc.lms.entity.TestStudentResult;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.SubmissionStatus;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.TestStudentResultMapper;
 import com.husc.lms.repository.AccountRepository;
@@ -67,25 +68,20 @@ public class TestStudentResultService {
 	        .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 
 	    
-	 // Lấy thời gian hiện tại theo UTC
+	  
 	    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);  
 
-	    // Chuyển đổi thời gian bắt đầu và hết hạn về UTC (nếu không phải UTC)
+	   
 	    OffsetDateTime startedAt = testInGroup.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
 	    OffsetDateTime expiredAt = testInGroup.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
 
-	    // Kiểm tra nếu thời gian hiện tại trước thời gian bắt đầu
+	    
 	    if (now.isBefore(startedAt)) {
-	        throw new AppException(ErrorCode.TEST_NOT_STARTED_YET);  // Nếu chưa đến thời gian bắt đầu
+	        throw new AppException(ErrorCode.TEST_NOT_STARTED_YET); 
 	    }
-
-	    // Kiểm tra nếu thời gian hiện tại sau thời gian hết hạn
 	    if (now.isAfter(expiredAt)) {
-	        throw new AppException(ErrorCode.TEST_IS_EXPIRED);  // Nếu đã quá thời gian hết hạn
+	        throw new AppException(ErrorCode.TEST_IS_EXPIRED); 
 	    }
-
-
-
 
 	    boolean alreadyStarted = !testStudentResultRepository
 	        .findByStudentAndTestInGroup(student, testInGroup)
@@ -100,6 +96,7 @@ public class TestStudentResultService {
 	            .student(student)
 	            .testInGroup(testInGroup)
 	            .startedAt(OffsetDateTime.now(ZoneOffset.UTC))
+	            .status(SubmissionStatus.NOT_SUBMITTED.name())
 	            .build();
 
 	    testStudentResultRepository.save(testStudentResult);
@@ -149,12 +146,18 @@ public class TestStudentResultService {
 	        testStudentAnswerRepository.save(testStudentAnswer);
 	    }
 
+	    OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+	    OffsetDateTime deadline = testInGroup.getExpiredAt();
+
+	    if (now.isBefore(deadline) || now.isEqual(deadline)) {
+	    	testStudentResult.setStatus(SubmissionStatus.SUBMITTED.name());
+	    } else {
+	    	testStudentResult.setStatus(SubmissionStatus.LATE_SUBMISSION.name());
+	    }
 	    
-	    testStudentResult.setSubmittedAt(OffsetDateTime.now(ZoneOffset.UTC));
+	    testStudentResult.setSubmittedAt(now);
 	    testStudentResult.setScore(totalScore);
 	    testStudentResult.setTotalCorrect(correctCount);
-	    
-	    
 	    testStudentResultRepository.save(testStudentResult);
 
 	    return true;

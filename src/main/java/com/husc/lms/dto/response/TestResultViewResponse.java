@@ -22,6 +22,8 @@ public class TestResultViewResponse {
 	private int totalCorrect; 
 
     private double score; 
+    
+    private String status;
 
     private OffsetDateTime startedAt;
 
