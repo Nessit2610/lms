@@ -4,12 +4,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.NotificationRequest;
 import com.husc.lms.dto.response.ChatMessageNotificationResponse;
 import com.husc.lms.dto.response.CommentNotificationResponse;
+import com.husc.lms.dto.response.NotificationResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Notification;
 import com.husc.lms.entity.Notification.NotificationBuilder;
@@ -80,8 +83,7 @@ public class NotificationService {
                                 .map(request -> {
                                         NotificationBuilder notificationBuilder = Notification.builder()
                                                         .id(request.getId()) // ID của notification cần đánh dấu đã đọc
-                                                        .type(request.getType()) // Có thể không cần thiết nếu chỉ dựa
-                                                                                 // vào ID
+                                                        .type(request.getType()) 
                                                         .isRead(true) // Đánh dấu là đã đọc
                                                         .description(request.getDescription()); // Có thể không cần
                                                                                                 // thiết
@@ -89,11 +91,31 @@ public class NotificationService {
                                         if (request.getCreatedAt() != null) {
                                                 notificationBuilder.createdAt(request.getCreatedAt());
                                         }
-                                       
                                         return notificationBuilder.build();
                                 })
                                 .collect(Collectors.toList());
 
                 setNotificationAsReadByAccount(notificationsToUpdate);
+        }
+
+        public Page<NotificationResponse> getNotificationsByAccount(Pageable pageable) {
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
+                                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+                Page<Notification> notifications = notificationRepository.findByAccount(account, pageable);
+
+                return notifications.map(notification -> NotificationResponse.builder()
+                                .notificationId(notification.getId())
+                                .receivedAccountId(notification.getAccount().getId())
+                                .commentId(notification.getComment() != null ? notification.getComment().getId() : null)
+                                .commentReplyId(notification.getCommentReply() != null
+                                                ? notification.getCommentReply().getId()
+                                                : null)
+                                .notificationType(notification.getType().name())
+                                .isRead(notification.isRead())
+                                .description(notification.getDescription())
+                                .createdAt(notification.getCreatedAt())
+                                .build());
         }
 }
