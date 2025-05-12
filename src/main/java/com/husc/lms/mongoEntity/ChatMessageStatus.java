@@ -1,5 +1,6 @@
 package com.husc.lms.mongoEntity;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -24,5 +25,5 @@ public class ChatMessageStatus {
     private String chatBoxId; // ID của chatbox
     private String accountUsername; // ID của người dùng
     private boolean isRead; // Trạng thái đã đọc
-    private Date readAt; // Thời gian đọc tin nhắn
+    private OffsetDateTime readAt; // Thời gian đọc tin nhắn
 }

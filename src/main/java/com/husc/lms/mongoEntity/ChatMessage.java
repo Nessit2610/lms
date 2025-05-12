@@ -1,5 +1,6 @@
 package com.husc.lms.mongoEntity;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -26,5 +27,11 @@ public class ChatMessage {
 
     private String content;
 
-    private Date createdAt;
+    private String path;
+
+    private String type;
+
+    private String filename;
+
+    private OffsetDateTime createdAt;
 }

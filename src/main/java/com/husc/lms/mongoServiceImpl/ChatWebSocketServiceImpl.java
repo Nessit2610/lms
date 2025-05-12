@@ -1,5 +1,6 @@
 package com.husc.lms.mongoServiceImpl;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -99,7 +100,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                                 .collect(Collectors.toList()));
 
                 // ChatBox.createdAt is now Date, DTO expects Date.
-                Date createdAtForResponse = chatBoxEntity.getCreatedAt();
+                OffsetDateTime createdAtForResponse = chatBoxEntity.getCreatedAt();
 
                 return ChatBoxCreateResponse.builder()
                                 .chatBoxId(chatBoxEntity.getId())
@@ -169,9 +170,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 ", ChatBoxID: " + chatMessage.getChatBoxId() + ", Sender: "
                                 + chatMessage.getSenderAccount());
 
-                // ChatMessage.createdAt is Date, and ChatMessageSenderResponse.createdAt also
-                // expects Date
-                Date createdAtForResponse = chatMessage.getCreatedAt();
+                OffsetDateTime createdAtForResponse = chatMessage.getCreatedAt();
 
                 return ChatMessageSenderResponse.builder()
                                 .id(chatMessage.getId())

@@ -1,5 +1,6 @@
 package com.husc.lms.dto.response;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -23,5 +24,5 @@ public class ChatMessageSenderResponse {
 
     private String content;
 
-    private Date createdAt;
+    private OffsetDateTime createdAt;
 }

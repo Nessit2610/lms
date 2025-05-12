@@ -1,5 +1,6 @@
 package com.husc.lms.mongoEntity;
 
+import java.time.OffsetDateTime;
 // import java.time.LocalDateTime; // No longer using LocalDateTime
 import java.util.Date;
 import java.util.List;
@@ -24,7 +25,7 @@ public class ChatBox {
 
     private boolean isGroup; // true: group chat, false: 1-1
 
-    private Date createdAt; // Changed to Date
+    private OffsetDateTime createdAt; // Changed to Date
 
     private String createdBy; // accountId người tạo (group chat)
 
@@ -32,11 +33,11 @@ public class ChatBox {
 
     private List<String> memberAccountUsernames;
 
-    private Date updatedAt; // Changed to Date
+    private OffsetDateTime updatedAt; // Changed to Date
 
     private String lastMessage;
 
-    private Date lastMessageAt;
+    private OffsetDateTime lastMessageAt;
 
     private String lastMessageBy;
 }

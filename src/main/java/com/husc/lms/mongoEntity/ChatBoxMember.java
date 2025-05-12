@@ -1,5 +1,6 @@
 package com.husc.lms.mongoEntity;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
 
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -24,5 +25,5 @@ public class ChatBoxMember {
 
     private String accountUsername;
 
-    private Date joinedAt;
+    private OffsetDateTime joinedAt;
 }
