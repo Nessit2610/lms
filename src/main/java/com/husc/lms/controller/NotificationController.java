@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.request.NotificationRequest;
@@ -37,9 +38,11 @@ public class NotificationController {
 	}
 
 	@GetMapping("")
-	public APIResponse<Page<NotificationResponse>> getNotificationsByAccount(Pageable pageable) {
+	public APIResponse<Page<NotificationResponse>> getNotificationsByAccount(
+			@RequestParam(defaultValue = "0") int pageNumber,
+			@RequestParam(defaultValue = "10") int pageSize) {
 		return APIResponse.<Page<NotificationResponse>>builder()
-				.result(notificationService.getNotificationsByAccount(pageable))
+				.result(notificationService.getNotificationsByAccount(pageNumber, pageSize))
 				.build();
 	}
 }

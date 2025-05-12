@@ -6,6 +6,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +24,7 @@ import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.NotificationRepository;
 import com.husc.lms.repository.StudentCourseRepository;
 import com.husc.lms.repository.StudentLessonChapterProgressRepository;
+import com.husc.lms.service.OffsetLimitPageRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -83,10 +87,9 @@ public class NotificationService {
                                 .map(request -> {
                                         NotificationBuilder notificationBuilder = Notification.builder()
                                                         .id(request.getId()) // ID của notification cần đánh dấu đã đọc
-                                                        .type(request.getType()) 
+                                                        .type(request.getType())
                                                         .isRead(true) // Đánh dấu là đã đọc
-                                                        .description(request.getDescription()); // Có thể không cần
-                                                                                                // thiết
+                                                        .description(request.getDescription());
 
                                         if (request.getCreatedAt() != null) {
                                                 notificationBuilder.createdAt(request.getCreatedAt());
@@ -98,14 +101,35 @@ public class NotificationService {
                 setNotificationAsReadByAccount(notificationsToUpdate);
         }
 
-        public Page<NotificationResponse> getNotificationsByAccount(Pageable pageable) {
+        public Page<NotificationResponse> getNotificationsByAccount(int pageNumber, int pageSize) {
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
                                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
-                Page<Notification> notifications = notificationRepository.findByAccount(account, pageable);
+                if (pageSize < 1) {
+                        throw new IllegalArgumentException("pageSize must be 1 or greater.");
+                }
 
-                return notifications.map(notification -> NotificationResponse.builder()
+                int actualOffset = pageNumber;
+                int actualLimit = pageSize + 1;
+                Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+
+                Pageable fetchPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
+
+                Page<Notification> fetchedNotificationsPage = notificationRepository.findByAccount(account,
+                                fetchPageable);
+
+                List<Notification> notifications = fetchedNotificationsPage.getContent();
+                boolean hasNext = notifications.size() > pageSize;
+
+                List<Notification> notificationsToReturn = hasNext ? notifications.subList(0, pageSize) : notifications;
+
+                Pageable returnPageable = PageRequest.of(pageNumber / pageSize, pageSize, sort);
+
+                Page<Notification> finalNotificationPage = new PageImpl<>(notificationsToReturn, returnPageable,
+                                fetchedNotificationsPage.getTotalElements());
+
+                return finalNotificationPage.map(notification -> NotificationResponse.builder()
                                 .notificationId(notification.getId())
                                 .receivedAccountId(notification.getAccount().getId())
                                 .commentId(notification.getComment() != null ? notification.getComment().getId() : null)
