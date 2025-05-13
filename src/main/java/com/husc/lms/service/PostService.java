@@ -134,8 +134,7 @@ public class PostService {
 	                .collect(Collectors.toList());
 
 	        for (PostFile fileToDelete : filesToDelete) {
-	        	post.getFiles().remove(fileToDelete);
-	            postFileService.deleteFile(fileToDelete); 
+	            postFileService.deleteFile(post,fileToDelete); 
 	        }
 
 	        for (FileUploadRequest fileRequest : uploads) {
