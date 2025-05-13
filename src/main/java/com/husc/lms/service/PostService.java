@@ -3,6 +3,9 @@ package com.husc.lms.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -55,13 +58,14 @@ public class PostService {
 	private PostMapper postMapper;
 	
 	public PostResponse createPost(PostRequest request) {
-		
-		var context = SecurityContextHolder.getContext();
-		String name = context.getAuthentication().getName();
-		
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
-		Teacher teacher = teacherRepository.findByAccount(account);
-		
+
+	    var context = SecurityContextHolder.getContext();
+	    String name = context.getAuthentication().getName();
+
+	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name)
+	            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+	    Teacher teacher = teacherRepository.findByAccountAndDeletedDateIsNull(account);
+
 	    Group group = groupRepository.findById(request.getGroupId())
 	            .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
@@ -72,29 +76,26 @@ public class PostService {
 	            .teacher(teacher)
 	            .createdAt(new Date())
 	            .build();
-
 	    post = postRepository.save(post);
 
 	    List<FileUploadRequest> uploads = request.getFileUploadRequests();
 	    if (uploads != null && !uploads.isEmpty()) {
-	    	List<PostFile> postFiles = new ArrayList<PostFile>();
+	        List<PostFile> postFiles = new ArrayList<>();
 	        for (FileUploadRequest fileRequest : uploads) {
+	            if (!isValidFileUpload(fileRequest)) continue;
 	            MultipartFile file = fileRequest.getFile();
 	            String type = fileRequest.getType();
-
-	            if (file == null || file.isEmpty() || type == null || type.trim().isEmpty()) {
-	                
-	                continue;
-	            }
 	            PostFile pf = postFileService.creatPostFile(post, file, type);
 	            postFiles.add(pf);
 	        }
-	        post.setFiles(postFiles);
-	        postRepository.save(post);
+	        if (!postFiles.isEmpty()) {
+	            post.setFiles(postFiles);
+	            post = postRepository.save(post); 
+	        }
 	    }
-
 	    return postMapper.toPostResponse(post);
 	}
+
 
 	public PostResponse updatePost(PostUpdateRequest request) {
 	    Post post = postRepository.findById(request.getPostId())
@@ -109,35 +110,53 @@ public class PostService {
 	    }
 
 	    List<FileUploadRequest> uploads = request.getFileUploadRequests();
-	    if (uploads != null && !uploads.isEmpty()) {
-	        List<PostFile> existingFiles = post.getFiles() != null ? post.getFiles() : new ArrayList<>();
+	    List<PostFile> existingFiles = new ArrayList<>();
+	    if (post.getFiles() != null) {
+	        existingFiles.addAll(post.getFiles());
+	    }
 
-	        for (FileUploadRequest fileRequest : uploads) {
-	            MultipartFile file = fileRequest.getFile();
-	            String type = fileRequest.getType();
+	    if (uploads != null) {
+	
+	        Set<String> updatedFileNames = uploads.stream()
+	                .filter(this::isValidFileUpload)
+	                .map(req -> req.getFile().getOriginalFilename())
+	                .filter(Objects::nonNull)
+	                .map(String::toLowerCase)
+	                .collect(Collectors.toSet());
 
-	            if (file == null || file.isEmpty() || type == null || type.trim().isEmpty()) {
-	                continue;
-	            }
 
-	            boolean isDuplicate = existingFiles.stream().anyMatch(existing ->
-	                    existing.getFileName().equals(file.getOriginalFilename())
-	            );
+	        List<PostFile> filesToKeep = existingFiles.stream()
+	                .filter(existing -> updatedFileNames.contains(existing.getFileName().toLowerCase()))
+	                .collect(Collectors.toList());
 
-	            if (isDuplicate) continue;
+	        List<PostFile> filesToDelete = existingFiles.stream()
+	                .filter(existing -> !updatedFileNames.contains(existing.getFileName().toLowerCase()))
+	                .collect(Collectors.toList());
 
-	            PostFile pf = postFileService.creatPostFile(post, file, type);
-	            existingFiles.add(pf);
+	        for (PostFile fileToDelete : filesToDelete) {
+	            postFileService.deleteFile(fileToDelete); 
 	        }
 
-	        post.setFiles(existingFiles);
+	        for (FileUploadRequest fileRequest : uploads) {
+	            if (!isValidFileUpload(fileRequest)) continue;
+
+	            MultipartFile file = fileRequest.getFile();
+	            String fileName = file.getOriginalFilename();
+
+	            boolean isAlreadyIncluded = filesToKeep.stream().anyMatch(existing ->
+	                    existing.getFileName().equalsIgnoreCase(fileName));
+
+	            if (!isAlreadyIncluded) {
+	                PostFile newFile = postFileService.creatPostFile(post, file, fileRequest.getType());
+	                filesToKeep.add(newFile);
+	            }
+	        }
+	        post.setFiles(filesToKeep);
 	    }
 
 	    post = postRepository.save(post);
 	    return postMapper.toPostResponse(post);
 	}
-
-
 	
 	public Boolean deletePost(String postId) {
 		Post post = postRepository.findById(postId).orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
@@ -161,4 +180,12 @@ public class PostService {
 		return posts.map(postMapper::toPostResponse);
 	}
 	
+	private boolean isValidFileUpload(FileUploadRequest req) {
+	    return req != null
+	            && req.getFile() != null
+	            && !req.getFile().isEmpty()
+	            && req.getType() != null
+	            && !req.getType().trim().isEmpty();
+	}
+
 }

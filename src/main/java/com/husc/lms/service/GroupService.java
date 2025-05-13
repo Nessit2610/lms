@@ -42,7 +42,7 @@ public class GroupService {
 		String name = context.getAuthentication().getName();
 		
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Teacher teacher = teacherRepository.findByAccount(account);
+		Teacher teacher = teacherRepository.findByAccountAndDeletedDateIsNull(account);
 		
 		Group group = groupMapper.toGroup(request);
 			  group.setTeacher(teacher);
@@ -57,7 +57,7 @@ public class GroupService {
 		String name = context.getAuthentication().getName();
 		
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Teacher teacher = teacherRepository.findByAccount(account);
+		Teacher teacher = teacherRepository.findByAccountAndDeletedDateIsNull(account);
 		
 		Group group = groupRepository.findByIdAndTeacher(request.getGroupId(), teacher);
 		if(group == null) {
@@ -78,7 +78,7 @@ public class GroupService {
 		String name = context.getAuthentication().getName();
 		
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(()-> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
-		Teacher teacher = teacherRepository.findByAccount(account);
+		Teacher teacher = teacherRepository.findByAccountAndDeletedDateIsNull(account);
 		
 		Pageable pageable = PageRequest.of(page, size);
 		Page<Group> groups = groupRepository.findByTeacher(teacher, pageable);

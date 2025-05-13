@@ -27,13 +27,6 @@ public class PostFileController {
 	@Autowired
 	private PostFileService postFileService;
 	
-	@DeleteMapping("/delete")
-	public APIResponse<Boolean> deleteFile(@RequestParam("fileId") String fileId){
-		return APIResponse.<Boolean>builder()
-				.result(postFileService.deleteFile(fileId))
-				.build();
-	}
-	
 	@GetMapping("/videos/{filename}")
 	public ResponseEntity<Resource> streamVideo(
             @PathVariable String filename,

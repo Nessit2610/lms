@@ -53,10 +53,8 @@ public class PostFileService {
 		return postFile;
 	}
 
-	public boolean deleteFile(String id) {
-		PostFile file = postFileRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.FILE_NOT_FOUND));
-		postFileRepository.delete(file);
-		return true;
+	public void deleteFile(PostFile postFile) {
+		postFileRepository.delete(postFile);
 	}
 	
 	

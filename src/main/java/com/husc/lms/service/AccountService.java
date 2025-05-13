@@ -144,7 +144,7 @@ public class AccountService {
 			return studentMapper.toStudentResponse(student);
 		}
 		else if(roles.contains(Roles.TEACHER.name())) {
-			Teacher teacher = teacherRepository.findByAccount(account);
+			Teacher teacher = teacherRepository.findByAccountAndDeletedDateIsNull(account);
 			return teacherMapper.toTeacherResponse(teacher);
 		}
 		return null;

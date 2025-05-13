@@ -5,8 +5,10 @@ import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Teacher;
+import java.util.List;
+
 
 @Repository
 public interface TeacherRepository extends JpaRepository<Teacher, String> {
-	public Teacher findByAccount(Account account);
+	public Teacher findByAccountAndDeletedDateIsNull(Account account);
 }
