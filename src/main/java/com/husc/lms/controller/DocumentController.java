@@ -8,6 +8,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -51,16 +52,27 @@ public class DocumentController {
 	}
 	
 	@GetMapping
-	public APIResponse<List<DocumentResponse>> getAllPublicDocument(){
-		return APIResponse.<List<DocumentResponse>>builder()
-				.result(documentService.getAllDocument())
+	public APIResponse<Page<DocumentResponse>> getAllPublicDocument(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																	@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+		return APIResponse.<Page<DocumentResponse>>builder()
+				.result(documentService.getAllDocument(pageNumber, pageSize))
+				.build();
+	}
+	
+	@GetMapping("/search")
+	public APIResponse<Page<DocumentResponse>> searchDocument(@RequestParam("keyword") String keyword ,
+			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+		return APIResponse.<Page<DocumentResponse>>builder()
+				.result(documentService.searchDocument(keyword, pageNumber, pageSize))
 				.build();
 	}
 	
 	@GetMapping("/mydocument")
-	public APIResponse<List<DocumentResponse>> getAllMyDocument(){
-		return APIResponse.<List<DocumentResponse>>builder()
-				.result(documentService.getAllMyDocument())
+	public APIResponse<Page<DocumentResponse>> getAllMyDocument(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+		return APIResponse.<Page<DocumentResponse>>builder()
+				.result(documentService.getAllDocument(pageNumber, pageSize))
 				.build();
 	}
 	

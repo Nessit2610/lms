@@ -36,6 +36,10 @@ public interface StudentGroupRepository extends JpaRepository<StudentGroup,Strin
 	                                           @Param("keyword") String keyword,
 	                                           Pageable pageable);
 
+    @Query("SELECT sg FROM StudentGroup sg WHERE sg.student = :student AND sg.group.name LIKE %:groupName%")
+    Page<StudentGroup> findByStudentAndGroupNameContaining(@Param("student") Student student, @Param("groupName") String groupName, Pageable pageable);
+
+    
     @Query("SELECT sg.student.id FROM StudentGroup sg WHERE sg.group.id = :groupId")
     Set<String> findStudentIdsByGroupId(@Param("groupId") String groupId);
 

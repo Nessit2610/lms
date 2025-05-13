@@ -19,6 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -131,31 +134,44 @@ public class DocumentService {
 	    }
 	}
 	
-	public List<DocumentResponse> getAllDocument(){
-		List<Document> documents = documentRepository.findAllByStatus(DocumentStatus.PUBLIC.name());
-		List<DocumentResponse> documentResponses = new ArrayList<DocumentResponse>();
-		for(Document d : documents) {
-			DocumentResponse documentResponse = documentMapper.toDocumentResponse(d);
-			Object object = accountService.getAccountDetails(d.getAccount().getId());
-			documentResponse.setObject(object);
-			documentResponses.add(documentResponse);
-		}
-		return documentResponses;
+	public Page<DocumentResponse> getAllDocument(int page, int size){
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Document> documents = documentRepository.findAllByStatus(DocumentStatus.PUBLIC.name(),pageable);
+		return documents.map(d -> {
+	        DocumentResponse documentResponse = documentMapper.toDocumentResponse(d);
+	        Object object = accountService.getAccountDetails(d.getAccount().getId());
+	        documentResponse.setObject(object);
+	        return documentResponse;
+	    });
 	}
 	
-	public List<DocumentResponse> getAllMyDocument(){
+	public Page<DocumentResponse> searchDocument(String keyword, int page, int size) {
+	    Pageable pageable = PageRequest.of(page, size);
+	    
+	    Page<Document> documents = documentRepository
+	        .searchByStatusAndTitleOrMajor(DocumentStatus.PUBLIC.name(), keyword, pageable);
+
+	    return documents.map(d -> {
+	        DocumentResponse documentResponse = documentMapper.toDocumentResponse(d);
+	        Object object = accountService.getAccountDetails(d.getAccount().getId());
+	        documentResponse.setObject(object);
+	        return documentResponse;
+	    });
+	}
+
+	
+	public Page<DocumentResponse> getAllMyDocument(int page, int size){
+		Pageable pageable = PageRequest.of(page, size);
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		List<Document> documents = documentRepository.findByAccount(account);
-		List<DocumentResponse> documentResponses = new ArrayList<DocumentResponse>();
-		for(Document d : documents) {
-			DocumentResponse documentResponse = documentMapper.toDocumentResponse(d);
-			Object object = accountService.getAccountDetails(d.getAccount().getId());
-			documentResponse.setObject(object);
-			documentResponses.add(documentResponse);
-		}
-		return documentResponses;
+		Page<Document> documents = documentRepository.findByAccount(account,pageable);
+		return documents.map(d -> {
+	        DocumentResponse documentResponse = documentMapper.toDocumentResponse(d);
+	        Object object = accountService.getAccountDetails(d.getAccount().getId());
+	        documentResponse.setObject(object);
+	        return documentResponse;
+	    });
 	}
 	
 	

@@ -116,6 +116,20 @@ public class StudentGroupService {
 	    });
 	}
 	
+	public Page<GroupViewResponse> searchGroupsOfStudent(String groupname, int page, int size) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
+		Pageable pageable = PageRequest.of(page, size);
+		Page<StudentGroup> studentGroups = studentGroupRepository.findByStudentAndGroupNameContaining(student,groupname, pageable);
+		
+		return studentGroups.map(sg -> {
+			Group g = sg.getGroup();
+			return groupMapper.toGroupViewResponse(g);
+		});
+	}
+	
 	public Page<StudentViewResponse> getStudentsOfGroup(String groupId, int page, int size) {
 		Group group = groupRepository.findById(groupId).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
 		Pageable pageable = PageRequest.of(page, size);
