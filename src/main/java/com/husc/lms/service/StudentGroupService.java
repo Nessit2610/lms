@@ -11,6 +11,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.husc.lms.dto.request.StudentDeleteRequest;
 import com.husc.lms.dto.request.StudentGroupRequest;
 import com.husc.lms.dto.response.GroupViewResponse;
 import com.husc.lms.dto.response.StudentViewResponse;
@@ -87,6 +88,18 @@ public class StudentGroupService {
 			return true;
 		}
 		return false;
+	}
+	
+	public Boolean deleteListStudentOfGroup(StudentDeleteRequest request) {
+		Group group = groupRepository.findById(request.getBaseId()).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
+		for(String studentId : request.getStudentIds()) {
+			Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+			StudentGroup studentGroup = studentGroupRepository.findByStudentAndGroup(student, group);
+			if(studentGroup != null) {
+				studentGroupRepository.delete(studentGroup);
+			}
+		}
+		return true;
 	}
 	
 	public Page<GroupViewResponse> getGroupsOfStudent(int page, int size) {

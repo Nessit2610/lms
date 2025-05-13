@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.husc.lms.dto.request.StudentDeleteRequest;
 import com.husc.lms.dto.request.StudentGroupRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.GroupViewResponse;
@@ -34,6 +35,13 @@ public class StudentGroupController {
 	public APIResponse<Boolean> deleteStudentOfGroup(@RequestParam("groupId") String groupId,@RequestParam("studentId") String studentId) {
 		return APIResponse.<Boolean>builder()
 				.result(studentGroupService.deleteStudentOfGroup(groupId, studentId))
+				.build();
+	}
+	
+	@DeleteMapping("/deleteall")
+	public APIResponse<Boolean> deleteListStudentOfGroup(@RequestBody StudentDeleteRequest request) {
+		return APIResponse.<Boolean>builder()
+				.result(studentGroupService.deleteListStudentOfGroup(request))
 				.build();
 	}
 	

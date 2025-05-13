@@ -1,6 +1,7 @@
 package com.husc.lms.service;
 
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.StudentCourseRequest;
+import com.husc.lms.dto.request.StudentDeleteRequest;
 import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.entity.Account;
@@ -98,6 +100,9 @@ public class StudentCourseService {
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
+		if (course == null) {
+			throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+		}
 		Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		if(course != null && student != null) {
 			if(joinClassRequestRepository.existsByStudentAndCourseAndStatus(student, course, JoinClassStatus.APPROVED.name())) {
@@ -115,6 +120,33 @@ public class StudentCourseService {
 		}
 		
 		return false;
+	}
+	
+	public boolean deleteListStudentOfCourse(StudentDeleteRequest request) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+		Course course = courseRepository.findByIdAndDeletedDateIsNull(request.getBaseId());
+		if (course == null) {
+			throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+		}
+		for(String studentId : request.getStudentIds()) {
+			Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+			if(course != null && student != null) {
+				if(joinClassRequestRepository.existsByStudentAndCourseAndStatus(student, course, JoinClassStatus.APPROVED.name())) {
+					JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
+					joinClassRequest.setStatus(JoinClassStatus.REJECTED.name());
+					joinClassRequestRepository.save(joinClassRequest);
+				}
+				StudentCourse studentCourse = studentCourseRepository.findByCourseAndStudentAndDeletedDateIsNull(course, student);
+				if(studentCourse != null) {
+					studentCourse.setDeletedBy(account.getEmail());
+					studentCourse.setDeletedDate(new Date());
+					studentCourse = studentCourseRepository.save(studentCourse);
+				}
+			}
+		}
+		return true;
 	}
 	
 	public Page<CourseViewResponse> getAllCourseOfStudent(int page, int size) {

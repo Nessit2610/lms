@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.request.StudentCourseRequest;
+import com.husc.lms.dto.request.StudentDeleteRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.response.StudentViewResponse;
@@ -75,6 +76,13 @@ public class StudentCourseController {
 													@RequestParam("studentId") String studendId){
 		return APIResponse.<Boolean>builder()
 				.result(studentCourseService.deleteStudentOfCourse(studendId, courseId))
+				.build();
+	}
+	
+	@DeleteMapping("/deleteall")
+	public APIResponse<Boolean> deleteStudentOfCourse(@RequestBody StudentDeleteRequest request){
+		return APIResponse.<Boolean>builder()
+				.result(studentCourseService.deleteListStudentOfCourse(request))
 				.build();
 	}
 	
