@@ -54,8 +54,8 @@ public class PostFileService {
 	}
 
 	public void deleteFile(PostFile postFile) {
-		postFileRepository.delete(postFile);
 		deletePhysicalFile(postFile.getFileUrl());
+		postFileRepository.delete(postFile);
 	}
 	
 	
