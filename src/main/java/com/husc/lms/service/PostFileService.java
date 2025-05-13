@@ -55,6 +55,7 @@ public class PostFileService {
 
 	public void deleteFile(PostFile postFile) {
 		postFileRepository.delete(postFile);
+		deletePhysicalFile(postFile.getFileUrl());
 	}
 	
 	
@@ -120,6 +121,32 @@ public class PostFileService {
         throw new RuntimeException("Could not save file: " + filename, e);
     	}
 	};
+	
+	private void deletePhysicalFile(String fileUrl) {
+	    if (fileUrl == null || fileUrl.isEmpty()) return;
+
+	    String[] parts = fileUrl.split("/");
+	    if (parts.length < 4) return;
+
+	    String folder = parts[3];      
+	    String filename = parts[4];    
+
+	    String baseDir = switch (folder) {
+	        case "images" -> Constant.PHOTO_DIRECTORY;
+	        case "videos" -> Constant.VIDEO_DIRECTORY;
+	        case "files" -> Constant.FILE_DIRECTORY;
+	        default -> throw new RuntimeException("Unsupported folder: " + folder);
+	    };
+
+	    try {
+	        Path path = Paths.get(baseDir, filename);
+	        Files.deleteIfExists(path);
+	        System.out.println("Đã xóa file: " + path.toString());
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        throw new RuntimeException("Không thể xóa file: " + filename, e);
+	    }
+	}
 	
 	public ResponseEntity<Resource> streamVideo(String filename, String rangeHeader) throws IOException {
         File videoFile = Paths.get(Constant.VIDEO_DIRECTORY + filename).toFile();

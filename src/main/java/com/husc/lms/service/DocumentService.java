@@ -99,9 +99,36 @@ public class DocumentService {
 		Document document = documentRepository.findByIdAndAccount(id,account);
 		if(document != null) {
 			documentRepository.deleteById(id);
+			deletePhysicalFile(document.getPath());
 			return true;
 		}
 		return false;
+	}
+	
+	private void deletePhysicalFile(String fileUrl) {
+	    if (fileUrl == null || fileUrl.isEmpty()) return;
+
+	    String[] parts = fileUrl.split("/");
+	    if (parts.length < 4) return;
+
+	    String folder = parts[3];      
+	    String filename = parts[4];    
+
+	    String baseDir = switch (folder) {
+	        case "images" -> Constant.PHOTO_DIRECTORY;
+	        case "videos" -> Constant.VIDEO_DIRECTORY;
+	        case "files" -> Constant.FILE_DIRECTORY;
+	        default -> throw new RuntimeException("Unsupported folder: " + folder);
+	    };
+
+	    try {
+	        Path path = Paths.get(baseDir, filename);
+	        Files.deleteIfExists(path);
+	        System.out.println("Đã xóa file: " + path.toString());
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        throw new RuntimeException("Không thể xóa file: " + filename, e);
+	    }
 	}
 	
 	public List<DocumentResponse> getAllDocument(){
