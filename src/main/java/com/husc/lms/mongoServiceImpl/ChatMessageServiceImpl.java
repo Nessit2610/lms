@@ -1,15 +1,18 @@
 package com.husc.lms.mongoServiceImpl;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Function;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.husc.lms.constant.Constant;
 import com.husc.lms.entity.Account;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
@@ -26,9 +29,12 @@ import com.husc.lms.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +45,70 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         private final ChatMessageRepository messageRepo;
         private final AccountRepository accountRepo;
         private final ChatMessageStatusRepository chatMessageStatusRepository;
+
+        private final Function<String, String> fileExtension = filename -> Optional.ofNullable(filename)
+                        .filter(name -> name.contains("."))
+                        .map(name -> "." + name.substring(name.lastIndexOf('.') + 1))
+                        .orElse("");
+
+        private void validateFileExtension(String type, String extension) {
+                Set<String> imageExtensions = Set.of(".jpg", ".jpeg", ".png", ".gif");
+                Set<String> videoExtensions = Set.of(".mp4", ".avi", ".mov");
+                Set<String> fileExtensions = Set.of(".pdf", ".doc", ".docx", ".txt");
+
+                switch (type.toLowerCase()) {
+                        case "image" -> {
+                                if (!imageExtensions.contains(extension)) {
+                                        throw new AppException(ErrorCode.INVALID_IMAGE_TYPE);
+                                }
+                        }
+                        case "video" -> {
+                                if (!videoExtensions.contains(extension)) {
+                                        throw new AppException(ErrorCode.INVALID_VIDEO_TYPE);
+                                }
+                        }
+                        case "file" -> {
+                                if (!fileExtensions.contains(extension)) {
+                                        throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+                                }
+                        }
+                        default -> throw new AppException(ErrorCode.UNSUPPORTED_FILE_TYPE);
+                }
+        }
+
+        private String getFolderFromType(String type) {
+                return switch (type.toLowerCase()) {
+                        case "photo", "image" -> "images";
+                        case "video" -> "videos";
+                        case "file", "document" -> "files";
+                        default -> throw new RuntimeException("Unsupported file type: " + type);
+                };
+        }
+
+        private String uploadFile(String id, MultipartFile file, String type) {
+                if (file == null || file.isEmpty()) {
+                        throw new RuntimeException("File is empty");
+                }
+
+                String extension = fileExtension.apply(file.getOriginalFilename());
+                validateFileExtension(type, extension);
+
+                String folder = getFolderFromType(type);
+                String directory = Constant.CHAT_DIRECTORY + folder + "/";
+                File dir = new File(directory);
+                if (!dir.exists()) {
+                        dir.mkdirs();
+                }
+
+                String fileName = id + extension;
+                Path filePath = Paths.get(directory + fileName);
+                try {
+                        Files.copy(file.getInputStream(), filePath);
+                        return directory + fileName;
+                } catch (IOException e) {
+                        throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+                }
+        }
 
         @Override
         public ChatMessage sendMessage(String chatBoxId, String senderAccount, String content, MultipartFile file,
@@ -62,6 +132,8 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
                 if (file != null && !file.isEmpty()) {
                         originalFilename = file.getOriginalFilename();
+                        // Upload file and get URL
+                        filePath = uploadFile(chatBoxId + "/" + UUID.randomUUID().toString(), file, fileType);
 
                         messageBuilder.path(filePath);
                         messageBuilder.type(fileType);
@@ -71,7 +143,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 ChatMessage message = messageBuilder.build();
                 message = messageRepo.save(message);
 
-                chatBox.setLastMessage(content);
+                // Update last message in chatbox
                 if (file != null && !file.isEmpty() && (content == null || content.trim().isEmpty())) {
                         chatBox.setLastMessage(
                                         "[" + (fileType != null ? fileType : "File") + ": " + originalFilename + "]");
@@ -118,5 +190,4 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         public Page<ChatMessage> getMessagesByChatBoxId(String chatBoxId, Pageable pageable) {
                 return messageRepo.findByChatBoxId(chatBoxId, pageable);
         }
-
 }
