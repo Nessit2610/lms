@@ -36,4 +36,5 @@ public class PostFile {
     private String fileType;
 
     private String fileUrl;
+
 }
