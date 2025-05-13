@@ -147,11 +147,9 @@ public class PostService {
 	                    existing.getFileName().equalsIgnoreCase(fileName));
 
 	            if (!isAlreadyIncluded) {
-	                PostFile newFile = postFileService.creatPostFile(post, file, fileRequest.getType());
-	                filesToKeep.add(newFile);
+	                postFileService.creatPostFile(post, file, fileRequest.getType());
 	            }
 	        }
-	        post.setFiles(filesToKeep);
 	    }
 
 	    post = postRepository.save(post);
