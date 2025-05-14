@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.Document;
 import com.husc.lms.entity.Account;
+import com.husc.lms.entity.Major;
+
 
 
 @Repository
@@ -29,5 +31,6 @@ public interface DocumentRepository extends JpaRepository<Document, String> {
 	                                              @Param("keyword") String keyword,
 	                                              Pageable pageable);
 
+	Page<Document> findByStatusAndMajor(String status, Major major, Pageable pageable);
 
 }

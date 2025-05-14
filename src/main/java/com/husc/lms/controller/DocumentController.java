@@ -68,6 +68,15 @@ public class DocumentController {
 				.build();
 	}
 	
+	@GetMapping("/getbymajor")
+	public APIResponse<Page<DocumentResponse>> findDocumentByMajor(@RequestParam("majorId") String majorId ,
+			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+		return APIResponse.<Page<DocumentResponse>>builder()
+				.result(documentService.findDocumentByMajor(majorId, pageNumber, pageSize))
+				.build();
+	}
+	
 	@GetMapping("/mydocument")
 	public APIResponse<Page<DocumentResponse>> getAllMyDocument(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 																@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){

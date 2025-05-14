@@ -158,6 +158,22 @@ public class DocumentService {
 	        return documentResponse;
 	    });
 	}
+	
+	public Page<DocumentResponse> findDocumentByMajor(String majorId, int page, int size) {
+		Pageable pageable = PageRequest.of(page, size);
+		
+		Major major = majorRepository.findById(majorId).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
+		
+		Page<Document> documents = documentRepository
+				.findByStatusAndMajor(DocumentStatus.PUBLIC.name(), major, pageable);
+		
+		return documents.map(d -> {
+			DocumentResponse documentResponse = documentMapper.toDocumentResponse(d);
+			Object object = accountService.getAccountDetails(d.getAccount().getId());
+			documentResponse.setObject(object);
+			return documentResponse;
+		});
+	}
 
 	
 	public Page<DocumentResponse> getAllMyDocument(int page, int size){
