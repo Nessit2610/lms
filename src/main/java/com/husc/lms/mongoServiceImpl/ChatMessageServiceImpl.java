@@ -1,5 +1,8 @@
 package com.husc.lms.mongoServiceImpl;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -29,7 +32,7 @@ import com.husc.lms.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
 
-import java.time.OffsetDateTime;
+import java.util.Date;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -40,16 +43,23 @@ import java.nio.file.Paths;
 @RequiredArgsConstructor
 public class ChatMessageServiceImpl implements ChatMessageService {
 
+        private final ChatMessageRepository messageRepo;
         private final ChatBoxRepository chatBoxRepo;
         private final ChatBoxMemberRepository memberRepo;
-        private final ChatMessageRepository messageRepo;
+        private final ChatMessageStatusRepository statusRepo;
         private final AccountRepository accountRepo;
-        private final ChatMessageStatusRepository chatMessageStatusRepository;
 
         private final Function<String, String> fileExtension = filename -> Optional.ofNullable(filename)
                         .filter(name -> name.contains("."))
                         .map(name -> "." + name.substring(name.lastIndexOf('.') + 1))
                         .orElse("");
+
+        private OffsetDateTime convertToOffsetDateTime(Date date) {
+                if (date == null) {
+                        return null;
+                }
+                return date.toInstant().atOffset(ZoneId.systemDefault().getRules().getOffset(Instant.now()));
+        }
 
         private void validateFileExtension(String type, String extension) {
                 Set<String> imageExtensions = Set.of(".jpg", ".jpeg", ".png", ".gif");
@@ -85,28 +95,22 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 };
         }
 
-        private String uploadFile(String id, MultipartFile file, String type) {
-                if (file == null || file.isEmpty()) {
-                        throw new RuntimeException("File is empty");
-                }
-
-                String extension = fileExtension.apply(file.getOriginalFilename());
-                validateFileExtension(type, extension);
-
-                String folder = getFolderFromType(type);
-                String directory = Constant.CHAT_DIRECTORY + folder + "/";
-                File dir = new File(directory);
-                if (!dir.exists()) {
-                        dir.mkdirs();
-                }
-
-                String fileName = id + extension;
-                Path filePath = Paths.get(directory + fileName);
+        private String uploadFile(String path, MultipartFile file, String fileType) {
                 try {
+                        String uploadDir = Constant.CHAT_DIRECTORY + "/" + path;
+                        Path uploadPath = Paths.get(uploadDir);
+                        if (!Files.exists(uploadPath)) {
+                                Files.createDirectories(uploadPath);
+                        }
+
+                        String fileName = file.getOriginalFilename();
+                        Path filePath = uploadPath.resolve(fileName);
                         Files.copy(file.getInputStream(), filePath);
-                        return directory + fileName;
+
+                        return path + "/" + fileName;
                 } catch (IOException e) {
-                        throw new RuntimeException("Could not store the file. Error: " + e.getMessage());
+                        throw new AppException(ErrorCode.FILE_UPLOAD_FAILED,
+                                        "Failed to upload file: " + e.getMessage());
                 }
         }
 
@@ -121,11 +125,12 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                                 .orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND,
                                                 "ChatBox not found with id: " + chatBoxId));
 
+                Date now = new Date();
                 ChatMessage.ChatMessageBuilder messageBuilder = ChatMessage.builder()
                                 .chatBoxId(chatBoxId)
                                 .senderAccount(senderAccount)
                                 .content(content)
-                                .createdAt(OffsetDateTime.now());
+                                .createdAt(now);
 
                 String filePath = null;
                 String originalFilename = null;
@@ -150,8 +155,9 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 } else {
                         chatBox.setLastMessage(content);
                 }
-                chatBox.setLastMessageAt(message.getCreatedAt());
+                chatBox.setLastMessageAt(now);
                 chatBox.setLastMessageBy(senderAccount);
+                chatBox.setUpdatedAt(now);
                 chatBoxRepo.save(chatBox);
 
                 List<ChatBoxMember> members = memberRepo.findByChatBoxId(chatBoxId);
@@ -171,17 +177,11 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                                         .chatBoxId(chatBoxId)
                                         .accountUsername(member.getAccountUsername())
                                         .isRead(isSender)
-                                        .readAt(isSender ? OffsetDateTime.now() : null)
+                                        .readAt(isSender ? now : null)
                                         .build();
                         statuses.add(status);
                 }
-
-                if (!statuses.isEmpty()) {
-                        chatMessageStatusRepository.saveAll(statuses);
-                        System.out.println(
-                                        "[DEBUG] Saved " + statuses.size() + " message statuses for messageId: "
-                                                        + message.getId());
-                }
+                statusRepo.saveAll(statuses);
 
                 return message;
         }

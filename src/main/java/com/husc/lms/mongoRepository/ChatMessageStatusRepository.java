@@ -12,4 +12,6 @@ public interface ChatMessageStatusRepository extends MongoRepository<ChatMessage
     List<ChatMessageStatus> findByChatBoxIdAndIsReadFalse(String chatBoxId);
 
     List<ChatMessageStatus> findByChatBoxIdAndAccountUsernameAndIsReadFalse(String chatBoxId, String accountUsername);
+
+    List<ChatMessageStatus> findByMessageId(String messageId);
 }

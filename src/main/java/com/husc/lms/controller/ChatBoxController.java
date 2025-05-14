@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/chatBox")
 @RequiredArgsConstructor
 public class ChatBoxController {
+	
 	private final ChatBoxService chatBoxService;
 	private final ChatMessageService chatMessageService;
 	private final ChatMessageStatusService chatMessageStatusService;
@@ -41,9 +42,7 @@ public class ChatBoxController {
 	public APIResponse<Page<ChatBox>> getAllChatBoxes(
 			@RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
 			@RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
-		Pageable pageable = PageRequest.of(pageNumber, pageSize,
-				Sort.by(Sort.Direction.DESC, "lastMessageAt")
-						.and(Sort.by(Sort.Direction.DESC, "updatedAt")));
+		Pageable pageable = PageRequest.of(pageNumber, pageSize);
 		Page<ChatBox> chatBoxes = chatBoxService.getAllChatBoxesForCurrentAccount(pageable);
 		return APIResponse.<Page<ChatBox>>builder()
 				.result(chatBoxes)

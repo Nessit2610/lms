@@ -1,38 +1,46 @@
 package com.husc.lms.mongoServiceImpl;
 
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.List;
+import java.util.Date;
+
 import org.springframework.stereotype.Service;
 
-import com.husc.lms.mongoService.ChatMessageStatusService;
-import com.husc.lms.mongoRepository.ChatMessageStatusRepository;
 import com.husc.lms.mongoEntity.ChatMessageStatus;
+import com.husc.lms.mongoRepository.ChatMessageStatusRepository;
+import com.husc.lms.mongoService.ChatMessageStatusService;
 
 import lombok.RequiredArgsConstructor;
-import java.util.List;
-import java.time.OffsetDateTime;
-import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
 public class ChatMessageStatusServiceImpl implements ChatMessageStatusService {
 
-    private final ChatMessageStatusRepository chatMessageStatusRepository;
+    private final ChatMessageStatusRepository statusRepo;
+
+    private OffsetDateTime convertToOffsetDateTime(Date date) {
+        if (date == null) {
+            return null;
+        }
+        return date.toInstant().atOffset(ZoneId.systemDefault().getRules().getOffset(Instant.now()));
+    }
 
     @Override
-    public void markMessagesAsRead(String chatBoxId, String username) {
-        List<ChatMessageStatus> unreadStatuses = chatMessageStatusRepository
-                .findByChatBoxIdAndAccountUsernameAndIsReadFalse(chatBoxId, username);
+    public List<ChatMessageStatus> getMessageStatuses(String messageId) {
+        return statusRepo.findByMessageId(messageId);
+    }
 
-        if (unreadStatuses != null && !unreadStatuses.isEmpty()) {
-            unreadStatuses.forEach(status -> {
-                status.setRead(true);
-                status.setReadAt(OffsetDateTime.now());
-            });
-            chatMessageStatusRepository.saveAll(unreadStatuses);
-            System.out.println("[DEBUG] ChatMessageStatusService: Marked " + unreadStatuses.size() +
-                    " messages as read for user '" + username + "' in chatBoxId '" + chatBoxId + "'.");
-        } else {
-            System.out.println("[DEBUG] ChatMessageStatusService: No unread messages found for user '" + username +
-                    "' in chatBoxId '" + chatBoxId + "' to mark as read.");
+    @Override
+    public void markMessagesAsRead(String chatBoxId, String accountUsername) {
+        List<ChatMessageStatus> unreadStatuses = statusRepo.findByChatBoxIdAndAccountUsernameAndIsReadFalse(
+                chatBoxId, accountUsername);
+        Date now = new Date();
+        for (ChatMessageStatus status : unreadStatuses) {
+            status.setRead(true);
+            status.setReadAt(now);
         }
+        statusRepo.saveAll(unreadStatuses);
     }
 }
