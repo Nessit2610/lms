@@ -70,6 +70,19 @@ public class JoinClassRequestService {
 		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
 		
+		if (course.getEndDate() != null) {
+		    Date now = new Date();
+		    if (course.getEndDate().before(now)) {
+		        throw new AppException(ErrorCode.COURSE_ENDED);
+		    }
+		}
+		if (course.getStartDate() != null) {
+		    Date now = new Date();
+		    if (course.getStartDate().after(now)) {
+		        throw new AppException(ErrorCode.COURSE_NOT_STARTED);
+		    }
+		}
+		
 		if(course.getStatus().contains(StatusCourse.PRIVATE.name())) {
 			throw new AppException(ErrorCode.CAN_NOT_REQUEST);
 		}

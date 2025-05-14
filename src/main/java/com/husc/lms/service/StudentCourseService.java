@@ -68,6 +68,22 @@ public class StudentCourseService {
 	}
 	
 	public boolean addStudentToCourse(Student student , Course course) {
+		
+		if (course.getEndDate() != null) {
+		    Date now = new Date();
+		    if (course.getEndDate().before(now)) {
+		        throw new AppException(ErrorCode.COURSE_ENDED);
+		    }
+		}
+
+		if (course.getStartDate() != null) {
+		    Date now = new Date();
+		    if (course.getStartDate().after(now)) {
+		        throw new AppException(ErrorCode.COURSE_NOT_STARTED);
+		    }
+		}
+		
+		
 		JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
 		if(joinClassRequest != null) {
 			joinClassRequest.setStatus(JoinClassStatus.APPROVED.name());

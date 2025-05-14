@@ -96,8 +96,13 @@ public class CourseService {
 				course.setTeacher(teacher);
 				course.setCreatedBy(name);
 				course.setStatus(status);
+				course.setStartDate(request.getStartDate());
 				course.setMajor(major.getName());
 				course.setCreatedDate(new Date());	
+		if(request.getEndDate() != null) {
+			course.setEndDate(request.getEndDate());
+		}
+		
 		course = courseRepository.save(course);		
 		
 		return courseMapper.toCourseResponse(course);

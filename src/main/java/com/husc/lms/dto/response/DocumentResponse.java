@@ -1,5 +1,7 @@
 package com.husc.lms.dto.response;
 
+import java.util.Date;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,4 +28,6 @@ public class DocumentResponse {
 	private String path;
 	
 	private Object object;
+	
+	private Date createdAt;
 }
