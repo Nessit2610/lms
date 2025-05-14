@@ -69,12 +69,12 @@ public class DocumentService {
 		validateFileExtension(request.getType(), extension);
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		
-		String statuss = switch (request.getType()) {
+		String statuss = switch (request.getStatus()) {
         case "PRIVATE" -> DocumentStatus.PRIVATE.name();
         case "PUBLIC" -> DocumentStatus.PUBLIC.name();
-        default -> throw new AppException(ErrorCode.CODE_ERROR);
+        default -> throw new AppException(ErrorCode.STATUS_NOT_ALLOWED);
 		};
 		
 		Major major = majorRepository.findById(request.getMajorId()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
