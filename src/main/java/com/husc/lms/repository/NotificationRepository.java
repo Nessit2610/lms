@@ -25,6 +25,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Stri
 
 	@Modifying
 	@Transactional
-	@Query("UPDATE Notification n SET n.isRead = true WHERE n IN :notifications")
-	void setNotificationAsReadByAccount(List<Notification> notifications);
+	@Query("UPDATE Notification n SET n.isRead = true WHERE n.id IN :notificationIds")
+	void setNotificationAsReadByAccount(List<String> notificationIds);
 }

@@ -2,6 +2,7 @@ package com.husc.lms.service;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -58,9 +59,8 @@ public class NotificationService {
                                 .build();
         }
 
-        public void setNotificationAsReadByAccount(List<Notification> notifications) {
-                if (notifications == null || notifications.isEmpty()) {
-                        // Nếu không có thông báo thì không làm gì cả
+        public void setNotificationAsReadByAccount(List<NotificationRequest> notificationRequests) {
+                if (notificationRequests == null || notificationRequests.isEmpty()) {
                         return;
                 }
 
@@ -68,37 +68,25 @@ public class NotificationService {
                 Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
                                 .orElseThrow(() -> new RuntimeException("Account not found"));
 
-                // Truyền cả account và danh sách notifications để xử lý chính xác
-                notificationRepository.setNotificationAsReadByAccount(notifications);
+                notificationRepository.setNotificationAsReadByAccount(notificationRequests.stream()
+                		.map(NotificationRequest::getId)
+                		.collect(Collectors.toList()));
         }
 
         public void markCommentNotificationsAsRead(List<NotificationRequest> notificationRequests) {
                 if (notificationRequests == null || notificationRequests.isEmpty()) {
-                        return; // Không có gì để xử lý
+                        return;
                 }
 
-                // Lấy thông tin tài khoản hiện tại (logic này có thể được tái cấu trúc nếu cần
-                // dùng ở nhiều nơi)
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
                                 .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));
 
-                List<Notification> notificationsToUpdate = notificationRequests.stream()
-                                .map(request -> {
-                                        NotificationBuilder notificationBuilder = Notification.builder()
-                                                        .id(request.getId()) // ID của notification cần đánh dấu đã đọc
-                                                        .type(request.getType())
-                                                        .isRead(true) // Đánh dấu là đã đọc
-                                                        .description(request.getDescription());
-
-                                        if (request.getCreatedAt() != null) {
-                                                notificationBuilder.createdAt(request.getCreatedAt());
-                                        }
-                                        return notificationBuilder.build();
-                                })
+                List<String> notificationIds = notificationRequests.stream()
+                                .map(NotificationRequest::getId)
                                 .collect(Collectors.toList());
 
-                setNotificationAsReadByAccount(notificationsToUpdate);
+                notificationRepository.setNotificationAsReadByAccount(notificationIds);
         }
 
         public Page<NotificationResponse> getNotificationsByAccount(int pageNumber, int pageSize) {

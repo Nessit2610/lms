@@ -33,7 +33,7 @@ public class NotificationController {
 	}
 
 	@PostMapping("/comments/read")
-	public void setNotificationAsReadByAccount(@RequestBody List<NotificationRequest> notificationRequests) {
+	public void setCommentNotificationsAsReadByAccount(@RequestBody List<NotificationRequest> notificationRequests) {
 		notificationService.markCommentNotificationsAsRead(notificationRequests);
 	}
 
@@ -44,5 +44,10 @@ public class NotificationController {
 		return APIResponse.<Page<NotificationResponse>>builder()
 				.result(notificationService.getNotificationsByAccount(pageNumber, pageSize))
 				.build();
+	}
+	
+	@PostMapping("/readAll")
+	public void setNotificationsAsReadByAccount(@RequestBody List<NotificationRequest> notificationRequests) {
+		notificationService.setNotificationAsReadByAccount(notificationRequests);	
 	}
 }
