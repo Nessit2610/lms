@@ -23,6 +23,8 @@ public interface NotificationRepository extends JpaRepository<Notification, Stri
 	@Query("SELECT n FROM Notification n WHERE n.account = :account ORDER BY n.createdAt DESC")
 	Page<Notification> findByAccount(Account account, Pageable pageable);
 
+	Integer countByAccountAndIsReadFalse(Account account);
+
 	@Modifying
 	@Transactional
 	@Query("UPDATE Notification n SET n.isRead = true WHERE n.id IN :notificationIds")
