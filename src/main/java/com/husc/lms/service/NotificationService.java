@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 
 import com.husc.lms.dto.request.NotificationRequest;
 import com.husc.lms.dto.response.ChatMessageNotificationResponse;
@@ -59,75 +60,62 @@ public class NotificationService {
                                 .build();
         }
 
-        public void setNotificationAsReadByAccount(List<NotificationRequest> notificationRequests) {
-                if (notificationRequests == null || notificationRequests.isEmpty()) {
+        public void setNotificationAsReadByAccount(List<String> notificationIds) {
+                if (notificationIds == null || notificationIds.isEmpty()) {
                         return;
                 }
-
-                String username = SecurityContextHolder.getContext().getAuthentication().getName();
-                Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
-                                .orElseThrow(() -> new RuntimeException("Account not found"));
-
-                notificationRepository.setNotificationAsReadByAccount(notificationRequests.stream()
-                		.map(NotificationRequest::getId)
-                		.collect(Collectors.toList()));
+                notificationRepository.setNotificationAsReadByAccount(notificationIds);
         }
 
         public void markCommentNotificationsAsRead(List<NotificationRequest> notificationRequests) {
                 if (notificationRequests == null || notificationRequests.isEmpty()) {
                         return;
                 }
-
-                String username = SecurityContextHolder.getContext().getAuthentication().getName();
-                Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
-                                .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));
-
                 List<String> notificationIds = notificationRequests.stream()
                                 .map(NotificationRequest::getId)
                                 .collect(Collectors.toList());
-
-                notificationRepository.setNotificationAsReadByAccount(notificationIds);
+                if (!notificationIds.isEmpty()) {
+                        notificationRepository.setNotificationAsReadByAccount(notificationIds);
+                }
         }
 
-        public Page<NotificationResponse> getNotificationsByAccount(int pageNumber, int pageSize) {
+        public NotificationResponse getNotificationsByAccount(int pageNumber, int pageSize) {
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
-                                .orElseThrow(() -> new RuntimeException("Account not found"));
+                                .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));
 
                 if (pageSize < 1) {
                         throw new IllegalArgumentException("pageSize must be 1 or greater.");
                 }
 
-                int actualOffset = pageNumber;
-                int actualLimit = pageSize + 1;
                 Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+                Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
 
-                Pageable fetchPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
+                Page<Notification> notificationPage = notificationRepository.findByAccount(account, pageable);
 
-                Page<Notification> fetchedNotificationsPage = notificationRepository.findByAccount(account,
-                                fetchPageable);
+                List<NotificationResponse.NotificationDetail> notificationDetails = notificationPage.getContent()
+                                .stream()
+                                .map(notification -> NotificationResponse.NotificationDetail.builder()
+                                                .notificationId(notification.getId())
+                                                .receivedAccountId(notification.getAccount().getId())
+                                                .commentId(notification.getComment() != null
+                                                                ? notification.getComment().getId()
+                                                                : null)
+                                                .commentReplyId(notification.getCommentReply() != null
+                                                                ? notification.getCommentReply().getId()
+                                                                : null)
+                                                .notificationType(notification.getType().name())
+                                                .isRead(notification.isRead())
+                                                .description(notification.getDescription())
+                                                .createdAt(notification.getCreatedAt())
+                                                .build())
+                                .collect(Collectors.toList());
 
-                List<Notification> notifications = fetchedNotificationsPage.getContent();
-                boolean hasNext = notifications.size() > pageSize;
+                Integer unreadCount = notificationRepository.countByAccountAndIsReadFalse(account);
 
-                List<Notification> notificationsToReturn = hasNext ? notifications.subList(0, pageSize) : notifications;
-
-                Pageable returnPageable = PageRequest.of(pageNumber / pageSize, pageSize, sort);
-
-                Page<Notification> finalNotificationPage = new PageImpl<>(notificationsToReturn, returnPageable,
-                                fetchedNotificationsPage.getTotalElements());
-
-                return finalNotificationPage.map(notification -> NotificationResponse.builder()
-                                .notificationId(notification.getId())
-                                .receivedAccountId(notification.getAccount().getId())
-                                .commentId(notification.getComment() != null ? notification.getComment().getId() : null)
-                                .commentReplyId(notification.getCommentReply() != null
-                                                ? notification.getCommentReply().getId()
-                                                : null)
-                                .notificationType(notification.getType().name())
-                                .isRead(notification.isRead())
-                                .description(notification.getDescription())
-                                .createdAt(notification.getCreatedAt())
-                                .build());
+                return NotificationResponse.builder()
+                                .notificationDetails(notificationDetails)
+                                .countUnreadNotification(unreadCount)
+                                .build();
         }
 }

@@ -38,16 +38,19 @@ public class NotificationController {
 	}
 
 	@GetMapping("")
-	public APIResponse<Page<NotificationResponse>> getNotificationsByAccount(
+	public APIResponse<NotificationResponse> getNotificationsByAccount(
 			@RequestParam(defaultValue = "0") int pageNumber,
 			@RequestParam(defaultValue = "10") int pageSize) {
-		return APIResponse.<Page<NotificationResponse>>builder()
+		return APIResponse.<NotificationResponse>builder()
 				.result(notificationService.getNotificationsByAccount(pageNumber, pageSize))
 				.build();
 	}
-	
+
 	@PostMapping("/readAll")
 	public void setNotificationsAsReadByAccount(@RequestBody List<NotificationRequest> notificationRequests) {
-		notificationService.setNotificationAsReadByAccount(notificationRequests);	
+		List<String> notificationIds = notificationRequests.stream()
+				.map(NotificationRequest::getId)
+				.collect(Collectors.toList());
+		notificationService.setNotificationAsReadByAccount(notificationIds);
 	}
 }
