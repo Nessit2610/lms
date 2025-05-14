@@ -1,7 +1,6 @@
 package com.husc.lms.dto.response;
 
 import java.time.OffsetDateTime;
-import java.util.Date;
 import java.util.List;
 
 import com.husc.lms.dto.request.ChatBoxCreateRequest;
@@ -21,24 +20,24 @@ public class ChatBoxCreateResponse {
     private String chatBoxId;
 
     private boolean isGroup;
-    
+
     private String createdBy;
-    
+
     private String nameOfCreatedBy;
-    
+
     private OffsetDateTime createdAt;
 
     private String nameOfChatBox;
-    
+
     private List<ListOfMember> listMemmber;
-    
+
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
     @Builder
     public static class ListOfMember {
-    	private String memberAccountUsername;
-    	private String memberFullname;
-    	private String memberAvatar;
+        private String memberAccountUsername;
+        private String memberFullname;
+        private String memberAvatar;
     }
 }

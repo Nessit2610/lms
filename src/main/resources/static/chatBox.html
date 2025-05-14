@@ -205,6 +205,7 @@
             padding: 15px;
             background-color: #f0f0f0;
             border-top: 1px solid #ccc;
+            align-items: center;
         }
 
         .message-input-container input {
@@ -222,10 +223,74 @@
             border: none;
             border-radius: 20px;
             cursor: pointer;
+            margin-left: 10px;
         }
 
         .message-input-container button:hover {
             background-color: #0056b3;
+        }
+
+        .file-upload-btn {
+            background-color: #28a745 !important;
+        }
+
+        .file-upload-btn:hover {
+            background-color: #218838 !important;
+        }
+
+        .file-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin: 5px 0;
+        }
+
+        .file-message {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .file-link {
+            color: #007bff;
+            text-decoration: none;
+            margin-top: 5px;
+        }
+
+        .file-link:hover {
+            text-decoration: underline;
+        }
+
+        .message-image {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+        }
+
+        .message-image:hover {
+            opacity: 0.9;
+        }
+
+        .file-icon {
+            font-size: 24px;
+            margin-right: 8px;
+            color: #666;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background-color: rgba(0, 0, 0, 0.05);
+            border-radius: 5px;
+            margin: 5px 0;
+        }
+
+        .file-name {
+            font-size: 14px;
+            color: #333;
+            word-break: break-all;
         }
     </style>
 </head>
@@ -253,6 +318,10 @@
         </div>
         <div class="message-input-container">
             <input type="text" id="messageInput" placeholder="Nhập tin nhắn..." disabled>
+            <input type="file" id="fileInput" style="display: none;">
+            <button id="fileUploadButton" class="file-upload-btn" disabled>
+                <i class="fas fa-paperclip"></i>
+            </button>
             <button id="sendMessageButton" disabled>Gửi</button>
         </div>
     </div>
@@ -262,6 +331,7 @@
         let stompClient = null;
         let currentChatBoxId = null;
         let currentUser = null;
+        let selectedFile = null;
 
         document.addEventListener('DOMContentLoaded', function () {
             const token = localStorage.getItem("token");
@@ -289,6 +359,7 @@
 
                         document.getElementById('messageInput').disabled = false;
                         document.getElementById('sendMessageButton').disabled = false;
+                        document.getElementById('fileUploadButton').disabled = false;
                         connectWebSocket(token);
                         loadChatBoxes(token);
                     } else {
@@ -310,6 +381,43 @@
                     sendMessage();
                 }
             });
+
+            document.getElementById('fileUploadButton').addEventListener('click', function () {
+                if (currentChatBoxId) {
+                    document.getElementById('fileInput').click();
+                } else {
+                    alert("Vui lòng chọn một cuộc trò chuyện trước khi gửi file.");
+                }
+            });
+
+            document.getElementById('fileInput').addEventListener('change', function (e) {
+                selectedFile = e.target.files[0];
+                if (selectedFile) {
+                    const fileType = selectedFile.type.split('/')[0];
+                    const fileSize = selectedFile.size;
+                    const maxSize = 10 * 1024 * 1024; // 10MB
+
+                    if (fileSize > maxSize) {
+                        alert("File quá lớn. Kích thước tối đa là 10MB.");
+                        selectedFile = null;
+                        this.value = '';
+                        return;
+                    }
+
+                    let filePreview = '';
+                    if (fileType === 'image') {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            filePreview = `<img src="${e.target.result}" class="file-preview" alt="Preview">`;
+                            document.getElementById('messageInput').value = `[File: ${selectedFile.name}]`;
+                            document.getElementById('messageInput').insertAdjacentHTML('afterend', filePreview);
+                        };
+                        reader.readAsDataURL(selectedFile);
+                    } else {
+                        document.getElementById('messageInput').value = `[File: ${selectedFile.name}]`;
+                    }
+                }
+            });
         });
 
         function redirectToLogin() {
@@ -329,6 +437,14 @@
                     console.log("Nhận thông báo chatbox mới/cập nhật từ /queue/notifications:", notification);
                     if (notification.chatBoxId && notification.listMemmber) {
                         addOrUpdateChatBoxToList(notification, true);
+                    }
+                });
+
+                stompClient.subscribe(`/topic/chatbox/${currentChatBoxId}/created`, function (message) {
+                    const response = JSON.parse(message.body);
+                    console.log("Nhận phản hồi tạo chatbox:", response);
+                    if (response.chatBoxId) {
+                        openChatBox(response.chatBoxId, response.nameOfChatBox, response.listMemmber);
                     }
                 });
             }, function (error) {
@@ -432,8 +548,8 @@
                     anotherAccounts: [anotherUsername],
                     currentAccountUsername: currentUser.username
                 };
-                console.log("Sending /chat.create payload:", JSON.stringify(chatBoxCreateRequest));
-                stompClient.send("/app/chat.create", {}, JSON.stringify(chatBoxCreateRequest));
+                console.log("Sending /chat/create payload:", JSON.stringify(chatBoxCreateRequest));
+                stompClient.send("/app/chat/create", {}, JSON.stringify(chatBoxCreateRequest));
                 console.log("Yêu cầu tạo chat đã gửi cho:", anotherUsername, "bởi", currentUser.username);
                 document.getElementById('usernameInput').value = '';
             } else {
@@ -454,6 +570,14 @@
             document.getElementById('messagesContainer').innerHTML = '';
             document.getElementById('messageInput').disabled = false;
             document.getElementById('sendMessageButton').disabled = false;
+            document.getElementById('fileUploadButton').disabled = false;
+
+            const existingPreview = document.querySelector('.file-preview');
+            if (existingPreview) {
+                existingPreview.remove();
+            }
+            selectedFile = null;
+            document.getElementById('fileInput').value = '';
 
             document.querySelectorAll('.chat-list-item').forEach(item => item.classList.remove('active'));
             document.getElementById(`chatbox-${chatBoxId}`)?.classList.add('active');
@@ -547,9 +671,37 @@
                 statusIndicator = '<span class="status-indicator read-indicator">✓✓</span>';
             }
 
+            let contentHtml = '';
+            if (messageData.path) {
+                const fileType = messageData.type || 'file';
+                const fileName = messageData.filename || 'File';
+
+                if (fileType === 'image') {
+                    contentHtml = `
+                        <div class="file-message">
+                            <img src="${API_BASE_URL}/${messageData.path}" class="message-image" onclick="openImageInNewTab('${API_BASE_URL}/${messageData.path}')" alt="${fileName}">
+                            <a href="${API_BASE_URL}/${messageData.path}" class="file-link" target="_blank">Tải xuống</a>
+                        </div>
+                    `;
+                } else {
+                    const fileIcon = getFileIcon(fileType);
+                    contentHtml = `
+                        <div class="file-message">
+                            <div class="file-info">
+                                <i class="${fileIcon} file-icon"></i>
+                                <span class="file-name">${fileName}</span>
+                            </div>
+                            <a href="${API_BASE_URL}/${messageData.path}" class="file-link" target="_blank">Tải xuống</a>
+                        </div>
+                    `;
+                }
+            } else {
+                contentHtml = `<div class="message-content">${messageData.content}</div>`;
+            }
+
             messageDiv.innerHTML = `
                 <div class="sender-name">${senderName}</div>
-                <div class="message-content">${messageData.content}</div>
+                ${contentHtml}
                 <div class="message-time-container">
                     <span class="message-time">${formatTimestamp(messageData.createdAt)}</span>
                     ${statusIndicator}
@@ -569,14 +721,52 @@
             }
         }
 
+        function getFileIcon(fileType) {
+            switch (fileType.toLowerCase()) {
+                case 'video':
+                    return 'fas fa-video';
+                case 'audio':
+                    return 'fas fa-music';
+                case 'pdf':
+                    return 'fas fa-file-pdf';
+                case 'word':
+                case 'doc':
+                case 'docx':
+                    return 'fas fa-file-word';
+                case 'excel':
+                case 'xls':
+                case 'xlsx':
+                    return 'fas fa-file-excel';
+                case 'powerpoint':
+                case 'ppt':
+                case 'pptx':
+                    return 'fas fa-file-powerpoint';
+                case 'zip':
+                case 'rar':
+                case '7z':
+                    return 'fas fa-file-archive';
+                default:
+                    return 'fas fa-file';
+            }
+        }
+
+        function openImageInNewTab(imageUrl) {
+            window.open(imageUrl, '_blank');
+        }
+
         function formatTimestamp(timestamp) {
             if (!timestamp) return '';
-            return new Date(timestamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
         }
 
         function sendMessage() {
             const messageContent = document.getElementById('messageInput').value.trim();
-            if (!messageContent || !currentChatBoxId) {
+            if ((!messageContent && !selectedFile) || !currentChatBoxId) {
                 return;
             }
 
@@ -585,13 +775,48 @@
                 return;
             }
 
-            if (stompClient && stompClient.connected) {
-                const chatMessageSenderRequest = {
+            if (selectedFile) {
+                // Gửi file qua REST API
+                const formData = new FormData();
+                formData.append('chatBoxId', currentChatBoxId);
+                formData.append('senderAccount', currentUser.username);
+                formData.append('content', messageContent);
+                formData.append('file', selectedFile);
+                formData.append('fileType', selectedFile.type.split('/')[0]);
+
+                fetch(`${API_BASE_URL}/chat/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('token')
+                    },
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.result) {
+                            document.getElementById('messageInput').value = '';
+                            document.getElementById('fileInput').value = '';
+                            selectedFile = null;
+                            // Remove file preview if exists
+                            const existingPreview = document.querySelector('.file-preview');
+                            if (existingPreview) {
+                                existingPreview.remove();
+                            }
+                        } else {
+                            console.error('Error sending message:', data);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            } else if (stompClient && stompClient.connected) {
+                // Gửi text qua WebSocket
+                const messageRequest = {
                     chatBoxId: currentChatBoxId,
                     senderAccount: currentUser.username,
                     content: messageContent
                 };
-                stompClient.send("/app/chat.sendMessage", {}, JSON.stringify(chatMessageSenderRequest));
+                stompClient.send("/app/chat/sendMessage", {}, JSON.stringify(messageRequest));
                 document.getElementById('messageInput').value = '';
             } else {
                 alert("Chưa kết nối WebSocket. Không thể gửi tin nhắn.");

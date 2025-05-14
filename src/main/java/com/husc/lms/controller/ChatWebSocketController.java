@@ -3,7 +3,8 @@ package com.husc.lms.controller;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.husc.lms.dto.request.ChatBoxCreateRequest;
 import com.husc.lms.dto.request.ChatMessageSenderRequest;
@@ -15,14 +16,16 @@ import lombok.RequiredArgsConstructor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@Controller
+// @Controller
 @RequiredArgsConstructor
+@RestController
+@RequestMapping("/lms/chat")
 public class ChatWebSocketController {
 	private final SimpMessagingTemplate messagingTemplate;
 	private final ChatWebSocketService chatWebSocketService;
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
-	@MessageMapping("/chat.create")
+	@MessageMapping("/chat/create")
 	public void handleCreateChatBox(@Payload ChatBoxCreateRequest request) {
 		try {
 			System.out.println("[DEBUG] Received /chat.create request: " + objectMapper.writeValueAsString(request));
@@ -54,14 +57,14 @@ public class ChatWebSocketController {
 		}
 	}
 
-	@MessageMapping("/chat.sendMessage")
+	@MessageMapping("/chat/sendMessage")
 	public void handleSendMessage(@Payload ChatMessageSenderRequest request) {
 		try {
 			System.out
-					.println("[DEBUG] Received /chat.sendMessage request: " + objectMapper.writeValueAsString(request));
+					.println("[DEBUG] Received /chat/sendMessage request: " + objectMapper.writeValueAsString(request));
 		} catch (JsonProcessingException e) {
-			System.err.println("[DEBUG] Error serializing /chat.sendMessage request to JSON: " + e.getMessage());
-			System.out.println("[DEBUG] Received /chat.sendMessage request (raw): " + request.toString());
+			System.err.println("[DEBUG] Error serializing /chat/sendMessage request to JSON: " + e.getMessage());
+			System.out.println("[DEBUG] Received /chat/sendMessage request (raw): " + request.toString());
 		}
 
 		ChatMessageSenderResponse response = chatWebSocketService.handleSendMessage(request);
@@ -78,5 +81,29 @@ public class ChatWebSocketController {
 			System.out.println(
 					"[DEBUG] ChatMessageSenderResponse is null or ChatBoxId is null after handleSendMessage. No message sent.");
 		}
+	}
+
+	@PostMapping("/sendMessage")
+	public ChatMessageSenderResponse sendFileMessage(
+			@RequestParam("chatBoxId") String chatBoxId,
+			@RequestParam("senderAccount") String senderAccount,
+			@RequestParam(value = "content", required = false) String content,
+			@RequestParam("file") MultipartFile file,
+			@RequestParam("fileType") String fileType) {
+
+		ChatMessageSenderRequest request = ChatMessageSenderRequest.builder()
+				.chatBoxId(chatBoxId)
+				.senderAccount(senderAccount)
+				.content(content)
+				.file(file)
+				.fileType(fileType)
+				.build();
+
+		ChatMessageSenderResponse response = chatWebSocketService.handleSendMessage(request);
+
+		if (response != null && response.getChatBoxId() != null) {
+			messagingTemplate.convertAndSend("/topic/chatbox/" + response.getChatBoxId(), response);
+		}
+		return response;
 	}
 }

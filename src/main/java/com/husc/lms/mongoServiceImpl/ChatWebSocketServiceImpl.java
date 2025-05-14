@@ -1,13 +1,15 @@
 package com.husc.lms.mongoServiceImpl;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.husc.lms.entity.Account;
 import com.husc.lms.enums.ErrorCode;
@@ -31,7 +33,14 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
         private final ChatBoxService chatBoxService;
         private final ChatMessageService chatMessageService;
-        private final AccountRepository accountRepository;
+        private final AccountRepository accountRepo;
+
+        private OffsetDateTime convertToOffsetDateTime(java.util.Date date) {
+                if (date == null) {
+                        return null;
+                }
+                return date.toInstant().atOffset(ZoneId.systemDefault().getRules().getOffset(Instant.now()));
+        }
 
         @Override
         public ChatBoxCreateResponse handleChatCreation(ChatBoxCreateRequest request) {
@@ -44,7 +53,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                         "[DEBUG] ChatWebSocketServiceImpl: currentAccountUsername is missing in handleChatCreation request.");
                         throw new AppException(ErrorCode.INVALID_PARAMETER, "Current account username is required.");
                 }
-                Account currentAccount = accountRepository.findByUsernameAndDeletedDateIsNull(currentAccountUsername)
+                Account currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(currentAccountUsername)
                                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
                                                 "Current account (creator) not found: " + currentAccountUsername));
 
@@ -68,7 +77,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                         }
                         chatBoxEntity = chatBoxService.createOrGetOneToOneChatBox(currentAccountUsername,
                                         anotherAccountUsername);
-                        Account anotherUserDetails = accountRepository
+                        Account anotherUserDetails = accountRepo
                                         .findByUsernameAndDeletedDateIsNull(anotherAccountUsername).orElse(null);
                         addMemberToResponse(memberResponses, currentAccount, anotherUserDetails);
                 } else {
@@ -84,7 +93,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                         currentAccountUsername, memberIdsForGroup.toArray(new String[0]));
                         addMemberToResponse(memberResponses, currentAccount, null);
                         for (String memberUsername : request.getAnotherAccounts()) {
-                                Account memberAccDetails = accountRepository
+                                Account memberAccDetails = accountRepo
                                                 .findByUsernameAndDeletedDateIsNull(memberUsername).orElse(null);
                                 if (memberAccDetails != null)
                                         addMemberToResponse(memberResponses, null, memberAccDetails);
@@ -99,15 +108,12 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                                 .map(ChatBoxCreateResponse.ListOfMember::getMemberAccountUsername)
                                                 .collect(Collectors.toList()));
 
-                // ChatBox.createdAt is now Date, DTO expects Date.
-                OffsetDateTime createdAtForResponse = chatBoxEntity.getCreatedAt();
-
                 return ChatBoxCreateResponse.builder()
                                 .chatBoxId(chatBoxEntity.getId())
                                 .isGroup(isGroup)
                                 .createdBy(chatBoxEntity.getCreatedBy())
                                 .nameOfCreatedBy(currentAccountFullname)
-                                .createdAt(createdAtForResponse) // Pass Date directly
+                                .createdAt(convertToOffsetDateTime(chatBoxEntity.getCreatedAt()))
                                 .nameOfChatBox(chatBoxEntity.getName())
                                 .listMemmber(memberResponses)
                                 .build();
@@ -157,7 +163,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                         return null;
                 }
 
-                Account senderAccountDetails = accountRepository
+                Account senderAccountDetails = accountRepo
                                 .findByUsernameAndDeletedDateIsNull(chatMessage.getSenderAccount()).orElse(null);
                 String avatar = "";
                 if (senderAccountDetails != null) {
@@ -178,7 +184,47 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 .senderAccount(chatMessage.getSenderAccount())
                                 .avatarSenderAccount(avatar)
                                 .content(chatMessage.getContent())
-                                .createdAt(chatMessage.getCreatedAt())
+                                .createdAt(convertToOffsetDateTime(chatMessage.getCreatedAt()))
+                                .path(chatMessage.getPath())
+                                .type(chatMessage.getType())
+                                .filename(chatMessage.getFilename())
+                                .build();
+        }
+
+        public ChatMessageSenderResponse handleSendFileMessage(
+                        String chatBoxId,
+                        String senderAccount,
+                        String content,
+                        MultipartFile file,
+                        String fileType) {
+
+                ChatMessage chatMessage = chatMessageService.sendMessage(
+                                chatBoxId, senderAccount, content, file, fileType);
+
+                if (chatMessage == null)
+                        return null;
+
+                Account senderAccountDetails = accountRepo
+                                .findByUsernameAndDeletedDateIsNull(chatMessage.getSenderAccount()).orElse(null);
+                String avatar = "";
+                if (senderAccountDetails != null) {
+                        avatar = senderAccountDetails.getStudent() != null
+                                        ? senderAccountDetails.getStudent().getAvatar()
+                                        : (senderAccountDetails.getTeacher() != null
+                                                        ? senderAccountDetails.getTeacher().getAvatar()
+                                                        : "");
+                }
+
+                return ChatMessageSenderResponse.builder()
+                                .id(chatMessage.getId())
+                                .chatBoxId(chatMessage.getChatBoxId())
+                                .senderAccount(chatMessage.getSenderAccount())
+                                .avatarSenderAccount(avatar)
+                                .content(chatMessage.getContent())
+                                .createdAt(convertToOffsetDateTime(chatMessage.getCreatedAt()))
+                                .path(chatMessage.getPath())
+                                .type(chatMessage.getType())
+                                .filename(chatMessage.getFilename())
                                 .build();
         }
 }
