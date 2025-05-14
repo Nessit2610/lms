@@ -82,7 +82,7 @@ public class DocumentController {
 	public APIResponse<Page<DocumentResponse>> getAllMyDocument(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 																@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<DocumentResponse>>builder()
-				.result(documentService.getAllDocument(pageNumber, pageSize))
+				.result(documentService.getAllMyDocument(pageNumber, pageSize))
 				.build();
 	}
 	
