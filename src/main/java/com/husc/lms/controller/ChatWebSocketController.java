@@ -83,27 +83,27 @@ public class ChatWebSocketController {
 		}
 	}
 
-	@PostMapping("/sendMessage")
-	public ChatMessageSenderResponse sendFileMessage(
-			@RequestParam("chatBoxId") String chatBoxId,
-			@RequestParam("senderAccount") String senderAccount,
-			@RequestParam(value = "content", required = false) String content,
-			@RequestParam("file") MultipartFile file,
-			@RequestParam("fileType") String fileType) {
-
-		ChatMessageSenderRequest request = ChatMessageSenderRequest.builder()
-				.chatBoxId(chatBoxId)
-				.senderAccount(senderAccount)
-				.content(content)
-				.file(file)
-				.fileType(fileType)
-				.build();
-
-		ChatMessageSenderResponse response = chatWebSocketService.handleSendMessage(request);
-
-		if (response != null && response.getChatBoxId() != null) {
-			messagingTemplate.convertAndSend("/topic/chatbox/" + response.getChatBoxId(), response);
-		}
-		return response;
-	}
+//	@PostMapping("/sendMessage")
+//	public ChatMessageSenderResponse sendFileMessage(
+//			@RequestParam("chatBoxId") String chatBoxId,
+//			@RequestParam("senderAccount") String senderAccount,
+//			@RequestParam(value = "content", required = false) String content,
+//			@RequestParam("file") MultipartFile file,
+//			@RequestParam("fileType") String fileType) {
+//
+//		ChatMessageSenderRequest request = ChatMessageSenderRequest.builder()
+//				.chatBoxId(chatBoxId)
+//				.senderAccount(senderAccount)
+//				.content(content)
+//				.file(file)
+//				.fileType(fileType)
+//				.build();
+//
+//		ChatMessageSenderResponse response = chatWebSocketService.handleSendMessage(request);
+//
+//		if (response != null && response.getChatBoxId() != null) {
+//			messagingTemplate.convertAndSend("/topic/chatbox/" + response.getChatBoxId(), response);
+//		}
+//		return response;
+//	}
 }

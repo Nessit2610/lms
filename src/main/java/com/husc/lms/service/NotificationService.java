@@ -141,8 +141,7 @@ public class NotificationService {
                 System.out.println("[NotificationService] Sending WebSocket notification to: " + destination
                                 + " with payload: " + payload);
                 messagingTemplate.convertAndSend(destination, payload);
-                // System.out.println("Đã gửi WebSocket notification đến " + destination + " với
-                // payload: " + payload); // Optional logging
+                
         }
 
         public void sendConstructedCommentReplyNotification(String targetUsername, Account ownerOfParentComment,
@@ -160,17 +159,13 @@ public class NotificationService {
                 }
 
                 String messageText;
-                // Replicating the logic from the old buildNotificationPayload
-                // The 'if' condition is technically always true if ownerOfParentComment is
-                // indeed parentComment.getAccount()
-                // as passed from CommentReplyService, but kept for exact replication.
+                
                 if (parentComment.getAccount().getId().equals(ownerOfParentComment.getId())) {
                         messageText = "Người dùng " + ownerOfParentComment.getUsername()
                                         + " đã trả lời bình luận của bạn: "
                                         + savedReply.getDetail();
                 } else {
-                        // This branch was likely dead code in the original implementation if the
-                        // assumption holds.
+                        
                         messageText = savedReply.getDetail();
                 }
 
