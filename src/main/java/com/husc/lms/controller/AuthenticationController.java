@@ -13,6 +13,8 @@ import com.husc.lms.dto.response.IntrospectResponse;
 import com.husc.lms.service.AuthenticationService;
 import com.nimbusds.jose.JOSEException;
 
+import jakarta.validation.Valid;
+
 import java.text.ParseException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +30,7 @@ public class AuthenticationController {
 	private AuthenticationService authenticationService;
 
 	@PostMapping("/token")
-	public APIResponse<AuthenticationResponse> authenticate(@RequestBody AuthenticationRequest request){
+	public APIResponse<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request){
 		var result = authenticationService.Authenticate(request);
 		return APIResponse.<AuthenticationResponse>builder()
 				.result(result)
@@ -36,7 +38,7 @@ public class AuthenticationController {
 	}
 	
 	@PostMapping("/introspect")
-	public APIResponse<IntrospectResponse> authenticate(@RequestBody IntrospectRequest request) throws JOSEException, ParseException{
+	public APIResponse<IntrospectResponse> authenticate(@RequestBody @Valid IntrospectRequest request) throws JOSEException, ParseException{
 		var result = authenticationService.introspect(request);
 		return APIResponse.<IntrospectResponse>builder()
 				.result(result)
@@ -44,13 +46,13 @@ public class AuthenticationController {
 	}	
 	
 	@PostMapping("/logout")
-	public APIResponse<Void> logout(@RequestBody LogoutRequest request) throws JOSEException, ParseException {
+	public APIResponse<Void> logout(@RequestBody @Valid LogoutRequest request) throws JOSEException, ParseException {
 		authenticationService.logout(request);
 		return APIResponse.<Void>builder().build();
 	}
 	
 	@PostMapping("/refresh")
-	public APIResponse<AuthenticationResponse> refresh(@RequestBody RefreshRequest request) throws JOSEException, ParseException{
+	public APIResponse<AuthenticationResponse> refresh(@RequestBody @Valid RefreshRequest request) throws JOSEException, ParseException{
 		var result = authenticationService.refreshToken(request);
 		return APIResponse.<AuthenticationResponse>builder()
 				.result(result)

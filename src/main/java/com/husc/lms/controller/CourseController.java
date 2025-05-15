@@ -26,6 +26,8 @@ import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.update.CourseUpdateRequest;
 import com.husc.lms.service.CourseService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/course")
 public class CourseController {
@@ -68,7 +70,7 @@ public class CourseController {
 	}
 	
 	@PutMapping("/update")
-	public APIResponse<CourseResponse> updateCourse(@RequestBody CourseUpdateRequest request){
+	public APIResponse<CourseResponse> updateCourse(@RequestBody @Valid CourseUpdateRequest request){
 		return APIResponse.<CourseResponse>builder()
 				.result(courseService.updateCourse(request))
 				.build();
@@ -82,7 +84,7 @@ public class CourseController {
 	}
 	
 	@PostMapping("/create")
-	public APIResponse<CourseResponse> createCourse(@RequestBody CourseRequest request){
+	public APIResponse<CourseResponse> createCourse(@RequestBody @Valid CourseRequest request){
 		return APIResponse.<CourseResponse>builder()
 				.result(courseService.createCourse(request))
 				.build();

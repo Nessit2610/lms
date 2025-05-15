@@ -16,6 +16,8 @@ import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.RoleResponse;
 import com.husc.lms.service.RoleService;
 
+import jakarta.validation.Valid;
+
 
 @RestController
 @RequestMapping("/roles")
@@ -25,14 +27,14 @@ public class RoleController {
 	private RoleService roleService;
 	
 	@PostMapping("/create")
-	public APIResponse<RoleResponse> create(@RequestBody RoleRequest request){
+	public APIResponse<RoleResponse> create(@RequestBody @Valid RoleRequest request){
 		return APIResponse.<RoleResponse>builder()
 				.result(roleService.create(request))
 				.build();
 	}
 	
 	@PostMapping("/update")
-	public APIResponse<RoleResponse> updatePermissionsForRole(@RequestBody RoleRequest request){
+	public APIResponse<RoleResponse> updatePermissionsForRole(@RequestBody @Valid RoleRequest request){
 		return APIResponse.<RoleResponse>builder()
 				.result(roleService.updatePermissionsForRole(request))
 				.build();

@@ -18,6 +18,8 @@ import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.service.StudentCourseService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/studentcourse")
 public class StudentCourseController {
@@ -26,7 +28,7 @@ public class StudentCourseController {
 	private StudentCourseService studentCourseService;
 	
 	@PostMapping("/addstudents")
-    public APIResponse<Void> addStudentsToCourse(@RequestBody StudentCourseRequest request) {
+    public APIResponse<Void> addStudentsToCourse(@RequestBody @Valid StudentCourseRequest request) {
 		studentCourseService.addListStudentToCourse(request);
 		return APIResponse.<Void>builder()
 				.code(200)

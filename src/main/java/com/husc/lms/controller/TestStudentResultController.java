@@ -15,6 +15,8 @@ import com.husc.lms.dto.response.TestResultViewResponse;
 import com.husc.lms.dto.response.TestStudentResultResponse;
 import com.husc.lms.service.TestStudentResultService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/teststudentresult")
 public class TestStudentResultController {
@@ -30,7 +32,7 @@ public class TestStudentResultController {
 	}
 	
 	@PostMapping("/submitTest")
-	public APIResponse<Boolean> submitTest(@RequestBody SubmitTestRequets submitTestRequets){
+	public APIResponse<Boolean> submitTest(@RequestBody @Valid SubmitTestRequets submitTestRequets){
 		return APIResponse.<Boolean>builder()
 				.result(testStudentResultService.submitTest(submitTestRequets))
 				.build();

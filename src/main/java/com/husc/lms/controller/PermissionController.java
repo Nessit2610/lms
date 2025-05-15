@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.request.PermissionRequest;
@@ -40,8 +41,8 @@ public class PermissionController {
 				.build();
 	}
 	
-	@DeleteMapping("{permissionName}")
-	public APIResponse<Void> delete(@PathVariable("permissionName") String permissionName){
+	@DeleteMapping("/delete")
+	public APIResponse<Void> delete(@RequestParam("permissionName") String permissionName){
 		permissionService.delete(permissionName);
 		return APIResponse.<Void>builder().build();
 	}

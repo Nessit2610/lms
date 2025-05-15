@@ -17,6 +17,8 @@ public class RoleRequest {
 	@NotNull(message = "NOT_NULL")
 	private String name;
 	
+	@NotNull(message = "NOT_NULL")
 	private String description;
+	
 	private Set<String> permissions;
 }

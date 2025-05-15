@@ -17,6 +17,8 @@ import com.husc.lms.dto.response.GroupViewResponse;
 import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.service.StudentGroupService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/studentgroup")
 public class StudentGroupController {
@@ -25,7 +27,7 @@ public class StudentGroupController {
 	private StudentGroupService studentGroupService;
 	
 	@PostMapping("/addstudent")
-	public APIResponse<Boolean> addListStudentToGroup(@RequestBody StudentGroupRequest request) {
+	public APIResponse<Boolean> addListStudentToGroup(@RequestBody @Valid StudentGroupRequest request) {
 		return APIResponse.<Boolean>builder()
 				.result(studentGroupService.addListStudentToGroup(request))
 				.build();
@@ -39,7 +41,7 @@ public class StudentGroupController {
 	}
 	
 	@DeleteMapping("/deleteall")
-	public APIResponse<Boolean> deleteListStudentOfGroup(@RequestBody StudentDeleteRequest request) {
+	public APIResponse<Boolean> deleteListStudentOfGroup(@RequestBody @Valid StudentDeleteRequest request) {
 		return APIResponse.<Boolean>builder()
 				.result(studentGroupService.deleteListStudentOfGroup(request))
 				.build();

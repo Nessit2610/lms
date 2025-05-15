@@ -22,6 +22,8 @@ import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.TeacherResponse;
 import com.husc.lms.service.TeacherService;
 
+import jakarta.validation.Valid;
+
 @RestController
 @RequestMapping("/teacher")
 public class TeacherController {
@@ -44,7 +46,7 @@ public class TeacherController {
 	}
 
 	@PostMapping("/create")
-	public APIResponse<TeacherResponse> CreateStudent(@RequestBody TeacherRequest request){
+	public APIResponse<TeacherResponse> CreateTeacher(@RequestBody @Valid TeacherRequest request){
 		return APIResponse.<TeacherResponse>builder()
 				.result(teacherService.createTeacher(request))
 				.build();
