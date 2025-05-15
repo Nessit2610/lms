@@ -1,35 +1,28 @@
 package com.husc.lms.service;
 
-import java.util.Date;
 import java.util.List;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.Map;
+import java.util.Date;
 import java.util.HashMap;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import jakarta.transaction.Transactional;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.husc.lms.dto.request.NotificationRequest;
-import com.husc.lms.dto.response.ChatMessageNotificationResponse;
 import com.husc.lms.dto.response.CommentNotificationResponse;
 import com.husc.lms.dto.response.NotificationResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Notification;
-import com.husc.lms.entity.Notification.NotificationBuilder;
 import com.husc.lms.enums.NotificationType;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.NotificationRepository;
-import com.husc.lms.repository.StudentCourseRepository;
-import com.husc.lms.repository.StudentLessonChapterProgressRepository;
-import com.husc.lms.service.OffsetLimitPageRequest;
+
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
 import com.husc.lms.entity.CommentReply;
@@ -40,8 +33,6 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
-        private final StudentCourseRepository studentCourseRepository;
-        private final StudentLessonChapterProgressRepository studentLessonchapterProgressRepository;
         private final AccountRepository accountRepository;
         private final NotificationRepository notificationRepository;
         private final SimpMessagingTemplate messagingTemplate;
@@ -141,42 +132,65 @@ public class NotificationService {
                 System.out.println("[NotificationService] Sending WebSocket notification to: " + destination
                                 + " with payload: " + payload);
                 messagingTemplate.convertAndSend(destination, payload);
-                
+
         }
 
         public void sendConstructedCommentReplyNotification(String targetUsername, Account ownerOfParentComment,
                         CommentReply savedReply, Chapter chapter, Course course, Comment parentComment) {
 
                 if (targetUsername == null || targetUsername.isEmpty()) {
-                        System.err.println("sendConstructedCommentReplyNotification: targetUsername không được rỗng.");
+                        System.err.println(
+                                        "[NotificationService] sendConstructedCommentReplyNotification: targetUsername không được rỗng.");
                         return;
                 }
                 if (ownerOfParentComment == null || savedReply == null || chapter == null || course == null
                                 || parentComment == null) {
                         System.err.println(
-                                        "sendConstructedCommentReplyNotification: Một trong các tham số để tạo payload là null.");
+                                        "[NotificationService] sendConstructedCommentReplyNotification: Một trong các tham số để tạo payload là null.");
                         return;
                 }
 
                 String messageText;
-                
+                // The original logic for message text, ownerOfParentComment here is the account
+                // of the one who made the original comment.
+                // It is being compared with parentComment.getAccount() which should be the same
+                // if called correctly from CommentReplyService.
                 if (parentComment.getAccount().getId().equals(ownerOfParentComment.getId())) {
-                        messageText = "Người dùng " + ownerOfParentComment.getUsername()
-                                        + " đã trả lời bình luận của bạn: "
+                        messageText = "Người dùng " + savedReply.getReplyAccount().getUsername()
+                                        + " đã trả lời bình luận của bạn: " // Changed to replyAccount's username
                                         + savedReply.getDetail();
                 } else {
-                        
-                        messageText = savedReply.getDetail();
+                        // This case implies the notification is for someone else involved in the
+                        // thread, not the original commenter of parentComment
+                        // or that parentComment's owner is not the one who is supposed to receive this
+                        // specific phrasing.
+                        // For a general reply notification to other students, this might be
+                        // appropriate.
+                        messageText = "Có trả lời mới cho bình luận \"" + parentComment.getDetail() + "\": "
+                                        + savedReply.getDetail() +
+                                        " bởi " + savedReply.getReplyAccount().getUsername();
                 }
 
                 Map<String, Object> payload = new HashMap<>();
                 payload.put("message", messageText);
-                payload.put("chapterId", chapter.getId());
+                payload.put("type", NotificationType.COMMENT_REPLY.name());
                 payload.put("courseId", course.getId());
+                payload.put("lessonId", chapter.getLesson().getId()); // Assuming chapter always has a lesson
+                payload.put("chapterId", chapter.getId());
                 payload.put("parentCommentId", parentComment.getId());
                 payload.put("commentReplyId", savedReply.getId());
-                payload.put("createdDate", new Date()); // Matches existing logic
+                payload.put("createdDate", new Date());
+                payload.put("replierUsername", savedReply.getReplyAccount().getUsername());
+                // Add avatar if needed
+                // String avatar = savedReply.getReplyAccount().getStudent() != null ?
+                // savedReply.getReplyAccount().getStudent().getAvatar() :
+                // (savedReply.getReplyAccount().getTeacher() != null ?
+                // savedReply.getReplyAccount().getTeacher().getAvatar() : "");
+                // payload.put("avatar", avatar);
 
+                System.out.println("[NotificationService] Constructing and sending CommentReplyNotification to: "
+                                + targetUsername + " with payload: " + payload);
                 this.sendCustomWebSocketNotificationToUser(targetUsername, payload);
         }
+
 }
