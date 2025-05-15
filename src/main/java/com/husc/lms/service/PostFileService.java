@@ -141,7 +141,6 @@ public class PostFileService {
 	    try {
 	        Path path = Paths.get(baseDir, filename);
 	        Files.deleteIfExists(path);
-	        System.out.println("Đã xóa file: " + path.toString());
 	    } catch (IOException e) {
 	        e.printStackTrace();
 	        throw new RuntimeException("Không thể xóa file: " + filename, e);

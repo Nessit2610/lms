@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.constant.Constant;
@@ -52,8 +53,8 @@ public class ChapterController {
 	}
 	
 	
-	@DeleteMapping("/{chapterId}")
-	public APIResponse<Boolean> deleteChapter(@PathVariable("chapterId") String id){
+	@DeleteMapping("/delete")
+	public APIResponse<Boolean> deleteChapter(@RequestParam("chapterId") String id){
 		return APIResponse.<Boolean>builder()
 				.result(chapterService.deleteChapter(id))
 				.build();

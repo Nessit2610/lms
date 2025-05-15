@@ -32,7 +32,7 @@ public class RoleController {
 	}
 	
 	@PostMapping("/update")
-	public APIResponse<RoleResponse> update(@RequestBody RoleRequest request){
+	public APIResponse<RoleResponse> updatePermissionsForRole(@RequestBody RoleRequest request){
 		return APIResponse.<RoleResponse>builder()
 				.result(roleService.updatePermissionsForRole(request))
 				.build();
