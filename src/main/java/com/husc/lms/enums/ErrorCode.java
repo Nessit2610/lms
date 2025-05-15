@@ -55,16 +55,17 @@ public enum ErrorCode {
 	CHATBOX_MEMBER_NOT_FOUND(1035, "No ChatMember in this ChatBox", HttpStatus.NOT_FOUND),
 	RESULT_NOT_FOUND(1036, "RESULT_NOT_FOUND", HttpStatus.NOT_FOUND),
 	STUDENT_ALREADY_IN_GROUP(1037, "Sinh viên này đã tham gia vào nhóm", HttpStatus.BAD_REQUEST),
-	INVALID_PARAMETER(1038,"Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST),
+	INVALID_PARAMETER(1038, "Danh sách tài khoản không được rỗng", HttpStatus.BAD_REQUEST),
 	NOT_NULL(1039, "Không được để trống", HttpStatus.BAD_REQUEST),
 	FILE_NOT_FOUND(1040, "Không tìm thấy file", HttpStatus.NOT_FOUND),
 	STATUS_NOT_ALLOWED(1041, "Status không hợp lệ", HttpStatus.BAD_REQUEST),
 	COURSE_ENDED(1042, "Khóa học đã kết thúc", HttpStatus.BAD_REQUEST),
 	COURSE_NOT_STARTED(1043, "Khóa học chưa bắt đầu", HttpStatus.BAD_REQUEST),
 	FILE_UPLOAD_FAILED(1044, "Failed to upload file", HttpStatus.INTERNAL_SERVER_ERROR),
-	DOCUMENT_NOT_FOUND(1045, "Failed to upload file", HttpStatus.INTERNAL_SERVER_ERROR);
-	
-private ErrorCode(int code, String message, HttpStatusCode statusCode) {
+	DOCUMENT_NOT_FOUND(1045, "Failed to upload file", HttpStatus.INTERNAL_SERVER_ERROR),
+	INVALID_OPERATION(1046, "Invalid operation performed", HttpStatus.BAD_REQUEST);
+
+	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
 		this.Code = code;
 		this.Message = message;
 		this.statusCode = statusCode;
