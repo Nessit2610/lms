@@ -16,10 +16,12 @@ import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mongoEntity.ChatBox;
 import com.husc.lms.mongoEntity.ChatMessage;
+import com.husc.lms.dto.request.ChatAddMemberRequest;
 import com.husc.lms.dto.request.ChatBoxCreateRequest;
 import com.husc.lms.dto.request.ChatMessageSenderRequest;
 import com.husc.lms.dto.response.ChatBoxCreateResponse;
 import com.husc.lms.dto.response.ChatMessageSenderResponse;
+import com.husc.lms.mongoService.ChatBoxMemberService;
 import com.husc.lms.mongoService.ChatBoxService;
 import com.husc.lms.mongoService.ChatMessageService;
 import com.husc.lms.mongoService.ChatWebSocketService;
@@ -34,6 +36,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         private final ChatBoxService chatBoxService;
         private final ChatMessageService chatMessageService;
         private final AccountRepository accountRepo;
+        private final ChatBoxMemberService chatBoxMemberService;
 
         private OffsetDateTime convertToOffsetDateTime(java.util.Date date) {
                 if (date == null) {
@@ -196,40 +199,24 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                 return response;
         }
 
-//        public ChatMessageSenderResponse handleSendFileMessage(
-//                        String chatBoxId,
-//                        String senderAccount,
-//                        String content,
-//                        MultipartFile file,
-//                        String fileType) {
-//
-//                ChatMessage chatMessage = chatMessageService.sendMessage(
-//                                chatBoxId, senderAccount, content, file, fileType);
-//
-//                if (chatMessage == null)
-//                        return null;
-//
-//                Account senderAccountDetails = accountRepo
-//                                .findByUsernameAndDeletedDateIsNull(chatMessage.getSenderAccount()).orElse(null);
-//                String avatar = "";
-//                if (senderAccountDetails != null) {
-//                        avatar = senderAccountDetails.getStudent() != null
-//                                        ? senderAccountDetails.getStudent().getAvatar()
-//                                        : (senderAccountDetails.getTeacher() != null
-//                                                        ? senderAccountDetails.getTeacher().getAvatar()
-//                                                        : "");
-//                }
-//
-//                return ChatMessageSenderResponse.builder()
-//                                .id(chatMessage.getId())
-//                                .chatBoxId(chatMessage.getChatBoxId())
-//                                .senderAccount(chatMessage.getSenderAccount())
-//                                .avatarSenderAccount(avatar)
-//                                .content(chatMessage.getContent())
-//                                .createdAt(convertToOffsetDateTime(chatMessage.getCreatedAt()))
-//                                .path(chatMessage.getPath())
-//                                .type(chatMessage.getType())
-//                                .filename(chatMessage.getFilename())
-//                                .build();
-//        }
+        @Override
+        public ChatBox handleAddMemberRequest(ChatAddMemberRequest request) {
+                System.out.println("[DEBUG] ChatWebSocketServiceImpl: handleAddMemberRequest called for chatBoxId: " +
+                                request.getChatBoxId() + ", MemberToAdd: " + request.getUsernameOfMemberToAdd() +
+                                ", Requestor: " + request.getUsernameOfRequestor());
+                ChatBox resultChatBox = chatBoxMemberService.addMemberToChatBox(
+                                request.getChatBoxId(),
+                                request.getUsernameOfMemberToAdd(),
+                                request.getUsernameOfRequestor());
+
+                if (resultChatBox != null) {
+                        System.out.println(
+                                        "[DEBUG] ChatWebSocketServiceImpl: addMemberToChatBox successful. Resulting ChatBox ID: "
+                                                        + resultChatBox.getId());
+                } else {
+                        System.err.println("[DEBUG] ChatWebSocketServiceImpl: addMemberToChatBox returned null.");
+                }
+                return resultChatBox;
+        }
+
 }
