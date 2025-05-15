@@ -16,4 +16,7 @@ public interface GroupRepository extends JpaRepository<Group, String> {
 	
 	Page<Group> findByTeacher(Teacher teacher, Pageable pageable);
 	
+	Page<Group> findByTeacherAndNameContainingIgnoreCase(Teacher teacher, String keyword, Pageable pageable);
+
+	
 }

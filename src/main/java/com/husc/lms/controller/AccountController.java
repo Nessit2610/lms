@@ -8,6 +8,9 @@ import com.husc.lms.dto.request.PasswordRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.AccountResponse;
 import com.husc.lms.service.AccountService;
+
+import jakarta.validation.Valid;
+
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -23,7 +26,7 @@ public class AccountController {
 	private AccountService accountService;
 	
 	@PutMapping("/changePassword")
-	public APIResponse<Void> changePassword(@RequestBody PasswordRequest request) {
+	public APIResponse<Void> changePassword(@RequestBody @Valid PasswordRequest request) {
 		 accountService.changePassword(request) ;
 		 return APIResponse.<Void>builder()
 				 .code(200)

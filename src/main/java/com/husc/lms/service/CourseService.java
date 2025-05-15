@@ -29,6 +29,7 @@ import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Major;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Teacher;
+import com.husc.lms.enums.CourseLearningDurationType;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.StatusCourse;
 import com.husc.lms.exception.AppException;
@@ -89,7 +90,13 @@ public class CourseService {
         case "PRIVATE" -> StatusCourse.PRIVATE.name();
         case "PUBLIC" -> StatusCourse.PUBLIC.name();
         case "REQUEST" -> StatusCourse.REQUEST.name();
-        default -> throw new AppException(ErrorCode.CODE_ERROR);
+        default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
+		};
+		
+		String learningDurationType = switch (request.getLearningDurationType()) {
+		case "LIMITED" -> CourseLearningDurationType.LIMITED.name();
+		case "UNLIMITED" -> CourseLearningDurationType.UNLIMITED.name();
+		default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
 		};
 		
 		Course course = courseMapper.toCourse(request);
@@ -97,9 +104,10 @@ public class CourseService {
 				course.setCreatedBy(name);
 				course.setStatus(status);
 				course.setStartDate(request.getStartDate());
+				course.setLearningDurationType(learningDurationType);
 				course.setMajor(major.getName());
 				course.setCreatedDate(new Date());	
-		if(request.getEndDate() != null) {
+		if(learningDurationType.equals(CourseLearningDurationType.UNLIMITED.name()) && request.getEndDate() != null) {
 			course.setEndDate(request.getEndDate());
 		}
 		

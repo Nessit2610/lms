@@ -46,4 +46,13 @@ public class GroupController {
 				.result(groupService.getGroupOfTeacher(pageNumber, pageSize))
 				.build();
 	}
+	
+	@GetMapping("/searchgroupofteacher")
+	public APIResponse<Page<GroupViewResponse>> searchGroupOfTeacher(@RequestParam("groupName") String groupName,
+																	@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+																	@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+		return APIResponse.<Page<GroupViewResponse>>builder()
+				.result(groupService.searchGroupOfTeacher(groupName, pageNumber, pageSize))
+				.build();
+	}
 }

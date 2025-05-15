@@ -52,6 +52,13 @@ public class DocumentController {
 				.build();
 	}
 	
+	@DeleteMapping("/deleteall")
+	public APIResponse<Boolean> deleteDocument(@RequestParam("documentId") List<String> id){
+		return APIResponse.<Boolean>builder()
+				.result(documentService.deleteALlDocument(id))
+				.build();
+	}
+	
 	@GetMapping
 	public APIResponse<Page<DocumentResponse>> getAllPublicDocument(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 																	@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){

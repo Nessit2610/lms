@@ -108,6 +108,23 @@ public class DocumentService {
 		return false;
 	}
 	
+	public boolean deleteALlDocument(List<String> documentIds) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
+		for(String id : documentIds) {
+			Document document = documentRepository.findByIdAndAccount(id,account);
+			if(document == null) {
+				continue;
+			}
+			if(document != null) {
+				documentRepository.deleteById(id);
+				deletePhysicalFile(document.getPath());
+			}
+		}
+		return true;
+	}
+	
 	private void deletePhysicalFile(String fileUrl) {
 	    if (fileUrl == null || fileUrl.isEmpty()) return;
 

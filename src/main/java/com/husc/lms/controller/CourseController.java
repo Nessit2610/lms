@@ -74,8 +74,8 @@ public class CourseController {
 				.build();
 	}
 	
-	@DeleteMapping("/{courseId}")
-	public APIResponse<Boolean> deleteChapter(@PathVariable("courseId") String id){
+	@DeleteMapping("/delete")
+	public APIResponse<Boolean> deleteChapter(@RequestParam("courseId") String id){
 		return APIResponse.<Boolean>builder()
 				.result(courseService.deleteCourse(id))
 				.build();

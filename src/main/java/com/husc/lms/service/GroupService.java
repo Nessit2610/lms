@@ -85,4 +85,17 @@ public class GroupService {
 		
 		return groups.map(groupMapper::toGroupViewResponse);
 	}
+	
+	public Page<GroupViewResponse> searchGroupOfTeacher(String groupName, int page, int size){
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(()-> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+		Teacher teacher = teacherRepository.findByAccountAndDeletedDateIsNull(account);
+		
+		Pageable pageable = PageRequest.of(page, size);
+		Page<Group> groups = groupRepository.findByTeacherAndNameContainingIgnoreCase(teacher, groupName, pageable);
+		
+		return groups.map(groupMapper::toGroupViewResponse);
+	}
 }
