@@ -1,5 +1,9 @@
 package com.husc.lms.service;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -15,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.request.FileUploadRequest;
 import com.husc.lms.dto.request.PostRequest;
 import com.husc.lms.dto.response.PostResponse;
@@ -163,6 +168,7 @@ public class PostService {
 			if(postFiles != null) {
 				for(PostFile p : postFiles) {
 					postFileRepository.delete(p);
+					deletePhysicalFile(p.getFileUrl());
 				}
 			}
 			postRepository.deleteById(postId);
@@ -184,6 +190,32 @@ public class PostService {
 	            && !req.getFile().isEmpty()
 	            && req.getType() != null
 	            && !req.getType().trim().isEmpty();
+	}
+	
+	private void deletePhysicalFile(String fileUrl) {
+	    if (fileUrl == null || fileUrl.isEmpty()) return;
+
+	    String[] parts = fileUrl.split("/");
+	    if (parts.length < 4) return;
+
+	    String folder = parts[3];      
+	    String filename = parts[4];    
+
+	    String baseDir = switch (folder) {
+	        case "images" -> Constant.PHOTO_DIRECTORY;
+	        case "videos" -> Constant.VIDEO_DIRECTORY;
+	        case "files" -> Constant.FILE_DIRECTORY;
+	        default -> throw new RuntimeException("Unsupported folder: " + folder);
+	    };
+
+	    try {
+	        Path path = Paths.get(baseDir, filename);
+	        Files.deleteIfExists(path);
+	        System.out.println("Đã xóa file: " + path.toString());
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	        throw new RuntimeException("Không thể xóa file: " + filename, e);
+	    }
 	}
 
 }
