@@ -162,11 +162,12 @@ public class DocumentService {
 	    });
 	}
 	
-	public Page<DocumentResponse> searchDocument(String keyword, int page, int size) {
+	public Page<DocumentResponse> searchDocument(String title ,String majorId, int page, int size) {
 	    Pageable pageable = PageRequest.of(page, size);
 	    
-	    Page<Document> documents = documentRepository
-	        .searchByStatusAndTitleOrMajor(DocumentStatus.PUBLIC.name(), keyword, pageable);
+	    Major major = majorRepository.findById(majorId).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
+	    
+	    Page<Document> documents = documentRepository.findByTitleContainingIgnoreCaseAndStatusAndMajor(title, DocumentStatus.PUBLIC.name(), major, pageable);
 
 	    return documents.map(d -> {
 	        DocumentResponse documentResponse = documentMapper.toDocumentResponse(d);

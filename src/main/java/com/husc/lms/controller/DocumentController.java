@@ -68,11 +68,12 @@ public class DocumentController {
 	}
 	
 	@GetMapping("/search")
-	public APIResponse<Page<DocumentResponse>> searchDocument(@RequestParam("keyword") String keyword ,
+	public APIResponse<Page<DocumentResponse>> searchDocument(@RequestParam("title") String title ,
+			@RequestParam("majorId") String majorId ,
 			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<DocumentResponse>>builder()
-				.result(documentService.searchDocument(keyword, pageNumber, pageSize))
+				.result(documentService.searchDocument(title,majorId, pageNumber, pageSize))
 				.build();
 	}
 	
