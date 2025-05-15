@@ -55,7 +55,7 @@ public class DocumentController {
 	@DeleteMapping("/deleteall")
 	public APIResponse<Boolean> deleteDocument(@RequestParam("documentId") List<String> id){
 		return APIResponse.<Boolean>builder()
-				.result(documentService.deleteALlDocument(id))
+				.result(documentService.deleteAllDocument(id))
 				.build();
 	}
 	
@@ -86,10 +86,11 @@ public class DocumentController {
 	}
 	
 	@GetMapping("/mydocument")
-	public APIResponse<Page<DocumentResponse>> getAllMyDocument(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+	public APIResponse<Page<DocumentResponse>> getAllMyDocument(@RequestParam(required = false) String keyword,
+																@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
 																@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<DocumentResponse>>builder()
-				.result(documentService.getAllMyDocument(pageNumber, pageSize))
+				.result(documentService.getAllMyDocument(pageNumber, pageSize,keyword))
 				.build();
 	}
 	

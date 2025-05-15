@@ -108,7 +108,7 @@ public class DocumentService {
 		return false;
 	}
 	
-	public boolean deleteALlDocument(List<String> documentIds) {
+	public boolean deleteAllDocument(List<String> documentIds) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
@@ -193,19 +193,27 @@ public class DocumentService {
 	}
 
 	
-	public Page<DocumentResponse> getAllMyDocument(int page, int size){
-		Pageable pageable = PageRequest.of(page, size);
-		var context = SecurityContextHolder.getContext();
-		String name = context.getAuthentication().getName();
-		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Page<Document> documents = documentRepository.findByAccount(account,pageable);
-		return documents.map(d -> {
+	public Page<DocumentResponse> getAllMyDocument(int page, int size, String keyword) {
+	    Pageable pageable = PageRequest.of(page, size);
+	    var context = SecurityContextHolder.getContext();
+	    String name = context.getAuthentication().getName();
+	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow();
+
+	    Page<Document> documents;
+	    if (keyword == null || keyword.trim().isEmpty()) {
+	        documents = documentRepository.findByAccount(account, pageable);
+	    } else {
+	        documents = documentRepository.findByAccountAndTitleContainingIgnoreCase(account, keyword, pageable);
+	    }
+
+	    return documents.map(d -> {
 	        DocumentResponse documentResponse = documentMapper.toDocumentResponse(d);
 	        Object object = accountService.getAccountDetails(d.getAccount().getId());
 	        documentResponse.setObject(object);
 	        return documentResponse;
 	    });
 	}
+
 	
 	
 	public boolean setStatus(String id, String status) {

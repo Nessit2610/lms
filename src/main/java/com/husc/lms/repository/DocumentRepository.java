@@ -1,7 +1,5 @@
 package com.husc.lms.repository;
 
-import java.util.List;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,6 +20,8 @@ public interface DocumentRepository extends JpaRepository<Document, String> {
 	Document findByIdAndAccount(String id, Account account);
 	
 	Page<Document> findByAccount(Account account, Pageable pageable);
+	
+	Page<Document> findByAccountAndTitleContainingIgnoreCase(Account account, String keyword, Pageable pageable);
 	
 	@Query("SELECT d FROM Document d " +
 	       "WHERE d.status = :status AND " +
