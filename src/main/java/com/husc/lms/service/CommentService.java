@@ -359,8 +359,37 @@ public class CommentService {
 
                 // Lưu vào DB
                 commentReadStatusRepository.saveAll(readStatuses);
+
+                System.out.println("--- Logging Notifications before saving ---");
+                for (Notification notification : notifications) {
+                        System.out.println("Notification to be saved: " +
+                                        "AccountId="
+                                        + (notification.getAccount() != null ? notification.getAccount().getId()
+                                                        : "null")
+                                        +
+                                        ", Username="
+                                        + (notification.getAccount() != null ? notification.getAccount().getUsername()
+                                                        : "null")
+                                        +
+                                        ", Type=" + notification.getType() +
+                                        ", Description=" + notification.getDescription() +
+                                        ", CommentId="
+                                        + (notification.getComment() != null ? notification.getComment().getId()
+                                                        : "null")
+                                        +
+                                        ", ChapterId="
+                                        + (notification.getComment() != null
+                                                        && notification.getComment().getChapter() != null
+                                                                        ? notification.getComment().getChapter().getId()
+                                                                        : "null")
+                                        +
+                                        ", IsRead=" + notification.isRead() +
+                                        ", CreatedAt=" + notification.getCreatedAt());
+                }
+
                 notificationRepository.saveAll(notifications);
 
+                System.out.println("--- Logging Notifications before sending via WebSocket ---");
                 // Gửi thông báo real-time
                 for (Notification notification : notifications) {
                         String destination = "/topic/notifications/" + notification.getAccount().getUsername();
@@ -368,6 +397,10 @@ public class CommentService {
                         payload.put("message", notification.getDescription());
                         payload.put("chapterId", notification.getComment().getChapter().getId());
                         payload.put("createdDate", notification.getCreatedAt());
+
+                        System.out.println("Sending WebSocket notification to: " + destination + " with payload: "
+                                        + payload);
+
                         messagingTemplate.convertAndSend(destination, payload);
                 }
 
@@ -393,7 +426,6 @@ public class CommentService {
                                 .createdDate(comment.getCreatedDate())
                                 .commentReplyResponses(List.of())
                                 .build();
-
         }
 
         public List<Student> findEligibleStudents(String lessonId, String chapterId) {
