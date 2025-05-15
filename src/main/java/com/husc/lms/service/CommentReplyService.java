@@ -1,21 +1,16 @@
 package com.husc.lms.service;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.CommentReplyMessage;
 import com.husc.lms.dto.request.CommentReplyUpdateMessage;
-import com.husc.lms.dto.request.CommentUpdateMessage;
 import com.husc.lms.dto.response.CommentReplyResponse;
 import com.husc.lms.dto.response.CommentReplyUpdateMessageResponse;
-import com.husc.lms.dto.response.CommentUpdateMessageResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
@@ -36,10 +31,7 @@ import com.husc.lms.repository.CommentReplyRepository;
 import com.husc.lms.repository.CommentRepository;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.NotificationRepository;
-import com.husc.lms.repository.StudentCourseRepository;
-import com.husc.lms.repository.StudentLessonChapterProgressRepository;
-import com.husc.lms.repository.StudentLessonProgressRepository;
-import com.husc.lms.repository.StudentRepository;
+
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -53,14 +45,11 @@ public class CommentReplyService {
         private final ChapterRepository chapterRepository;
         private final CourseRepository courseRepository;
         private final AccountRepository accountRepository;
-        private final StudentRepository studentRepository;
         private final CommentReadStatusRepository commentReadStatusRepository;
-        private final StudentLessonChapterProgressRepository studentLessonChapterProgressRepository;
-        private final StudentLessonProgressRepository studentLessonProgressRepository;
         private final NotificationRepository notificationRepository;
 
         private final StudentService studentService;
-        private final SimpMessagingTemplate messagingTemplate;
+        private final NotificationService notificationService;
 
         @Transactional
         public CommentReplyResponse saveCommentReplyWithReadStatusAndNotification(CommentReplyMessage message) {
@@ -109,7 +98,7 @@ public class CommentReplyService {
                                         .isRead(false)
                                         .build());
 
-                        Notification savedNotificationForTeacher = notificationRepository.save(Notification.builder()
+                        notificationRepository.save(Notification.builder()
                                         .account(teacherAccount)
                                         .commentReply(savedReply)
                                         .description(savedReply.getDetail())
@@ -128,7 +117,7 @@ public class CommentReplyService {
                         payload.put("courseId", course.getId());
                         payload.put("lessonId", lesson.getId());
                         payload.put("chapterId", chapter.getId());
-                        messagingTemplate.convertAndSend("/topic/notifications/" + teacherAccount.getUsername(),
+                        notificationService.sendCustomWebSocketNotificationToUser(teacherAccount.getUsername(),
                                         payload);
                 }
 
@@ -143,10 +132,8 @@ public class CommentReplyService {
                                         .createdAt(OffsetDateTime.now())
                                         .build());
 
-                        Map<String, Object> payload = buildNotificationPayload(ownerAccount, savedReply, chapter,
-                                        course,
-                                        parentComment);
-                        messagingTemplate.convertAndSend("/topic/notifications/" + replyAccount.getUsername(), payload);
+                        notificationService.sendConstructedCommentReplyNotification(replyAccount.getUsername(),
+                                        ownerAccount, savedReply, chapter, course, parentComment);
                 }
 
                 // Gửi notification cho các học sinh đủ điều kiện (trừ người reply)
@@ -163,11 +150,9 @@ public class CommentReplyService {
                                                 .createdAt(OffsetDateTime.now())
                                                 .build());
 
-                                Map<String, Object> payload = buildNotificationPayload(ownerAccount, savedReply,
-                                                chapter, course,
+                                notificationService.sendConstructedCommentReplyNotification(
+                                                studentAccount.getUsername(), ownerAccount, savedReply, chapter, course,
                                                 parentComment);
-                                messagingTemplate.convertAndSend("/topic/notifications/" + studentAccount.getUsername(),
-                                                payload);
                         }
                 }
 
@@ -204,29 +189,6 @@ public class CommentReplyService {
                                 .updateDate(savedReply.getUpdateDateAt())
                                 .replyCount(newReplyCountAfterSave)
                                 .build();
-        }
-
-        // Helper method để tạo payload gửi qua WebSocket
-        private Map<String, Object> buildNotificationPayload(Account ownerAccount, CommentReply savedReply,
-                        Chapter chapter,
-                        Course course, Comment parentComment) {
-                String messageText;
-                if (parentComment.getAccount().getId().equals(ownerAccount.getId())) {
-                        messageText = "Người dùng " + ownerAccount.getUsername() + " đã trả lời bình luận của bạn: "
-                                        + savedReply.getDetail();
-                } else {
-                        messageText = savedReply.getDetail();
-                }
-
-                Map<String, Object> payload = new HashMap<>();
-                payload.put("message", messageText);
-                payload.put("chapterId", chapter.getId());
-                payload.put("courseId", course.getId());
-                payload.put("parentCommentId", parentComment.getId());
-                payload.put("commentReplyId", savedReply.getId());
-                payload.put("createdDate", new Date());
-
-                return payload;
         }
 
         public CommentReplyUpdateMessageResponse updateCommentReply(CommentReplyUpdateMessage message) {

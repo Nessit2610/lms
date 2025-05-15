@@ -4,6 +4,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.HashMap;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.husc.lms.dto.request.NotificationRequest;
 import com.husc.lms.dto.response.ChatMessageNotificationResponse;
@@ -27,6 +30,10 @@ import com.husc.lms.repository.NotificationRepository;
 import com.husc.lms.repository.StudentCourseRepository;
 import com.husc.lms.repository.StudentLessonChapterProgressRepository;
 import com.husc.lms.service.OffsetLimitPageRequest;
+import com.husc.lms.entity.Chapter;
+import com.husc.lms.entity.Comment;
+import com.husc.lms.entity.CommentReply;
+import com.husc.lms.entity.Course;
 
 import lombok.RequiredArgsConstructor;
 
@@ -37,6 +44,7 @@ public class NotificationService {
         private final StudentLessonChapterProgressRepository studentLessonchapterProgressRepository;
         private final AccountRepository accountRepository;
         private final NotificationRepository notificationRepository;
+        private final SimpMessagingTemplate messagingTemplate;
 
         public CommentNotificationResponse getAllUnreadCommentNotificationOfAccount() {
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -117,5 +125,63 @@ public class NotificationService {
                                 .notificationDetails(notificationDetails)
                                 .countUnreadNotification(unreadCount)
                                 .build();
+        }
+
+        public void sendCustomWebSocketNotificationToUser(String targetUsername, Map<String, Object> payload) {
+                if (targetUsername == null || targetUsername.isEmpty()) {
+                        System.err.println("sendCustomWebSocketNotificationToUser: targetUsername không được rỗng.");
+                        return;
+                }
+                if (payload == null || payload.isEmpty()) {
+                        System.err.println("sendCustomWebSocketNotificationToUser: payload không được rỗng.");
+                        return;
+                }
+
+                String destination = "/topic/notifications/" + targetUsername;
+                System.out.println("[NotificationService] Sending WebSocket notification to: " + destination
+                                + " with payload: " + payload);
+                messagingTemplate.convertAndSend(destination, payload);
+                // System.out.println("Đã gửi WebSocket notification đến " + destination + " với
+                // payload: " + payload); // Optional logging
+        }
+
+        public void sendConstructedCommentReplyNotification(String targetUsername, Account ownerOfParentComment,
+                        CommentReply savedReply, Chapter chapter, Course course, Comment parentComment) {
+
+                if (targetUsername == null || targetUsername.isEmpty()) {
+                        System.err.println("sendConstructedCommentReplyNotification: targetUsername không được rỗng.");
+                        return;
+                }
+                if (ownerOfParentComment == null || savedReply == null || chapter == null || course == null
+                                || parentComment == null) {
+                        System.err.println(
+                                        "sendConstructedCommentReplyNotification: Một trong các tham số để tạo payload là null.");
+                        return;
+                }
+
+                String messageText;
+                // Replicating the logic from the old buildNotificationPayload
+                // The 'if' condition is technically always true if ownerOfParentComment is
+                // indeed parentComment.getAccount()
+                // as passed from CommentReplyService, but kept for exact replication.
+                if (parentComment.getAccount().getId().equals(ownerOfParentComment.getId())) {
+                        messageText = "Người dùng " + ownerOfParentComment.getUsername()
+                                        + " đã trả lời bình luận của bạn: "
+                                        + savedReply.getDetail();
+                } else {
+                        // This branch was likely dead code in the original implementation if the
+                        // assumption holds.
+                        messageText = savedReply.getDetail();
+                }
+
+                Map<String, Object> payload = new HashMap<>();
+                payload.put("message", messageText);
+                payload.put("chapterId", chapter.getId());
+                payload.put("courseId", course.getId());
+                payload.put("parentCommentId", parentComment.getId());
+                payload.put("commentReplyId", savedReply.getId());
+                payload.put("createdDate", new Date()); // Matches existing logic
+
+                this.sendCustomWebSocketNotificationToUser(targetUsername, payload);
         }
 }
