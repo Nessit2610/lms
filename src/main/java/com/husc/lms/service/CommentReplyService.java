@@ -1,6 +1,7 @@
 package com.husc.lms.service;
 
 import java.time.OffsetDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,6 @@ import com.husc.lms.repository.CommentReplyRepository;
 import com.husc.lms.repository.CommentRepository;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.NotificationRepository;
-
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -107,18 +107,23 @@ public class CommentReplyService {
                                         .isRead(false)
                                         .build());
 
-                        // notificationRepository.save(savedNotificationForTeacher);
-
                         // Gửi thông báo riêng cho teacher qua WebSocket
-                        Map<String, Object> payload = new HashMap<>();
-                        payload.put("message", "Có bình luận mới từ khóa học " + course.getName() + " : "
-                                        + savedReply.getDetail());
-                        payload.put("type", NotificationType.COMMENT_REPLY);
-                        payload.put("courseId", course.getId());
-                        payload.put("lessonId", lesson.getId());
-                        payload.put("chapterId", chapter.getId());
+                        Map<String, Object> teacherPayload = new HashMap<>();
+                        teacherPayload.put("message",
+                                        "Có trả lời mới cho bình luận trong khóa học " + course.getName() + ": "
+                                                        + savedReply.getDetail());
+                        teacherPayload.put("type", NotificationType.COMMENT_REPLY.name());
+                        teacherPayload.put("courseId", course.getId());
+                        teacherPayload.put("lessonId", lesson.getId());
+                        teacherPayload.put("chapterId", chapter.getId());
+                        teacherPayload.put("parentCommentId", parentComment.getId());
+                        teacherPayload.put("commentReplyId", savedReply.getId());
+                        teacherPayload.put("createdDate", new Date());
+
+                        System.out.println("[CommentReplyService] Sending WebSocket notification to TEACHER: "
+                                        + teacherAccount.getUsername() + " with payload: " + teacherPayload);
                         notificationService.sendCustomWebSocketNotificationToUser(teacherAccount.getUsername(),
-                                        payload);
+                                        teacherPayload);
                 }
 
                 // Gửi notification cho người được reply (nếu khác người reply)

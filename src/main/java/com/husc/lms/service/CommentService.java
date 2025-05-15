@@ -69,6 +69,7 @@ public class CommentService {
         private final NotificationRepository notificationRepository;
         private final LessonRepository lessonRepository;
         private final SimpMessagingTemplate messagingTemplate;
+        private final NotificationService notificationService;
 
         @Transactional
         public void handleWebSocketComment(CommentMessage message) {
@@ -323,7 +324,51 @@ public class CommentService {
                         throw new IllegalArgumentException("Chapter không thuộc lesson nào.");
                 }
 
-                // Tìm các student đủ điều kiện
+                // Gửi CommentReadStatus và Notification cho GIÁO VIÊN
+                Account teacherAccount = course.getTeacher().getAccount();
+                if (teacherAccount != null) {
+                        // Kiểm tra xem giáo viên có phải là người bình luận không
+                        boolean isTeacherTheCommenter = teacherAccount.getId().equals(account.getId());
+
+                        commentReadStatusRepository.save(CommentReadStatus.builder()
+                                        .account(teacherAccount)
+                                        .comment(savedComment)
+                                        .commentType(CommentType.COMMENT)
+                                        .isRead(isTeacherTheCommenter) // Nếu GV là người comment thì đánh dấu đã đọc
+                                        .build());
+
+                        // Chỉ gửi notification nếu giáo viên không phải người comment
+                        if (!isTeacherTheCommenter) {
+                                Notification teacherNotification = Notification.builder()
+                                                .account(teacherAccount)
+                                                .comment(savedComment)
+                                                .type(NotificationType.COMMENT)
+                                                .description(savedComment.getDetail()) // Sử dụng detail từ savedComment
+                                                .isRead(false)
+                                                .createdAt(OffsetDateTime.now())
+                                                .build();
+                                notificationRepository.save(teacherNotification);
+
+                                // Gửi thông báo WebSocket cho giáo viên
+                                Map<String, Object> teacherPayload = new HashMap<>();
+                                teacherPayload.put("message", "Có bình luận mới từ khóa học " + course.getName() + ": "
+                                                + savedComment.getDetail());
+                                teacherPayload.put("type", NotificationType.COMMENT.name()); // Gửi Enum name
+                                teacherPayload.put("courseId", course.getId());
+                                teacherPayload.put("lessonId", lesson.getId());
+                                teacherPayload.put("chapterId", chapter.getId());
+                                teacherPayload.put("commentId", savedComment.getId());
+                                teacherPayload.put("createdDate", new Date()); // or OffsetDateTime.now()
+
+                                notificationService.sendCustomWebSocketNotificationToUser(teacherAccount.getUsername(),
+                                                teacherPayload);
+                                System.out.println("Sent WebSocket notification to TEACHER: "
+                                                + teacherAccount.getUsername() + " for new comment.");
+                        }
+                }
+
+                // Tìm các student đủ điều kiện (không bao gồm giáo viên nếu giáo viên là
+                // student)
                 List<Student> eligibleStudents = findEligibleStudents(lesson.getId(), chapter.getId());
                 List<Notification> notifications = new ArrayList<>();
                 List<CommentReadStatus> readStatuses = new ArrayList<>();
@@ -401,7 +446,12 @@ public class CommentService {
                         System.out.println("Sending WebSocket notification to: " + destination + " with payload: "
                                         + payload);
 
-                        messagingTemplate.convertAndSend(destination, payload);
+                        // Quyết định: Sử dụng notificationService cho nhất quán
+                        notificationService.sendCustomWebSocketNotificationToUser(
+                                        notification.getAccount().getUsername(), payload);
+
+                        System.out.println("Sending WebSocket notification to STUDENT: " + destination
+                                        + " with payload: " + payload);
                 }
 
                 // ✅ Trả về CommentMessageResponse

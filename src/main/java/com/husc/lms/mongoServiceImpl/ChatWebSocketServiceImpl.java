@@ -178,7 +178,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 ", ChatBoxID: " + chatMessage.getChatBoxId() + ", Sender: "
                                 + chatMessage.getSenderAccount());
 
-                return ChatMessageSenderResponse.builder()
+                ChatMessageSenderResponse response = ChatMessageSenderResponse.builder()
                                 .id(chatMessage.getId())
                                 .chatBoxId(chatMessage.getChatBoxId())
                                 .senderAccount(chatMessage.getSenderAccount())
@@ -189,42 +189,47 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 .type(chatMessage.getType())
                                 .filename(chatMessage.getFilename())
                                 .build();
+
+                System.out.println("[DEBUG] ChatWebSocketServiceImpl: Returning ChatMessageSenderResponse: "
+                                + response.toString());
+
+                return response;
         }
 
-        public ChatMessageSenderResponse handleSendFileMessage(
-                        String chatBoxId,
-                        String senderAccount,
-                        String content,
-                        MultipartFile file,
-                        String fileType) {
-
-                ChatMessage chatMessage = chatMessageService.sendMessage(
-                                chatBoxId, senderAccount, content, file, fileType);
-
-                if (chatMessage == null)
-                        return null;
-
-                Account senderAccountDetails = accountRepo
-                                .findByUsernameAndDeletedDateIsNull(chatMessage.getSenderAccount()).orElse(null);
-                String avatar = "";
-                if (senderAccountDetails != null) {
-                        avatar = senderAccountDetails.getStudent() != null
-                                        ? senderAccountDetails.getStudent().getAvatar()
-                                        : (senderAccountDetails.getTeacher() != null
-                                                        ? senderAccountDetails.getTeacher().getAvatar()
-                                                        : "");
-                }
-
-                return ChatMessageSenderResponse.builder()
-                                .id(chatMessage.getId())
-                                .chatBoxId(chatMessage.getChatBoxId())
-                                .senderAccount(chatMessage.getSenderAccount())
-                                .avatarSenderAccount(avatar)
-                                .content(chatMessage.getContent())
-                                .createdAt(convertToOffsetDateTime(chatMessage.getCreatedAt()))
-                                .path(chatMessage.getPath())
-                                .type(chatMessage.getType())
-                                .filename(chatMessage.getFilename())
-                                .build();
-        }
+//        public ChatMessageSenderResponse handleSendFileMessage(
+//                        String chatBoxId,
+//                        String senderAccount,
+//                        String content,
+//                        MultipartFile file,
+//                        String fileType) {
+//
+//                ChatMessage chatMessage = chatMessageService.sendMessage(
+//                                chatBoxId, senderAccount, content, file, fileType);
+//
+//                if (chatMessage == null)
+//                        return null;
+//
+//                Account senderAccountDetails = accountRepo
+//                                .findByUsernameAndDeletedDateIsNull(chatMessage.getSenderAccount()).orElse(null);
+//                String avatar = "";
+//                if (senderAccountDetails != null) {
+//                        avatar = senderAccountDetails.getStudent() != null
+//                                        ? senderAccountDetails.getStudent().getAvatar()
+//                                        : (senderAccountDetails.getTeacher() != null
+//                                                        ? senderAccountDetails.getTeacher().getAvatar()
+//                                                        : "");
+//                }
+//
+//                return ChatMessageSenderResponse.builder()
+//                                .id(chatMessage.getId())
+//                                .chatBoxId(chatMessage.getChatBoxId())
+//                                .senderAccount(chatMessage.getSenderAccount())
+//                                .avatarSenderAccount(avatar)
+//                                .content(chatMessage.getContent())
+//                                .createdAt(convertToOffsetDateTime(chatMessage.getCreatedAt()))
+//                                .path(chatMessage.getPath())
+//                                .type(chatMessage.getType())
+//                                .filename(chatMessage.getFilename())
+//                                .build();
+//        }
 }
