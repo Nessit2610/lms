@@ -19,7 +19,6 @@ import com.husc.lms.mongoService.ChatBoxMemberService;
 import com.husc.lms.mongoService.ChatBoxService; // Assuming you might want to reuse chat box creation logic
 import com.husc.lms.repository.AccountRepository; // To validate users
 
-
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -45,24 +44,57 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                         "ChatBox không tìm thấy với ID: " + chatBoxId));
 
         if (!currentChatBox.isGroup()) {
-            List<String> existingMembers = new ArrayList<>(currentChatBox.getMemberAccountUsernames());
-            if (!existingMembers.contains(usernameOfMemberToAdd)) {
-                existingMembers.add(usernameOfMemberToAdd);
-            }
-            if (!existingMembers.contains(usernameOfRequestor)) {
-                existingMembers.add(usernameOfRequestor);
+            // This is a 1-on-1 chat. We are converting it to a new group chat.
+            // The new group should contain the original two members +
+            // usernameOfMemberToAdd.
+
+            List<String> newGroupMemberUsernames = new ArrayList<>();
+
+            // Add the person requesting the change (one of the original 1-on-1 members)
+            newGroupMemberUsernames.add(usernameOfRequestor);
+
+            // Add the new member to be added
+            if (!newGroupMemberUsernames.contains(usernameOfMemberToAdd)) {
+                newGroupMemberUsernames.add(usernameOfMemberToAdd);
             }
 
-            List<String> finalMemberUsernames = existingMembers.stream().distinct().collect(Collectors.toList());
+            // Find all members of the original 1-on-1 chat using ChatBoxMemberRepository
+            // This is more reliable than currentChatBox.getMemberAccountUsernames() if that
+            // field
+            // is not consistently populated for 1-on-1 chats.
+            List<ChatBoxMember> originalChatMembers = chatBoxMemberRepository.findByChatBoxId(currentChatBox.getId());
+            for (ChatBoxMember member : originalChatMembers) {
+                if (!newGroupMemberUsernames.contains(member.getAccountUsername())) {
+                    newGroupMemberUsernames.add(member.getAccountUsername());
+                }
+            }
 
-            if (finalMemberUsernames.size() < 3) {
+            // Ensure distinctness, though the above logic tries to maintain it.
+            List<String> finalMemberUsernamesForNewGroup = newGroupMemberUsernames.stream().distinct()
+                    .collect(Collectors.toList());
+
+            if (finalMemberUsernamesForNewGroup.size() < 3) {
+                // This can still happen if, e.g., usernameOfMemberToAdd was one of the original
+                // 1-on-1 members,
+                // or if the original 1-on-1 chat somehow had fewer than 2 distinct members via
+                // chatBoxMemberRepository.
+                System.err.println("[DEBUG] Failed to form a group of at least 3. Requestor: " + usernameOfRequestor +
+                        ", MemberToAdd: " + usernameOfMemberToAdd +
+                        ", Original Chat Members (from repo): "
+                        + originalChatMembers.stream().map(ChatBoxMember::getAccountUsername)
+                                .collect(Collectors.toList())
+                        +
+                        ", Final list for new group: " + finalMemberUsernamesForNewGroup);
                 throw new AppException(ErrorCode.INVALID_OPERATION,
-                        "Không thể tạo nhóm với ít hơn 3 thành viên từ chat 1-1.");
+                        "Không thể tạo nhóm với ít hơn 3 thành viên từ chat 1-1. Số lượng thành viên cuối cùng: "
+                                + finalMemberUsernamesForNewGroup.size() + ". Danh sách: "
+                                + finalMemberUsernamesForNewGroup);
             }
-            String newGroupName = "Nhóm: " + finalMemberUsernames.stream().limit(3).collect(Collectors.joining(", "));
+            String newGroupName = "Nhóm: "
+                    + finalMemberUsernamesForNewGroup.stream().limit(3).collect(Collectors.joining(", "));
 
             ChatBox newGroupChatBox = chatBoxService.createGroupChatBox(newGroupName, usernameOfRequestor,
-                    finalMemberUsernames.toArray(new String[0]));
+                    finalMemberUsernamesForNewGroup.toArray(new String[0]));
 
             System.out.println("Đã tạo nhóm chat mới ID: " + newGroupChatBox.getId() + " từ chat 1-1 ID: "
                     + chatBoxId + " bởi người yêu cầu: " + usernameOfRequestor);

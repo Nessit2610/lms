@@ -13,10 +13,8 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Getter
-@Setter
 public class ChatBoxCreateRequest {
 	private List<String> anotherAccounts;
-	private String groupName; // Tên cho group chat, có thể null nếu là chat 1-1
+	private String groupName;
 	private String currentAccountUsername;
 }

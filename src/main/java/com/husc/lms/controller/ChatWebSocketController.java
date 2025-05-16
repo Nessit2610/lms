@@ -2,48 +2,35 @@ package com.husc.lms.controller;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.messaging.simp.annotation.SendToUser;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.husc.lms.dto.request.ChatAddMemberRequest;
 import com.husc.lms.dto.request.ChatBoxCreateRequest;
 import com.husc.lms.dto.request.ChatMessageSenderRequest;
 import com.husc.lms.dto.response.ChatBoxCreateResponse;
 import com.husc.lms.dto.response.ChatMessageSenderResponse;
-import com.husc.lms.mongoEntity.ChatBox;
+import com.husc.lms.mongoService.ChatBoxMemberService;
 import com.husc.lms.mongoService.ChatWebSocketService;
-import com.husc.lms.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import java.security.Principal;
+import com.husc.lms.dto.request.ChatBoxAddMemberRequest;
+import com.husc.lms.dto.response.ChatBoxAddMemberResponse;
 
-// @Controller
+@Controller
 @RequiredArgsConstructor
-@RestController
-@RequestMapping("/lms/chat")
 public class ChatWebSocketController {
 	private final SimpMessagingTemplate messagingTemplate;
 	private final ChatWebSocketService chatWebSocketService;
-	private final AccountRepository accountRepository;
-	private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+	private final ChatBoxMemberService chatBoxMemberService;
+	private final ObjectMapper objectMapper = new ObjectMapper();
 
 	@MessageMapping("/chat/create")
-	public void handleCreateChatBox(@Payload ChatBoxCreateRequest request, Principal principal) {
-		if (principal == null || principal.getName() == null) {
-			System.err.println("[DEBUG] /chat/create - Principal is null or has no name. Unauthorized attempt?");
-			return;
-		}
-		request.setCurrentAccountUsername(principal.getName());
-
+	public void handleCreateChatBox(@Payload ChatBoxCreateRequest request) {
 		try {
 			System.out.println("[DEBUG] Received /chat.create request: " + objectMapper.writeValueAsString(request));
 		} catch (JsonProcessingException e) {
@@ -100,99 +87,37 @@ public class ChatWebSocketController {
 		}
 	}
 
-	@MessageMapping("/chat/addMember")
-	public void handleAddMemberToChatBox(@Payload ChatAddMemberRequest request, Principal principal) {
-		if (principal == null || principal.getName() == null) {
-			System.err.println("[DEBUG] /chat/addMember - Principal is null or has no name. Unauthorized attempt?");
-			return;
-		}
-		request.setUsernameOfRequestor(principal.getName());
-
+	@MessageMapping("/chat/addMembers")
+	public void handleAddMembers(@Payload ChatBoxAddMemberRequest request) {
 		try {
-			System.out.println("[DEBUG] Received /chat/addMember request: " + objectMapper.writeValueAsString(request));
+			System.out
+					.println("[DEBUG] Received /chat/addMembers request: " + objectMapper.writeValueAsString(request));
 		} catch (JsonProcessingException e) {
-			System.err.println("[DEBUG] Error serializing /chat/addMember request: " + e.getMessage());
+			System.err.println("[DEBUG] Error serializing /chat/addMembers request to JSON: " + e.getMessage());
+			System.out.println("[DEBUG] Received /chat/addMembers request (raw): " + request.toString());
 		}
 
-		ChatBox resultChatBox = chatWebSocketService.handleAddMemberRequest(request);
+		ChatBoxAddMemberResponse response = chatWebSocketService.handleAddMembersToChatbox(request);
 
-		if (resultChatBox != null) {
+		if (response != null && response.getChatboxId() != null) {
 			try {
-				String resultJson = objectMapper.writeValueAsString(resultChatBox);
-				System.out.println("[DEBUG] handleAddMemberToChatBox result: " + resultJson);
-
-				boolean newGroupCreatedFromOneOnOne = !resultChatBox.getId().equals(request.getChatBoxId())
-						&& resultChatBox.isGroup();
-
-				if (newGroupCreatedFromOneOnOne) {
-					messagingTemplate.convertAndSend("/topic/chatbox/" + resultChatBox.getId() + "/created",
-							resultChatBox);
-					System.out.println(
-							"[DEBUG] Sent new group creation to /topic/chatbox/" + resultChatBox.getId() + "/created");
-
-					resultChatBox.getMemberAccountUsernames().forEach(memberUsername -> {
-						ChatBoxCreateResponse notificationPayload = ChatBoxCreateResponse.fromChatBox(resultChatBox,
-								memberUsername, accountRepository);
-						messagingTemplate.convertAndSendToUser(memberUsername, "/queue/notifications",
-								notificationPayload);
-						System.out.println("[DEBUG] Sent new group notification to user queue: " + memberUsername);
-					});
-				} else {
-					messagingTemplate.convertAndSend("/topic/chatbox/" + resultChatBox.getId() + "/updated",
-							resultChatBox);
-					System.out.println(
-							"[DEBUG] Sent group update to /topic/chatbox/" + resultChatBox.getId() + "/updated");
-
-					ChatBoxCreateResponse addedMemberNotification = ChatBoxCreateResponse.fromChatBox(resultChatBox,
-							request.getUsernameOfMemberToAdd(), accountRepository);
-					messagingTemplate.convertAndSendToUser(request.getUsernameOfMemberToAdd(), "/queue/notifications",
-							addedMemberNotification);
-					System.out.println("[DEBUG] Sent added to group notification to user queue: "
-							+ request.getUsernameOfMemberToAdd());
-
-					resultChatBox.getMemberAccountUsernames().stream()
-							.filter(username -> !username.equals(request.getUsernameOfMemberToAdd()))
-							.forEach(memberUsername -> {
-								ChatBoxCreateResponse existingMemberUpdate = ChatBoxCreateResponse
-										.fromChatBox(resultChatBox, memberUsername, accountRepository);
-								messagingTemplate.convertAndSendToUser(memberUsername, "/queue/notifications",
-										existingMemberUpdate);
-								System.out.println(
-										"[DEBUG] Sent group update notification to existing member: " + memberUsername);
-							});
-				}
-
+				System.out.println("[DEBUG] Sending ChatBoxAddMemberResponse to /topic/chatbox/"
+						+ response.getChatboxId() + "/membersAdded: " + objectMapper.writeValueAsString(response));
 			} catch (JsonProcessingException e) {
-				System.err.println("[DEBUG] Error serializing resultChatBox for /chat/addMember: " + e.getMessage());
+				System.err.println("[DEBUG] Error serializing ChatBoxAddMemberResponse to JSON: " + e.getMessage());
 			}
+			messagingTemplate.convertAndSend("/topic/chatbox/" + response.getChatboxId() + "/membersAdded", response);
+
+			response.getChatMemberReponses().forEach(member -> {
+				System.out.println(
+						"[DEBUG] Sending ChatBoxAddMemberResponse notification to user: " + member.getMemberAccount());
+				messagingTemplate.convertAndSendToUser(member.getMemberAccount(), "/queue/notifications",
+						response);
+			});
+
 		} else {
-			System.out.println("[DEBUG] handleAddMemberRequest returned null. No WebSocket messages sent.");
+			System.out.println(
+					"[DEBUG] ChatBoxAddMemberResponse is null or ChatBoxId is null after handleAddMembersToChatbox. No message sent.");
 		}
 	}
-
-	// @PostMapping("/sendMessage")
-	// public ChatMessageSenderResponse sendFileMessage(
-	// @RequestParam("chatBoxId") String chatBoxId,
-	// @RequestParam("senderAccount") String senderAccount,
-	// @RequestParam(value = "content", required = false) String content,
-	// @RequestParam("file") MultipartFile file,
-	// @RequestParam("fileType") String fileType) {
-	//
-	// ChatMessageSenderRequest request = ChatMessageSenderRequest.builder()
-	// .chatBoxId(chatBoxId)
-	// .senderAccount(senderAccount)
-	// .content(content)
-	// .file(file)
-	// .fileType(fileType)
-	// .build();
-	//
-	// ChatMessageSenderResponse response =
-	// chatWebSocketService.handleSendMessage(request);
-	//
-	// if (response != null && response.getChatBoxId() != null) {
-	// messagingTemplate.convertAndSend("/topic/chatbox/" + response.getChatBoxId(),
-	// response);
-	// }
-	// return response;
-	// }
 }
