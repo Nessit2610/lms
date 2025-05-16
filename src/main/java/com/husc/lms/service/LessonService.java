@@ -12,9 +12,11 @@ import com.husc.lms.dto.response.LessonResponse;
 import com.husc.lms.dto.update.LessonUpdateRequest;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
+import com.husc.lms.entity.StudentLessonProgress;
 import com.husc.lms.mapper.LessonMapper;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.LessonRepository;
+import com.husc.lms.repository.StudentLessonProgressRepository;
 
 @Service
 public class LessonService {
@@ -36,6 +38,13 @@ public class LessonService {
 	
 	@Autowired
 	private LessonQuizService lessonQuizService;
+	
+	@Autowired
+	private StudentLessonProgressService slpService;
+	
+	@Autowired
+	private StudentLessonProgressRepository slpRepository;
+	
 	
 	public LessonResponse createLesson(LessonRequest request) {
 		
@@ -66,6 +75,11 @@ public class LessonService {
 			lesson.setDeletedBy(nameAccount);
 			lesson.setDeletedDate(new Date());
 			lessonRepository.save(lesson);
+			List<StudentLessonProgress> slpList = slpRepository.findByLesson(lesson);
+			if(slpList != null && !slpList.isEmpty()) {
+				slpService.deleteLessonProgress(slpList);
+			}
+			
 			return true;
 		}
 		return false;

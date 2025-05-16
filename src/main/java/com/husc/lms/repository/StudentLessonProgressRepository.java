@@ -14,15 +14,11 @@ import com.husc.lms.entity.StudentLessonProgress;
 @Repository
 public interface StudentLessonProgressRepository extends JpaRepository<StudentLessonProgress, String> {
 
-	public StudentLessonProgress findByLesson(Lesson lesson);
-
 	public StudentLessonProgress findByLessonAndStudent(Lesson lesson, Student student);
-	
-//	@Query("SELECT slp.student.id FROM StudentLessonProgress slp WHERE slp.lesson.id = :lessonId AND slp.isCompleted = true")
-//	List<String> findStudentIdsByLessonCompleted(@Param("lessonId") String lessonId);
-	
 	
 	@Query("SELECT slp.student.id FROM StudentLessonProgress slp WHERE slp.lesson.id = :lessonId")
 	List<String> findStudentIdsByLessonCompleted(@Param("lessonId") String lessonId);
+	
+	List<StudentLessonProgress> findByLesson(Lesson lesson);
 
 }

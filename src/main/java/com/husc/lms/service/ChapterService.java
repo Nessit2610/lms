@@ -34,11 +34,13 @@ import com.husc.lms.dto.response.ChapterResponse;
 import com.husc.lms.dto.update.ChapterUpdateRequest;
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Lesson;
+import com.husc.lms.entity.StudentLessonChapterProgress;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.ChapterMapper;
 import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.LessonRepository;
+import com.husc.lms.repository.StudentLessonChapterProgressRepository;
 
 @Service
 public class ChapterService {
@@ -51,6 +53,12 @@ public class ChapterService {
 	
 	@Autowired
 	private LessonRepository lessonRepository;
+	
+	@Autowired
+	private StudentLessonChapterProgressService slcpService;
+	
+	@Autowired
+	private StudentLessonChapterProgressRepository slcpRepository;
 	
 	public ChapterResponse createChapter(ChapterRequest request) {
 		var context = SecurityContextHolder.getContext();
@@ -113,6 +121,10 @@ public class ChapterService {
             chapter.setDeletedBy(nameAccount);
             chapter.setDeletedDate(new Date());
             chapterRepository.save(chapter);
+            List<StudentLessonChapterProgress> slcpList = slcpRepository.findByChapter(chapter);
+            if(slcpList != null && !slcpList.isEmpty()) {
+            	slcpService.deleteChapterProgress(slcpList);
+            }
             return true;
         }
         return false;

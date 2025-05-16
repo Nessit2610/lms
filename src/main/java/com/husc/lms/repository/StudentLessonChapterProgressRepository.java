@@ -31,5 +31,6 @@ public interface StudentLessonChapterProgressRepository extends JpaRepository<St
 	    @Param("courseId") String courseId
 	);
 
+    List<StudentLessonChapterProgress> findByChapter(Chapter chapter);
     
 }

@@ -2,6 +2,7 @@ package com.husc.lms.service;
 
 import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -73,6 +74,19 @@ public class StudentLessonChapterProgressService {
 		slcp = slcpRepository.save(slcp);
 		return slcpMapper.toResponse(slcp);
 	}
+	
+	public void deleteChapterProgress(List<StudentLessonChapterProgress> list) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
+		for(StudentLessonChapterProgress slcp : list) {
+			slcp.setDeletedBy(account.getEmail());
+			slcp.setDeletedDate(new Date());
+			slcpRepository.save(slcp);
+		}
+	}
+	
+	
 	
 	public StudentLessonChapterProgressResponse getChapterProgress(String chapterId) {
 		var context = SecurityContextHolder.getContext();

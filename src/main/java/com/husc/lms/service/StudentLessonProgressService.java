@@ -1,6 +1,7 @@
 package com.husc.lms.service;
 
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -68,6 +69,17 @@ public class StudentLessonProgressService {
 		slp = studentLessonProgressRepository.save(slp);
 		return lessonProgressMapper.toStudentLessonProgressResponse(slp);
 				
+	}
+	
+	public void deleteLessonProgress(List<StudentLessonProgress> slpList) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
+		for(StudentLessonProgress slp : slpList) {
+			slp.setDeletedBy(account.getEmail());
+			slp.setDeletedDate(new Date());
+			studentLessonProgressRepository.save(slp);
+		}
 	}
 
 	public StudentLessonProgressResponse getLessonProgress(String lessonId) {
