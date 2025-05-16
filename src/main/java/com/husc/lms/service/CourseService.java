@@ -25,6 +25,7 @@ import com.husc.lms.dto.response.CourseResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.update.CourseUpdateRequest;
 import com.husc.lms.entity.Account;
+import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Major;
 import com.husc.lms.entity.Student;
@@ -36,6 +37,7 @@ import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.CourseMapper;
 import com.husc.lms.mapperImpl.CourseMapperImplCustom;
 import com.husc.lms.repository.AccountRepository;
+import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.MajorRepository;
@@ -74,7 +76,7 @@ public class CourseService {
 	private StudentCourseRepository studentCourseRepository;
 	
 	@Autowired
-	private LessonRepository lessonRepository;
+	private ChapterRepository chapterRepository;
 	
 	public CourseResponse createCourse(CourseRequest request) {
 		
@@ -164,23 +166,20 @@ public class CourseService {
 		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {
 	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
 	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
-	        cr.setLessonCount(lessonRepository.countLessonsByCourse(course));
+	        cr.setLessonCount(chapterRepository.countChaptersByCourse(course));
 	        return cr;
 	    });
 		
 		return courseResponsePage;
 	}
 	
-	public Page<CourseViewResponse> getAllPublicCourseSortByMajor(int pageNumber , int pageSize){
-		
+	public Page<CourseViewResponse> getAllPublicCourseSortByMajor(int page , int size){
 		
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
-		
-		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
-		int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
+	
 		
 		Pageable pageable = PageRequest.of(page, size);
 		
@@ -189,7 +188,7 @@ public class CourseService {
 		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {
 			CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
 			cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
-			cr.setLessonCount(lessonRepository.countLessonsByCourse(course));
+			cr.setLessonCount(chapterRepository.countChaptersByCourse(course));
 			return cr;
 		});
 		
@@ -206,14 +205,11 @@ public class CourseService {
 	}
 
 	
-	public Page<CourseViewResponse> getCourseOfTeacher(int pageNumber , int pageSize){
+	public Page<CourseViewResponse> getCourseOfTeacher(int page , int size){
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Teacher teacher = teacherRepository.findByAccountAndDeletedDateIsNull(account);
-		
-		int page = Objects.isNull(pageNumber) || pageNumber < 0 ? 0 : pageNumber;
-	    int size = Objects.isNull(pageSize) || pageSize <= 0 ? 20 : pageSize;
 	    
 	    Pageable pageable = PageRequest.of(page, size);
 		
@@ -222,7 +218,7 @@ public class CourseService {
 		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {
 	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
 	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
-	        cr.setLessonCount(lessonRepository.countLessonsByCourse(course));
+	        cr.setLessonCount(chapterRepository.countChaptersByCourse(course));
 	        return cr;
 	    });
 		

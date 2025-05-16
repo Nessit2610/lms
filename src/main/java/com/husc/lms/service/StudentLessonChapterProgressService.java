@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.husc.lms.dto.response.StudentLessonChapterProgressResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Chapter;
+import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentLessonChapterProgress;
 import com.husc.lms.enums.ErrorCode;
@@ -17,6 +18,7 @@ import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.StudentLessonChapterProgressMapper;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.ChapterRepository;
+import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.StudentLessonChapterProgressRepository;
 import com.husc.lms.repository.StudentRepository;
 
@@ -31,6 +33,9 @@ public class StudentLessonChapterProgressService {
 	
 	@Autowired
 	private ChapterRepository chapterRepository;
+	
+	@Autowired
+	private CourseRepository courseRepository;
 	
 	@Autowired
 	private StudentLessonChapterProgressRepository slcpRepository;
@@ -86,7 +91,11 @@ public class StudentLessonChapterProgressService {
 	
 	public double getPercentComplete(String courseId, String studentId) {
 		Student student = studentRepository.findById(studentId).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
-		long totalChapter = chapterRepository.countChaptersByCourseId(courseId);
+		Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
+		if(course == null) {
+			throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+		}
+		long totalChapter = chapterRepository.countChaptersByCourse(course);
 		if (totalChapter == 0) {
 	        return 0.0;
 	    }

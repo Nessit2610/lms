@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.Chapter;
+import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
 
 @Repository
@@ -21,11 +22,9 @@ public interface ChapterRepository extends JpaRepository<Chapter, String> {
 	boolean existsByLessonAndOrderAndDeletedDateIsNull(Lesson lesson, Integer order);
 
 	
-	@Query("SELECT COUNT(ch) FROM Chapter ch " +
-	       "JOIN ch.lesson l " +
-	       "JOIN l.course c " +
-	       "WHERE c.id = :courseId")
-	long countChaptersByCourseId(@Param("courseId") String courseId);
+	@Query("SELECT COUNT(c) FROM Chapter c WHERE c.lesson.course = :course")
+	long countChaptersByCourse(@Param("course") Course course);
+
 
 
 }
