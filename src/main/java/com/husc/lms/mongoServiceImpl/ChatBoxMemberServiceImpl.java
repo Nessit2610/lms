@@ -128,4 +128,83 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
             return updatedChatBox;
         }
     }
+
+    @Override
+    public List<ChatBoxMember> getChatBoxMembersByChatBoxId(String chatBoxId) {
+        if (chatBoxId == null || chatBoxId.trim().isEmpty()) {
+            throw new AppException(ErrorCode.INVALID_PARAMETER, "ChatBox ID không được để trống.");
+        }
+        return chatBoxMemberRepository.findByChatBoxId(chatBoxId);
+    }
+
+    @Override
+    @Transactional
+    public void removeMemberFromChatBox(String chatBoxId, String usernameOfMemberToRemove, String usernameOfRequestor) {
+        // Validate accounts
+        accountRepository.findByUsernameAndDeletedDateIsNull(usernameOfRequestor)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
+                        "Tài khoản yêu cầu (requestor) không tìm thấy: " + usernameOfRequestor));
+        accountRepository.findByUsernameAndDeletedDateIsNull(usernameOfMemberToRemove)
+                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
+                        "Tài khoản cần xoá (member to remove) không tìm thấy: " + usernameOfMemberToRemove));
+
+        // Fetch ChatBox
+        ChatBox chatBox = chatBoxRepository.findById(chatBoxId)
+                .orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND,
+                        "ChatBox không tìm thấy với ID: " + chatBoxId));
+
+        // Authorization: Only the creator of the group can remove members
+        if (!chatBox.getCreatedBy().equals(usernameOfRequestor)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED, "Chỉ người tạo nhóm mới có quyền xoá thành viên.");
+        }
+
+        // Cannot remove from a 1-on-1 chat this way (it's not a group management
+        // operation)
+        if (!chatBox.isGroup()) {
+            throw new AppException(ErrorCode.INVALID_OPERATION,
+                    "Không thể xoá thành viên từ một cuộc trò chuyện 1-1 bằng chức năng này.");
+        }
+
+        // Prevent creator from removing themselves
+        if (usernameOfMemberToRemove.equals(chatBox.getCreatedBy())) {
+            throw new AppException(ErrorCode.INVALID_OPERATION,
+                    "Người tạo nhóm không thể tự xoá chính mình khỏi nhóm.");
+        }
+
+        // Check if the member to remove is actually in the chatBox's member list
+        if (!chatBox.getMemberAccountUsernames().contains(usernameOfMemberToRemove)) {
+            throw new AppException(ErrorCode.MEMBER_NOT_FOUND_IN_CHATBOX,
+                    "Thành viên " + usernameOfMemberToRemove + " không có trong nhóm chat " + chatBoxId);
+        }
+
+        // Also check using ChatBoxMemberRepository for consistency, though the above
+        // check is primary for the list in ChatBox
+        if (!chatBoxMemberRepository.existsByChatBoxIdAndAccountUsername(chatBoxId, usernameOfMemberToRemove)) {
+            // This case should ideally not happen if ChatBox.memberAccountUsernames is kept
+            // in sync
+            System.err.println("[WARN] Member " + usernameOfMemberToRemove
+                    + " was in ChatBox.memberAccountUsernames but not found in ChatBoxMemberRepository for chatBoxId "
+                    + chatBoxId + ". Proceeding with removal based on ChatBox list.");
+        }
+
+        // Perform deletion from ChatBoxMember collection
+        chatBoxMemberRepository.deleteByChatBoxIdAndAccountUsername(chatBoxId, usernameOfMemberToRemove);
+
+        // Update ChatBox entity: remove member from the list and update timestamp
+        boolean removed = chatBox.getMemberAccountUsernames().remove(usernameOfMemberToRemove);
+        if (removed) {
+            chatBox.setUpdatedAt(new Date());
+            chatBoxRepository.save(chatBox);
+            System.out.println("Đã xoá thành viên " + usernameOfMemberToRemove + " khỏi nhóm chat ID: " + chatBoxId
+                    + " bởi người tạo: " + usernameOfRequestor);
+        } else {
+            // This should ideally not be reached if the .contains check above passed and no
+            // concurrent modification occurred
+            System.err.println("[WARN] Thành viên " + usernameOfMemberToRemove
+                    + " không thể xoá khỏi danh sách memberAccountUsernames của ChatBox ID: " + chatBoxId
+                    + " dù đã tồn tại trước đó.");
+            // Consider if an exception should be thrown here if strict consistency is
+            // required
+        }
+    }
 }
