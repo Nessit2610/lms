@@ -16,6 +16,6 @@ public interface LessonRepository extends JpaRepository<Lesson, String> {
 	List<Lesson> findByCourseAndDeletedDateIsNull(Course course);
 	Lesson findByIdAndDeletedDateIsNull(String id);
 	
-	@Query("SELECT COUNT(l) FROM Lesson l WHERE l.course = :course")
+	@Query("SELECT COUNT(l) FROM Lesson l WHERE l.course = :course AND l.deletedDate IS NULL")
     long countLessonsByCourse(@Param("course") Course course);
 }

@@ -22,7 +22,7 @@ public interface ChapterRepository extends JpaRepository<Chapter, String> {
 	boolean existsByLessonAndOrderAndDeletedDateIsNull(Lesson lesson, Integer order);
 
 	
-	@Query("SELECT COUNT(c) FROM Chapter c WHERE c.lesson.course = :course")
+	@Query("SELECT COUNT(c) FROM Chapter c WHERE c.lesson.course = :course AND c.deletedDate IS NULL")
 	long countChaptersByCourse(@Param("course") Course course);
 
 
