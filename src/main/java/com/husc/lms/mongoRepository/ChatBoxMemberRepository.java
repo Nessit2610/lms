@@ -14,4 +14,6 @@ public interface ChatBoxMemberRepository extends MongoRepository<ChatBoxMember, 
     List<ChatBoxMember> findByChatBoxId(String chatBoxId);
 
     boolean existsByChatBoxIdAndAccountUsername(String chatBoxId, String accountUsername);
+
+    void deleteByChatBoxIdAndAccountUsername(String chatBoxId, String accountUsername);
 }

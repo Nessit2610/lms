@@ -63,7 +63,8 @@ public enum ErrorCode {
 	COURSE_NOT_STARTED(1043, "Khóa học chưa bắt đầu", HttpStatus.BAD_REQUEST),
 	FILE_UPLOAD_FAILED(1044, "Failed to upload file", HttpStatus.INTERNAL_SERVER_ERROR),
 	DOCUMENT_NOT_FOUND(1045, "Failed to upload file", HttpStatus.INTERNAL_SERVER_ERROR),
-	INVALID_OPERATION(1046, "Invalid operation performed", HttpStatus.BAD_REQUEST);
+	INVALID_OPERATION(1046, "Invalid operation performed", HttpStatus.BAD_REQUEST),
+	MEMBER_NOT_FOUND_IN_CHATBOX(1047, "Thành viên không tìm thấy trong nhóm chat", HttpStatus.NOT_FOUND);
 
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
 		this.Code = code;
