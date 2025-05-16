@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import com.husc.lms.entity.TestStudentResult;
 import com.husc.lms.entity.TestInGroup;
+
+import java.util.List;
 import java.util.Optional;
 
 import com.husc.lms.entity.Student;
@@ -17,4 +19,8 @@ public interface TestStudentResultRepository extends JpaRepository<TestStudentRe
 	Optional<TestStudentResult> findByStudentAndTestInGroup(Student student, TestInGroup testInGroup);
 
 	Page<TestStudentResult> findByTestInGroup(TestInGroup testInGroup, Pageable pageable);
+	
+	List<TestStudentResult> findByTestInGroup(TestInGroup testInGroup);
+	
+	
 }

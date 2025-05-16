@@ -3,6 +3,7 @@ package com.husc.lms.service;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -128,8 +129,6 @@ public class TestStudentResultService {
 	        TestQuestion testQuestion = testQuestionRepository.findById(request.getQuestionId()).orElseThrow(()-> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 	        
 	        boolean isCorrect = normalizeAnswer(request.getAnswer()).equals(normalizeAnswer(testQuestion.getCorrectAnswers()));
-	        System.out.println("Request answer set: " + normalizeAnswer(request.getAnswer()));
-	        System.out.println("Correct answer set: " + normalizeAnswer(testQuestion.getCorrectAnswers()));
 
 	        if (isCorrect) {
 	            correctCount++;
@@ -194,6 +193,16 @@ public class TestStudentResultService {
 		Page<TestStudentResult> testResults = testStudentResultRepository.findByTestInGroup(testInGroup, pageable);
 		
 		return testResults.map(testStudentResultMapper::toTestResultViewResponse);
+	}
+	
+	
+	public void deleteTestResult(TestInGroup testInGroup) {
+		List<TestStudentResult> testStudentResults = testStudentResultRepository.findByTestInGroup(testInGroup);
+		if(testStudentResults != null && !testStudentResults.isEmpty()) {
+			for(TestStudentResult t : testStudentResults) {
+				testStudentResultRepository.delete(t);
+			}
+		}
 	}
 	
 	

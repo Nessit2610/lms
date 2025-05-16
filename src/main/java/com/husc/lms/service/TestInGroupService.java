@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.husc.lms.dto.request.TestInGroupRequest;
 import com.husc.lms.dto.response.TestInGroupResponse;
 import com.husc.lms.dto.response.TestInGroupViewResponse;
+import com.husc.lms.dto.update.TestInGroupUpdateRequest;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.TestInGroup;
 import com.husc.lms.entity.TestQuestion;
@@ -34,32 +35,51 @@ public class TestInGroupService {
 	@Autowired
 	private TestQuestionService testQuestionService;
 	
+	
+	@Autowired
+	private TestStudentResultService testStudentResultService;
+	
 	@Autowired
 	private TestInGroupMapper testInGroupMapper;
 	
 	public TestInGroupResponse createTestInGroup(TestInGroupRequest request) {
 		Group group = groupRepository.findById(request.getGroupId()).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
-		// Chuyển đổi thời gian bắt đầu và kết thúc sang UTC
+		
 		OffsetDateTime startedAtUtc = request.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
 		OffsetDateTime expiredAtUtc = request.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
 
-	 // Tạo đối tượng TestInGroup với thời gian chuẩn
 	    TestInGroup testInGroup = TestInGroup.builder()
 	            .title(request.getTitle())
 	            .description(request.getDescription())
 	            .group(group)
-	            .startedAt(startedAtUtc)  // Lưu thời gian bắt đầu theo UTC
-	            .createdAt(OffsetDateTime.now(ZoneOffset.UTC))  // Lưu thời gian tạo theo UTC
-	            .expiredAt(expiredAtUtc)  // Lưu thời gian hết hạn theo UTC
+	            .startedAt(startedAtUtc)  
+	            .createdAt(OffsetDateTime.now(ZoneOffset.UTC))  
+	            .expiredAt(expiredAtUtc)  
 	            .build();
-	    
-		testInGroup = testInGroupRepository.save(testInGroup);
 		List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
 		testInGroup.setQuestions(listQuestions);
 		testInGroup = testInGroupRepository.save(testInGroup);
 		return testInGroupMapper.toTestInGroupResponse(testInGroup);
 		
 	}
+	
+	public TestInGroupResponse updateTestInGroup(TestInGroupUpdateRequest request) {
+			
+		OffsetDateTime startedAtUtc = request.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
+		OffsetDateTime expiredAtUtc = request.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
+		
+		TestInGroup testInGroup = testInGroupRepository.findById(request.getTestInGroupId()).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+					testInGroup.setTitle(request.getTitle());
+					testInGroup.setDescription(request.getDescription());
+					testInGroup.setStartedAt(startedAtUtc);
+					testInGroup.setExpiredAt(expiredAtUtc);
+		List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
+		testInGroup.setQuestions(listQuestions);
+		testInGroup = testInGroupRepository.save(testInGroup);
+		return testInGroupMapper.toTestInGroupResponse(testInGroup);
+		
+	}
+	
 	public TestInGroupResponse getById(String id) {
 		TestInGroup testInGroup = testInGroupRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 		return testInGroupMapper.toTestInGroupResponse(testInGroup);
@@ -72,5 +92,11 @@ public class TestInGroupService {
 		 return testInGroup.map(testInGroupMapper::toTestInGroupViewResponse);
 	}
 	
+	public boolean deleteTestInGroup(String id) {
+		TestInGroup testInGroup = testInGroupRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+		testStudentResultService.deleteTestResult(testInGroup);
+		testInGroupRepository.delete(testInGroup);
+		return true;
+	}
 	
 }

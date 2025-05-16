@@ -7,5 +7,5 @@ import com.husc.lms.entity.TestStudentAnswer;
 
 @Repository
 public interface TestStudentAnswerRepository extends JpaRepository<TestStudentAnswer, String> {
-
+	
 }

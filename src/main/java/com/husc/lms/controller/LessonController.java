@@ -37,7 +37,7 @@ public class LessonController {
 	}
 	
 	@DeleteMapping("/{lessonId}")
-	public APIResponse<Boolean> deleteChapter(@PathVariable("lessonId") String id){
+	public APIResponse<Boolean> deleteLesson(@PathVariable("lessonId") String id){
 		return APIResponse.<Boolean>builder()
 				.result(lessonService.deleteLesson(id))
 				.build();

@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -37,7 +38,7 @@ public class ChapterController {
 	
 	
 	@PostMapping("/create")
-	public APIResponse<ChapterResponse> createChapter(@RequestBody @Valid ChapterRequest chapterRequest){
+	public APIResponse<ChapterResponse> createChapter(@ModelAttribute @Valid ChapterRequest chapterRequest){
 		return APIResponse.<ChapterResponse>builder()
 				.result(chapterService.createChapter(chapterRequest))
 				.build();
