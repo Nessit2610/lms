@@ -59,11 +59,11 @@ public class NotificationService {
                                 .build();
         }
 
-        public void setNotificationAsReadByAccount(List<String> notificationIds) {
+        public void setNotificationAsReadByAccountWithListNotificationId(List<String> notificationIds) {
                 if (notificationIds == null || notificationIds.isEmpty()) {
                         return;
                 }
-                notificationRepository.setNotificationAsReadByAccount(notificationIds);
+                notificationRepository.setNotificationAsReadByAccountWithListNotificationId(notificationIds);
         }
 
         public void markCommentNotificationsAsRead(List<NotificationRequest> notificationRequests) {
@@ -74,7 +74,7 @@ public class NotificationService {
                                 .map(NotificationRequest::getId)
                                 .collect(Collectors.toList());
                 if (!notificationIds.isEmpty()) {
-                        notificationRepository.setNotificationAsReadByAccount(notificationIds);
+                        notificationRepository.setNotificationAsReadByAccountWithListNotificationId(notificationIds);
                 }
         }
 
@@ -192,5 +192,13 @@ public class NotificationService {
                                 + targetUsername + " with payload: " + payload);
                 this.sendCustomWebSocketNotificationToUser(targetUsername, payload);
         }
+
+		public void setNotificationAsReadByAccount() {
+			String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
+                            .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));
+            
+            notificationRepository.setNotificationAsReadByAccount(account);
+		}
 
 }
