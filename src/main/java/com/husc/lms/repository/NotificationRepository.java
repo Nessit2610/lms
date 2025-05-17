@@ -7,10 +7,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import com.husc.lms.entity.Notification;
 import com.husc.lms.enums.NotificationType;
-import com.husc.lms.mongoEntity.ChatMessage;
 
 import jakarta.transaction.Transactional;
 
@@ -28,5 +28,10 @@ public interface NotificationRepository extends JpaRepository<Notification, Stri
 	@Modifying
 	@Transactional
 	@Query("UPDATE Notification n SET n.isRead = true WHERE n.id IN :notificationIds")
-	void setNotificationAsReadByAccount(List<String> notificationIds);
+	void setNotificationAsReadByAccountWithListNotificationId(List<String> notificationIds);
+
+	@Modifying
+	@Transactional
+	@Query("UPDATE Notification n SET n.isRead = true WHERE n.account = :account")
+	void setNotificationAsReadByAccount(@Param("account") Account account);
 }
