@@ -9,7 +9,6 @@ import java.util.HashMap;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -29,6 +28,7 @@ import com.husc.lms.entity.CommentReply;
 import com.husc.lms.entity.Course;
 
 import lombok.RequiredArgsConstructor;
+import com.husc.lms.service.OffsetLimitPageRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -78,7 +78,7 @@ public class NotificationService {
                 }
         }
 
-        public NotificationResponse getNotificationsByAccount(int pageNumber, int pageSize) {
+        public NotificationResponse getNotificationsByAccount(int offset, int pageSize) {
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
                 Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
                                 .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));
@@ -86,13 +86,24 @@ public class NotificationService {
                 if (pageSize < 1) {
                         throw new IllegalArgumentException("pageSize must be 1 or greater.");
                 }
+                if (offset < 0) {
+                        throw new IllegalArgumentException("offset must not be less than zero.");
+                }
 
                 Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-                Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+                Pageable pageableForHasNextCheck = new OffsetLimitPageRequest(offset, pageSize + 1, sort);
 
-                Page<Notification> notificationPage = notificationRepository.findByAccount(account, pageable);
+                Page<Notification> notificationPage = notificationRepository.findByAccount(account,
+                                pageableForHasNextCheck);
 
-                List<NotificationResponse.NotificationDetail> notificationDetails = notificationPage.getContent()
+                List<Notification> fetchedNotifications = notificationPage.getContent();
+                boolean hasNextPage = fetchedNotifications.size() > pageSize;
+
+                List<Notification> notificationsToReturn = hasNextPage
+                                ? fetchedNotifications.subList(0, pageSize)
+                                : fetchedNotifications;
+
+                List<NotificationResponse.NotificationDetail> notificationDetails = notificationsToReturn
                                 .stream()
                                 .map(notification -> NotificationResponse.NotificationDetail.builder()
                                                 .notificationId(notification.getId())
@@ -193,12 +204,12 @@ public class NotificationService {
                 this.sendCustomWebSocketNotificationToUser(targetUsername, payload);
         }
 
-		public void setNotificationAsReadByAccount() {
-			String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
-                            .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));
-            
-            notificationRepository.setNotificationAsReadByAccount(account);
-		}
+        public void setNotificationAsReadByAccount() {
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                Account account = accountRepository.findByUsernameAndDeletedDateIsNull(username)
+                                .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));
+
+                notificationRepository.setNotificationAsReadByAccount(account);
+        }
 
 }
