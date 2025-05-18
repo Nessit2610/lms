@@ -95,32 +95,26 @@ public class PaypalService {
 //        return false;
 //    }
 
-    public boolean successPayment(String paymentId, String payerId) {
-        try {
-            Payment payment = this.executePayment(paymentId, payerId);
-            System.out.println(payment.toJSON());
-            //Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
-            if ("approved".equals(payment.getState())) {
-                PaymentEntity pay = new PaymentEntity();
-                pay.setPaymentId(payment.getId());
-                //pay.setCourse(course);
-                pay.setDescription(payment.getTransactions().get(0).getDescription());
-                pay.setCreateTime(payment.getCreateTime());
-                pay.setCountryCode(payment.getTransactions().get(0).getItemList().getShippingAddress().getCountryCode());
-                pay.setEmail(payment.getPayer().getPayerInfo().getEmail());
-                pay.setPostalCode(payment.getTransactions().get(0).getItemList().getShippingAddress().getPostalCode());
-                pay.setTotalPrice(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getAmount().getTotal()));
-                pay.setStatus(payment.getPayer().getStatus());
-                pay.setTransactionFee(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getTransactionFee().getValue()));
+    public boolean successPayment(Payment payment) {
+        System.out.println(payment.toJSON());
+		//Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
+		if ("approved".equals(payment.getState())) {
+		    PaymentEntity pay = new PaymentEntity();
+		    pay.setPaymentId(payment.getId());
+		    //pay.setCourse(course);
+		    pay.setDescription(payment.getTransactions().get(0).getDescription());
+		    pay.setCreateTime(payment.getCreateTime());
+		    pay.setCountryCode(payment.getTransactions().get(0).getItemList().getShippingAddress().getCountryCode());
+		    pay.setEmail(payment.getPayer().getPayerInfo().getEmail());
+		    pay.setPostalCode(payment.getTransactions().get(0).getItemList().getShippingAddress().getPostalCode());
+		    pay.setTotalPrice(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getAmount().getTotal()));
+		    pay.setStatus(payment.getPayer().getStatus());
+		    pay.setTransactionFee(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getTransactionFee().getValue()));
 
-                paymentEntityRepository.save(pay);
+		    paymentEntityRepository.save(pay);
 
-                return true;
-            }
-
-        } catch (PayPalRESTException e) {
-            System.out.println(e.getMessage());
-        }
+		    return true;
+		}
         return false;
     }
 }

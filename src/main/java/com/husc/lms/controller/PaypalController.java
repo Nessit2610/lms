@@ -44,7 +44,7 @@ public class PaypalController {
         try {
             Payment payment = paypalService.executePayment(paymentId, payerId);
             if ("approved".equalsIgnoreCase(payment.getState())) {
-            	paypalService.successPayment(paymentId, payerId);
+            	paypalService.successPayment(payment);
                 return "Thanh toán thành công!";
             }
         } catch (PayPalRESTException e) {
