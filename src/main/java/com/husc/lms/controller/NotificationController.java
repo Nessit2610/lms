@@ -46,11 +46,15 @@ public class NotificationController {
 				.build();
 	}
 
-	@PostMapping("/readAll")
-	public void setNotificationsAsReadByAccount(@RequestBody List<NotificationRequest> notificationRequests) {
+	@PostMapping("/read")
+	public void setNotificationAsReadByAccountWithListNotificationId(@RequestBody List<NotificationRequest> notificationRequests) {
 		List<String> notificationIds = notificationRequests.stream()
 				.map(NotificationRequest::getId)
 				.collect(Collectors.toList());
-		notificationService.setNotificationAsReadByAccount(notificationIds);
+		notificationService.setNotificationAsReadByAccountWithListNotificationId(notificationIds);
+	}
+	@PostMapping("/readAll")
+	public void setNotificationsAsReadByAccount() {
+		notificationService.setNotificationAsReadByAccount();
 	}
 }
