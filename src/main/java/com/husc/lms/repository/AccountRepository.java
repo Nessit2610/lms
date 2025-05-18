@@ -20,8 +20,8 @@ public interface AccountRepository extends JpaRepository<Account, String> {
 	@Query("SELECT r.name FROM Account a JOIN a.roles r WHERE a.id = :id")
 	List<String> findRoleNamesByAccountId(@Param("id") String accountId);
 
-	@Query("SELECT a FROM Account a WHERE a.deletedDate IS NULL AND (LOWER(a.username) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(a.fullname) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) AND a.username NOT IN :excludedUsernames")
-	List<Account> findBySearchTermAndUsernameNotInAndDeletedDateIsNull(
-			@Param("searchTerm") String searchTerm,
-			@Param("excludedUsernames") List<String> excludedUsernames);
+//	@Query("SELECT a FROM Account a WHERE a.deletedDate IS NULL AND (LOWER(a.username) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(a.fullname) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) AND a.username NOT IN :excludedUsernames")
+//	List<Account> findBySearchTermAndUsernameNotInAndDeletedDateIsNull(
+//			@Param("searchTerm") String searchTerm,
+//			@Param("excludedUsernames") List<String> excludedUsernames);
 }
