@@ -30,7 +30,12 @@ public class CourseRequest {
     private Date startDate;
 
     private Date endDate;
+    
+    @NotNull(message = "NOT_NULL")
+    private String feeType;
 
+    private Double price;
+    
     @NotNull(message = "NOT_NULL")
     private String majorId;
 }

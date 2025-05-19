@@ -165,7 +165,7 @@ public class JoinClassRequestService {
 		Page<CourseViewResponse> courseResponses = courses.map(course -> {
 	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
 	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
-	        cr.setLessonCount(lessonRepository.countLessonsByCourse(course));
+	        cr.setChapterCount(lessonRepository.countLessonsByCourse(course));
 	        return cr;
 	    });
 		return courseResponses;	

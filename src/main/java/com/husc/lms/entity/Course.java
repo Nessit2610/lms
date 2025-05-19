@@ -53,6 +53,10 @@ public class Course {
     @JoinColumn(name = "teacherId")
     @ManyToOne(fetch = FetchType.EAGER)
     private Teacher teacher;
+    
+    private String feeType;
+    
+    private Double price;
 
     private String createdBy;
 

@@ -1,11 +1,14 @@
 package com.husc.lms.controller;
 
+import com.husc.lms.dto.request.PaymentRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
 
 import com.husc.lms.service.PaypalService;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
+
+import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -18,55 +21,54 @@ public class PaypalController {
     @Autowired
     private PaypalService paypalService;
     
-    
-    @GetMapping("/preparepayment")
-    public APIResponse<CourseViewResponse> home(@RequestParam String courseId) {
-        return APIResponse.<CourseViewResponse>builder()
-        		.result(paypalService.preparePayment(courseId))
-        		.build();
-    }
 
     @PostMapping("/pay")
-    public ResponseEntity<?> pay(@RequestParam("price") double price, @RequestParam("courseId") String courseId) {
+    public APIResponse<Boolean> pay(@Valid @RequestBody PaymentRequest request) {
         try {
-            String approvalLink = paypalService.createPayment(
-            	price,
-                "USD",
-                "paypal",
-                "sale",
-                "Thanh toán đơn hàng",
-                "http://localhost:8080/lms/paypal/cancel",
-                "http://localhost:8080/lms/paypal/success",
-                courseId
-            );
+            String approvalLink = paypalService.createPayment(request);
 
             if (approvalLink != null) {
-                return ResponseEntity.ok(approvalLink);
+                return APIResponse.<Boolean>builder()
+                		.result(true)
+                		.message(approvalLink)
+                		.build();
             }
         } catch (PayPalRESTException e) {
             e.printStackTrace();
         }
 
-        return ResponseEntity.internalServerError().body("Không thể tạo thanh toán.");
+        return APIResponse.<Boolean>builder()
+        		.result(false)
+        		.message("Không thể tạo thanh toán !")
+        		.build();
     }
     
     @GetMapping("/success")
-    public String successPay(@RequestParam("paymentId") String paymentId,
+    public APIResponse<Boolean> successPay(@RequestParam("paymentId") String paymentId,
                              @RequestParam("PayerID") String payerId) {
         try {
             Payment payment = paypalService.executePayment(paymentId, payerId);
             if ("approved".equalsIgnoreCase(payment.getState())) {
             	paypalService.successPayment(payment);
-                return "Thanh toán thành công!";
+                return APIResponse.<Boolean>builder()
+                		.result(true)
+                		.message("Thanh toán thành công !")
+                		.build();
             }
         } catch (PayPalRESTException e) {
             e.printStackTrace();
         }
-        return "Thanh toán thất bại!";
+        return APIResponse.<Boolean>builder()
+        		.result(false)
+        		.message("Thanh toán thất bại !")
+        		.build();
     }
 
     @GetMapping("/cancel")
-    public String cancelPay() {
-        return "Đã huỷ thanh toán!";
+    public APIResponse<Boolean> cancelPay() {
+    	return APIResponse.<Boolean>builder()
+        		.result(false)
+        		.message("Thanh toán thất bại !")
+        		.build();
     }
 }

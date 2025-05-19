@@ -6,6 +6,9 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -131,8 +134,9 @@ public class AccountService {
 
 	//ROLE ADMIN
 	
-	public List<AccountResponse> getAllAccount(){
-		return accountRepository.findAll().stream().map(accountMapper::toAccountResponse).toList();
+	public Page<AccountResponse> getAllAccount(int page , int size){
+		Pageable pageable = PageRequest.of(page, size);
+		return accountRepository.findAll(pageable).map(accountMapper::toAccountResponse);
 	}
 	
 	

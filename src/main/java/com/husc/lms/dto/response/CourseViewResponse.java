@@ -31,9 +31,13 @@ public class CourseViewResponse {
 
     private String major;
     
+    private String feeType;
+
+    private Double price;
+    
     private TeacherResponse teacher;
     
     private long studentCount;
     
-    private long lessonCount;
+    private long chapterCount;
 }

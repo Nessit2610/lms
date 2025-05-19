@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.husc.lms.dto.request.PaymentRequest;
 import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
@@ -58,30 +59,31 @@ public class PaypalService {
 	@Autowired
 	private PendingPaymentRepository pendingPaymentRepository;
 	
-	public String createPayment(double total, String currency, String method,
-            String intent, String description,
-            String cancelUrl, String successUrl, String courseId) throws PayPalRESTException {
+	@Autowired
+	private StudentCourseService studentCourseService;
+	
+	public String createPayment(PaymentRequest request) throws PayPalRESTException {
 		Amount amount = new Amount();
-		amount.setCurrency(currency);
-		amount.setTotal(String.format("%.2f", total));
+		amount.setCurrency(request.getCurrency());
+		amount.setTotal(String.format("%.2f", request.getPrice()));
 		
 		Transaction transaction = new Transaction();
-		transaction.setDescription(description);
+		transaction.setDescription(request.getDescription());
 		transaction.setAmount(amount);
 		
 		List<Transaction> transactions = Collections.singletonList(transaction);
 		
 		Payer payer = new Payer();
-		payer.setPaymentMethod(method);
+		payer.setPaymentMethod(request.getMethod());
 		
 		Payment payment = new Payment();
-		payment.setIntent(intent);
+		payment.setIntent(request.getIntent());
 		payment.setPayer(payer);
 		payment.setTransactions(transactions);
 		
 		RedirectUrls redirectUrls = new RedirectUrls();
-		redirectUrls.setCancelUrl(cancelUrl);
-		redirectUrls.setReturnUrl(successUrl);
+		redirectUrls.setCancelUrl(request.getCancelUrl());
+		redirectUrls.setReturnUrl(request.getSuccessUrl());
 		payment.setRedirectUrls(redirectUrls);
 		
 		Payment createdPayment = payment.create(apiContext);
@@ -91,7 +93,7 @@ public class PaypalService {
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		
-        Course course = courseRepository.findById(courseId).orElseThrow(()-> new AppException(ErrorCode.COURSE_NOT_FOUND));
+        Course course = courseRepository.findById(request.getCourseId()).orElseThrow(()-> new AppException(ErrorCode.COURSE_NOT_FOUND));
 		
         PendingPayment pending = new PendingPayment();
         pending.setPaymentId(createdPayment.getId());
@@ -143,7 +145,7 @@ public class PaypalService {
 		    pay.setStatus(payment.getPayer().getStatus());
 		    pay.setTransactionFee(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getTransactionFee().getValue()));
 		    paymentEntityRepository.save(pay);
-		    
+		    studentCourseService.addStudentToCourse(student, course);
 		    pending.setCompleted(true);
 		    pendingPaymentRepository.save(pending);
 		    

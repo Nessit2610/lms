@@ -32,6 +32,7 @@ import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Teacher;
 import com.husc.lms.enums.CourseLearningDurationType;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.FeeStatus;
 import com.husc.lms.enums.StatusCourse;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.CourseMapper;
@@ -101,18 +102,37 @@ public class CourseService {
 		default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
 		};
 		
+		String feeType = switch (request.getFeeType()) {
+		case "CHARGEABLE" -> FeeStatus.CHARGEABLE.name();
+		case "NON_CHARGEABLE" -> FeeStatus.NON_CHARGEABLE.name();
+		default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
+		};
+		
 		Course course = courseMapper.toCourse(request);
 				course.setTeacher(teacher);
 				course.setCreatedBy(name);
 				course.setStatus(status);
 				course.setStartDate(request.getStartDate());
 				course.setLearningDurationType(learningDurationType);
+				course.setFeeType(feeType);
 				course.setMajor(major.getName());
 				course.setCreatedDate(new Date());	
-		if(learningDurationType.equals(CourseLearningDurationType.UNLIMITED.name()) && request.getEndDate() != null) {
-			course.setEndDate(request.getEndDate());
+		if(learningDurationType.equals(CourseLearningDurationType.UNLIMITED.name())) {
+			if(request.getEndDate() != null){
+				course.setEndDate(request.getEndDate());
+			}
+			else {
+				throw new AppException(ErrorCode.NOT_NULL);
+			}
 		}
-		
+		if(learningDurationType.equals(FeeStatus.CHARGEABLE.name())) {
+			if(request.getPrice() != null) {
+				course.setPrice(request.getPrice());				
+			}
+			else {
+				throw new AppException(ErrorCode.NOT_NULL);
+			}
+		}
 		course = courseRepository.save(course);		
 		
 		return courseMapper.toCourseResponse(course);
@@ -166,7 +186,7 @@ public class CourseService {
 		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {
 	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
 	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
-	        cr.setLessonCount(chapterRepository.countChaptersByCourse(course));
+	        cr.setChapterCount(chapterRepository.countChaptersByCourse(course));
 	        return cr;
 	    });
 		
@@ -188,7 +208,7 @@ public class CourseService {
 		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {
 			CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
 			cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
-			cr.setLessonCount(chapterRepository.countChaptersByCourse(course));
+			cr.setChapterCount(chapterRepository.countChaptersByCourse(course));
 			return cr;
 		});
 		
@@ -218,7 +238,7 @@ public class CourseService {
 		Page<CourseViewResponse> courseResponsePage = courses.map(course -> {
 	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
 	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
-	        cr.setLessonCount(chapterRepository.countChaptersByCourse(course));
+	        cr.setChapterCount(chapterRepository.countChaptersByCourse(course));
 	        return cr;
 	    });
 		

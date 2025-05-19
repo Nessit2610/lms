@@ -32,6 +32,10 @@ public class CourseResponse {
 
     private String major;
     
+    private String feeType;
+
+    private Double price;
+    
     private TeacherResponse teacher;
     
     private List<LessonResponse> lesson;

@@ -3,6 +3,7 @@ package com.husc.lms.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 import com.husc.lms.dto.request.PasswordRequest;
 import com.husc.lms.dto.response.APIResponse;
@@ -13,6 +14,7 @@ import jakarta.validation.Valid;
 
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -40,9 +42,10 @@ public class AccountController {
 	
 	
 	@GetMapping
-	public APIResponse<List<AccountResponse>> getAllAccount(){
-		return APIResponse.<List<AccountResponse>>builder()
-				.result(accountService.getAllAccount())
+	public APIResponse<Page<AccountResponse>> getAllAccount(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+		return APIResponse.<Page<AccountResponse>>builder()
+				.result(accountService.getAllAccount(pageNumber, pageSize))
 				.build();
 	}
 	

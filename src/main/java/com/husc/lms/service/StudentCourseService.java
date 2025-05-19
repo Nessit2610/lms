@@ -67,7 +67,7 @@ public class StudentCourseService {
 		return true;
 	}
 	
-	public boolean addStudentToCourse(Student student , Course course) {
+	public void addStudentToCourse(Student student , Course course) {
 		
 		if (course.getEndDate() != null) {
 		    Date now = new Date();
@@ -97,7 +97,7 @@ public class StudentCourseService {
 			studentCourseExisted.setDeletedBy(null);
 			studentCourseExisted.setDeletedDate(null);
 			studentCourseRepository.save(studentCourseExisted);
-			return true;
+			
 		}
 		else {
 			StudentCourse studentCourse = StudentCourse.builder()
@@ -107,7 +107,7 @@ public class StudentCourseService {
 					.course(course)
 					.build();
 			studentCourseRepository.save(studentCourse);
-			return true;
+			
 		}
 	}
 	
@@ -177,7 +177,7 @@ public class StudentCourseService {
 		Page<CourseViewResponse> courseResponsePage = coursePage.map(course -> {
 	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
 	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
-	        cr.setLessonCount(lessonRepository.countLessonsByCourse(course));
+	        cr.setChapterCount(lessonRepository.countLessonsByCourse(course));
 	        return cr;
 	    });
 		
