@@ -7,7 +7,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.husc.lms.entity.Account;
 import com.husc.lms.enums.ErrorCode;
@@ -36,6 +39,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         private final ChatMessageService chatMessageService;
         private final AccountRepository accountRepo;
         private final ChatBoxMemberService chatBoxMemberService;
+        private final SimpMessagingTemplate messagingTemplate;
 
         private OffsetDateTime convertToOffsetDateTime(java.util.Date date) {
                 if (date == null) {
@@ -55,6 +59,10 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
         @Override
         public ChatBoxCreateResponse handleChatCreation(ChatBoxCreateRequest request) {
+
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+                System.out.println("Username Account: " + username);
                 System.out.println("[DEBUG] ChatWebSocketServiceImpl: handleChatCreation called with creator: "
                                 + request.getCurrentAccountUsername() + ", others: " + request.getAnotherAccounts());
 
@@ -119,7 +127,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                                 .map(ChatBoxCreateResponse.ListOfMember::getMemberAccountUsername)
                                                 .collect(Collectors.toList()));
 
-                return ChatBoxCreateResponse.builder()
+                ChatBoxCreateResponse response = ChatBoxCreateResponse.builder()
                                 .chatBoxId(chatBoxEntity.getId())
                                 .isGroup(isGroup)
                                 .createdBy(chatBoxEntity.getCreatedBy())
@@ -128,6 +136,16 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 .nameOfChatBox(chatBoxEntity.getName())
                                 .listMemmber(memberResponses)
                                 .build();
+
+                // Gửi realtime cho người tạo
+                messagingTemplate.convertAndSend("/topic/chatbox/" + currentAccountUsername + "/created", response);
+                // Nếu là chat 1-1, gửi cho người còn lại
+                if (!isGroup && request.getAnotherAccounts().size() == 1) {
+                        String anotherUsername = request.getAnotherAccounts().get(0);
+                        messagingTemplate.convertAndSend("/topic/chatbox/" + anotherUsername + "/created", response);
+                }
+
+                return response;
         }
 
         private void addMemberToResponse(List<ChatBoxCreateResponse.ListOfMember> list, Account acc1, Account acc2) {
@@ -157,6 +175,8 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
         @Override
         public ChatMessageSenderResponse handleSendMessage(ChatMessageSenderRequest chatMessageSenderRequest) {
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                System.out.println("Username Account: " + username);
                 System.out.println("[DEBUG] ChatWebSocketServiceImpl: handleSendMessage called for chatBoxId: " +
                                 chatMessageSenderRequest.getChatBoxId() + ", Sender: "
                                 + chatMessageSenderRequest.getSenderAccount());

@@ -2,6 +2,7 @@ package com.husc.lms.configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
@@ -20,122 +21,206 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.messaging.SessionUnsubscribeEvent;
 
+// Kích hoạt lại các import cho Security
+import org.springframework.messaging.simp.SimpMessageType;
+import org.springframework.security.authorization.AuthorizationManager;
+import org.springframework.security.config.annotation.web.socket.EnableWebSocketSecurity; // KÍCH HOẠT LẠI
+import org.springframework.security.messaging.access.intercept.MessageMatcherDelegatingAuthorizationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
 @Configuration
 @EnableWebSocketMessageBroker
+@EnableWebSocketSecurity // KÍCH HOẠT LẠI
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
-    private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
+        private static final Logger logger = LoggerFactory.getLogger(WebSocketConfig.class);
 
-    @Bean
-    public ChannelInterceptor loggingChannelInterceptor() {
-        return new ChannelInterceptor() {
-            private final Logger interceptorLogger = LoggerFactory.getLogger("LoggingChannelInterceptor");
+        @Autowired
+        private CustomJwtAuthChannelInterceptor customJwtAuthChannelInterceptor;
 
-            @Override
-            public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
-                StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-                String sessionId = accessor.getSessionId();
-                String commandText = (accessor.getCommand() != null) ? accessor.getCommand().name() : "UNKNOWN_COMMAND";
-                String destination = accessor.getDestination();
-                Object payload = message.getPayload();
-                String payloadString = payload.toString();
-                String shortPayload = payloadString.substring(0, Math.min(payloadString.length(), 200))
-                        + (payloadString.length() > 200 ? "..." : "");
+        @Bean
+        public ChannelInterceptor loggingChannelInterceptor() {
+                return new ChannelInterceptor() {
+                        private final Logger interceptorLogger = LoggerFactory.getLogger("LoggingChannelInterceptor");
 
-                interceptorLogger.info(
-                        "[WS-INTERCEPTOR PRE-SEND] SessionId: {}, Command: {}, Destination: {}, Payload: {}",
-                        sessionId, commandText, destination, shortPayload);
+                        @Override
+                        public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
+                                StompHeaderAccessor loggingAccessor = StompHeaderAccessor.wrap(message);
+                                String sessionId = loggingAccessor.getSessionId();
+                                String commandText = (loggingAccessor.getCommand() != null)
+                                                ? loggingAccessor.getCommand().name()
+                                                : "UNKNOWN_COMMAND";
+                                String destination = loggingAccessor.getDestination();
+                                Object payload = message.getPayload();
+                                String payloadString = payload.toString();
+                                String shortPayload = payloadString.substring(0, Math.min(payloadString.length(), 200))
+                                                + (payloadString.length() > 200 ? "..." : "");
 
+                                String username = "USER_IS_NULL_IN_LOGGING_INTERCEPTOR (SECURITY ENABLED)";
+                                if (loggingAccessor.getUser() != null) {
+                                        username = loggingAccessor.getUser().getName();
+                                        if (username == null) {
+                                                username = "USER_PRINCIPAL_NAME_IS_NULL_IN_LOGGING_INTERCEPTOR (SECURITY ENABLED)";
+                                        }
+                                }
+
+                                // Log thông tin chi tiết hơn về trạng thái xác thực
+                                logger.debug("[LoggingChannelInterceptor] Authentication state - SessionId: {}, User: {}, Command: {}, Destination: {}",
+                                                sessionId, username, commandText, destination);
+
+                                System.out.printf(
+                                                "[WS-SYS-LOGGING PRE-SEND (SECURITY ENABLED)] SessionId: %s, User: %s, Command: %s, Destination: %s, Channel: %s, Payload: %s%n",
+                                                sessionId, username, commandText, destination, channel.toString(),
+                                                shortPayload);
+                                return message;
+                        }
+                };
+        }
+
+        @Bean
+        public ChannelInterceptor csrfChannelInterceptor() {
+                return new ChannelInterceptor() {
+                        @Override
+                        public Message<?> preSend(Message<?> message, MessageChannel channel) {
+                                return message; // Bỏ qua CSRF check
+                        }
+                };
+        }
+
+        @Override
+        public void configureMessageBroker(MessageBrokerRegistry config) {
+                config.enableSimpleBroker("/topic", "/queue", "/user");
+                config.setApplicationDestinationPrefixes("/app");
+                config.setUserDestinationPrefix("/user");
+        }
+
+        @Override
+        public void registerStompEndpoints(StompEndpointRegistry registry) {
+                registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
+        }
+
+        @Override
+        public void configureClientInboundChannel(ChannelRegistration registration) {
+                registration.interceptors(customJwtAuthChannelInterceptor);
+                registration.interceptors(loggingChannelInterceptor());
+                registration.interceptors(csrfChannelInterceptor());
+        }
+
+        @Override
+        public void configureClientOutboundChannel(ChannelRegistration registration) {
+                registration.interceptors(loggingChannelInterceptor());
+        }
+
+        private String getUserPrincipalName(StompHeaderAccessor headerAccessor) {
+                String sessionId = headerAccessor.getSessionId();
+                if (headerAccessor.getUser() != null && headerAccessor.getUser().getName() != null) {
+                        String username = headerAccessor.getUser().getName();
+                        logger.debug("[WebSocketConfig] Found authenticated user from accessor: {} for session: {}",
+                                        username, sessionId);
+                        return username;
+                }
+                // Tra cứu từ interceptor nếu không có trong accessor
+                if (sessionId != null
+                                && com.husc.lms.configuration.CustomJwtAuthChannelInterceptor.authenticatedSessions
+                                                .containsKey(sessionId)) {
+                        String username = com.husc.lms.configuration.CustomJwtAuthChannelInterceptor.authenticatedSessions
+                                        .get(sessionId).getName();
+                        logger.debug("[WebSocketConfig] Found authenticated user from interceptor map: {} for session: {}",
+                                        username, sessionId);
+                        return username;
+                }
+                logger.debug("[WebSocketConfig] No authenticated user found for session: {}", sessionId);
+                return null;
+        }
+
+        @EventListener
+        public void handleWebSocketConnectListener(SessionConnectedEvent event) {
+                StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+                String sessionId = headerAccessor.getSessionId();
+                String userPrincipalName = getUserPrincipalName(headerAccessor);
+
+                if (userPrincipalName == null) {
+                        userPrincipalName = "ANONYMOUS_OR_PENDING_AUTH (SECURITY ENABLED)";
+                }
+
+                logger.info("[WS-EVENT] CONNECTED (SECURITY ENABLED) - SessionId: {}, User: {}", sessionId,
+                                userPrincipalName);
+                System.out.printf("[WS-SYS-EVENT] CONNECTED (SECURITY ENABLED) - SessionId: %s, User: %s%n", sessionId,
+                                userPrincipalName);
+        }
+
+        @EventListener
+        public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
+                StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+                String sessionId = headerAccessor.getSessionId();
+                String userPrincipalName = getUserPrincipalName(headerAccessor);
+
+                if (userPrincipalName == null) {
+                        userPrincipalName = "ANONYMOUS (SECURITY ENABLED)";
+                }
+
+                logger.info("[WS-EVENT] DISCONNECTED (SECURITY ENABLED) - SessionId: {}, User: {}", sessionId,
+                                userPrincipalName);
+                System.out.printf("[WS-SYS-EVENT] DISCONNECTED (SECURITY ENABLED) - SessionId: %s, User: %s%n",
+                                sessionId, userPrincipalName);
+        }
+
+        @EventListener
+        public void handleWebSocketSubscribeListener(SessionSubscribeEvent event) {
+                StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+                String sessionId = headerAccessor.getSessionId();
+                String destination = headerAccessor.getDestination();
+                String userPrincipalName = getUserPrincipalName(headerAccessor);
+
+                if (userPrincipalName == null) {
+                        userPrincipalName = "ANONYMOUS_SUBSCRIBE_ATTEMPT (SECURITY ENABLED)";
+                        logger.warn("[WebSocketConfig] Anonymous subscribe attempt for session: {}, destination: {}",
+                                        sessionId, destination);
+                } else {
+                        logger.info("[WebSocketConfig] Authenticated subscribe for user: {}, session: {}, destination: {}",
+                                        userPrincipalName, sessionId, destination);
+                }
+
+                logger.info("[WS-EVENT] SUBSCRIBED (SECURITY ENABLED) - SessionId: {}, User: {}, Destination: {}",
+                                sessionId, userPrincipalName, destination);
                 System.out.printf(
-                        "[WS-SYS-PRE-SEND] SessionId: %s, Command: %s, Destination: %s, Channel: %s, Payload: %s%n",
-                        sessionId, commandText, destination, channel.toString(), shortPayload);
-                return message;
-            }
+                                "[WS-SYS-EVENT] SUBSCRIBED (SECURITY ENABLED) - SessionId: %s, User: %s, Destination: %s%n",
+                                sessionId, userPrincipalName, destination);
+        }
 
-            @Override
-            public void postSend(@NonNull Message<?> message, @NonNull MessageChannel channel, boolean sent) {
-                StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-                String sessionId = accessor.getSessionId();
-                String commandText = (accessor.getCommand() != null) ? accessor.getCommand().name() : "UNKNOWN_COMMAND";
-                String destination = accessor.getDestination();
-                interceptorLogger.info(
-                        "[WS-INTERCEPTOR POST-SEND] SessionId: {}, Command: {}, Destination: {}, Sent: {}",
-                        sessionId, commandText, destination, sent);
-                System.out.printf("[WS-SYS-POST-SEND] SessionId: %s, Command: %s, Destination: %s, Sent: %s%n",
-                        sessionId, commandText, destination, sent);
-            }
-        };
-    }
+        @EventListener
+        public void handleWebSocketUnsubscribeListener(SessionUnsubscribeEvent event) {
+                StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+                String sessionId = headerAccessor.getSessionId();
+                String subscriptionId = headerAccessor.getSubscriptionId();
+                String userPrincipalName = getUserPrincipalName(headerAccessor);
 
-    @Override
-    public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic", "/queue", "/user");
-        config.setApplicationDestinationPrefixes("/app");
-        config.setUserDestinationPrefix("/user");
-    }
+                if (userPrincipalName == null) {
+                        userPrincipalName = "ANONYMOUS (SECURITY ENABLED)";
+                }
 
-    @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
-    }
+                logger.info("[WS-EVENT] UNSUBSCRIBED (SECURITY ENABLED) - SessionId: {}, User: {}, SubscriptionId: {}",
+                                sessionId, userPrincipalName, subscriptionId);
+                System.out.printf(
+                                "[WS-SYS-EVENT] UNSUBSCRIBED (SECURITY ENABLED) - SessionId: %s, User: %s, SubscriptionId: %s%n",
+                                sessionId, userPrincipalName, subscriptionId);
+        }
 
-    @Override
-    public void configureClientInboundChannel(ChannelRegistration registration) {
-        registration.interceptors(loggingChannelInterceptor());
-    }
-
-    @Override
-    public void configureClientOutboundChannel(ChannelRegistration registration) {
-        registration.interceptors(loggingChannelInterceptor());
-    }
-
-    @EventListener
-    public void handleWebSocketConnectListener(SessionConnectedEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        String sessionId = headerAccessor.getSessionId();
-        String userPrincipalName = (headerAccessor.getUser() != null) ? headerAccessor.getUser().getName()
-                : "ANONYMOUS";
-
-        logger.info("[WS-EVENT] CONNECTED - SessionId: {}, User: {}", sessionId, userPrincipalName);
-        System.out.printf("[WS-SYS-EVENT] CONNECTED - SessionId: %s, User: %s%n", sessionId, userPrincipalName);
-    }
-
-    @EventListener
-    public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        String sessionId = headerAccessor.getSessionId();
-        String userPrincipalName = (headerAccessor.getUser() != null) ? headerAccessor.getUser().getName()
-                : "ANONYMOUS";
-
-        logger.info("[WS-EVENT] DISCONNECTED - SessionId: {}, User: {}", sessionId, userPrincipalName);
-        System.out.printf("[WS-SYS-EVENT] DISCONNECTED - SessionId: %s, User: %s%n", sessionId, userPrincipalName);
-    }
-
-    @EventListener
-    public void handleWebSocketSubscribeListener(SessionSubscribeEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        String sessionId = headerAccessor.getSessionId();
-        String destination = headerAccessor.getDestination();
-        String userPrincipalName = (headerAccessor.getUser() != null) ? headerAccessor.getUser().getName()
-                : "ANONYMOUS";
-
-        logger.info("[WS-EVENT] SUBSCRIBED - SessionId: {}, User: {}, Destination: {}", sessionId, userPrincipalName,
-                destination);
-        System.out.printf("[WS-SYS-EVENT] SUBSCRIBED - SessionId: %s, User: %s, Destination: %s%n",
-                sessionId, userPrincipalName, destination);
-    }
-
-    @EventListener
-    public void handleWebSocketUnsubscribeListener(SessionUnsubscribeEvent event) {
-        StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
-        String sessionId = headerAccessor.getSessionId();
-        String subscriptionId = headerAccessor.getSubscriptionId();
-        String userPrincipalName = (headerAccessor.getUser() != null) ? headerAccessor.getUser().getName()
-                : "ANONYMOUS";
-
-        logger.info("[WS-EVENT] UNSUBSCRIBED - SessionId: {}, User: {}, SubscriptionId: {}", sessionId,
-                userPrincipalName, subscriptionId);
-        System.out.printf("[WS-SYS-EVENT] UNSUBSCRIBED - SessionId: %s, User: %s, SubscriptionId: %s%n",
-                sessionId, userPrincipalName, subscriptionId);
-    }
+        @Bean
+        public AuthorizationManager<Message<?>> messageAuthorizationManager(
+                        MessageMatcherDelegatingAuthorizationManager.Builder messages) {
+                return messages
+                                .simpDestMatchers("/ws/**").permitAll()
+                                .simpSubscribeDestMatchers("/topic/**", "/queue/**", "/user/**").permitAll()
+                                .simpMessageDestMatchers("/app/**").permitAll()
+                                .simpTypeMatchers(SimpMessageType.CONNECT,
+                                                SimpMessageType.CONNECT_ACK,
+                                                SimpMessageType.DISCONNECT,
+                                                SimpMessageType.DISCONNECT_ACK,
+                                                SimpMessageType.HEARTBEAT,
+                                                SimpMessageType.MESSAGE)
+                                .permitAll()
+                                .anyMessage().denyAll()
+                                .build();
+        }
 }
