@@ -13,6 +13,8 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.lang.NonNull;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -37,6 +39,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         @Autowired
         private CustomJwtAuthChannelInterceptor customJwtAuthChannelInterceptor;
+
+        @Bean
+        public TaskScheduler heartBeatScheduler() {
+                return new ThreadPoolTaskScheduler();
+        }
 
         @Bean
         public ChannelInterceptor loggingChannelInterceptor() {
@@ -89,14 +96,21 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         @Override
         public void configureMessageBroker(MessageBrokerRegistry config) {
-                config.enableSimpleBroker("/topic", "/queue", "/user");
+                // Thêm heartbeat 10 giây
+                config.enableSimpleBroker("/topic", "/queue", "/user")
+                                .setTaskScheduler(heartBeatScheduler())
+                                .setHeartbeatValue(new long[] { 10000, 10000 });
                 config.setApplicationDestinationPrefixes("/app");
                 config.setUserDestinationPrefix("/user");
         }
 
         @Override
         public void registerStompEndpoints(StompEndpointRegistry registry) {
-                registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
+                registry.addEndpoint("/ws")
+                                .setAllowedOriginPatterns("*")
+                                .withSockJS()
+                                .setDisconnectDelay(30 * 1000) // 30 giây
+                                .setHeartbeatTime(25 * 1000); // 25 giây
         }
 
         @Override
@@ -154,15 +168,17 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
                 String sessionId = headerAccessor.getSessionId();
                 String userPrincipalName = getUserPrincipalName(headerAccessor);
+                String closeStatus = "DISCONNECTED"; // Đơn giản hóa, chỉ ghi nhận là đã disconnect
 
                 if (userPrincipalName == null) {
                         userPrincipalName = "ANONYMOUS (SECURITY ENABLED)";
                 }
 
-                logger.info("[WS-EVENT] DISCONNECTED (SECURITY ENABLED) - SessionId: {}, User: {}", sessionId,
-                                userPrincipalName);
-                System.out.printf("[WS-SYS-EVENT] DISCONNECTED (SECURITY ENABLED) - SessionId: %s, User: %s%n",
-                                sessionId, userPrincipalName);
+                logger.info("[WS-EVENT] DISCONNECTED (SECURITY ENABLED) - SessionId: {}, User: {}, CloseStatus: {}",
+                                sessionId, userPrincipalName, closeStatus);
+                System.out.printf(
+                                "[WS-SYS-EVENT] DISCONNECTED (SECURITY ENABLED) - SessionId: %s, User: %s, CloseStatus: %s%n",
+                                sessionId, userPrincipalName, closeStatus);
         }
 
         @EventListener
@@ -220,7 +236,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                                 SimpMessageType.HEARTBEAT,
                                                 SimpMessageType.MESSAGE)
                                 .permitAll()
-                                .anyMessage().denyAll()
+                                .anyMessage().permitAll()
                                 .build();
         }
 }
