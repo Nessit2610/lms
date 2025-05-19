@@ -1,5 +1,8 @@
 package com.husc.lms.controller;
 
+import com.husc.lms.dto.response.APIResponse;
+import com.husc.lms.dto.response.CourseViewResponse;
+
 import com.husc.lms.service.PaypalService;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
@@ -14,18 +17,27 @@ public class PaypalController {
 
     @Autowired
     private PaypalService paypalService;
+    
+    
+    @GetMapping("/preparepayment")
+    public APIResponse<CourseViewResponse> home(@RequestParam String courseId) {
+        return APIResponse.<CourseViewResponse>builder()
+        		.result(paypalService.preparePayment(courseId))
+        		.build();
+    }
 
     @PostMapping("/pay")
-    public ResponseEntity<?> pay(@RequestParam("sum") double sum) {
+    public ResponseEntity<?> pay(@RequestParam("price") double price, @RequestParam("courseId") String courseId) {
         try {
             String approvalLink = paypalService.createPayment(
-                sum,
+            	price,
                 "USD",
                 "paypal",
                 "sale",
                 "Thanh toán đơn hàng",
                 "http://localhost:8080/lms/paypal/cancel",
-                "http://localhost:8080/lms/paypal/success"
+                "http://localhost:8080/lms/paypal/success",
+                courseId
             );
 
             if (approvalLink != null) {
@@ -37,7 +49,7 @@ public class PaypalController {
 
         return ResponseEntity.internalServerError().body("Không thể tạo thanh toán.");
     }
-
+    
     @GetMapping("/success")
     public String successPay(@RequestParam("paymentId") String paymentId,
                              @RequestParam("PayerID") String payerId) {

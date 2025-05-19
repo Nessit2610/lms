@@ -120,15 +120,12 @@ public class StudentService {
 
 	    return student.map(studentMapper::toStudentViewResponse);
 	}
-
-	
-	
 	
 	public StudentResponse getStudentInfo() {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
-		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));;
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
 		return studentMapper.toStudentResponse(student);
 		
 	}

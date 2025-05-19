@@ -34,7 +34,7 @@ public class SecurityConfig {
 	
 	private final String[] PUBLIC_GET_API = {"/test","/major"};
 	
-	private final String[] PUBLIC_API_V2 = {"/email/**"};
+	private final String[] PUBLIC_API_V2 = {"/email/**","/paypal/success","/paypal/cancel"};
 	
 	
 	private final String[] TEACHER_POST_API = {"/course/create","/lesson/create","/group/create"};

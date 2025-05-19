@@ -28,6 +28,10 @@ public class PaymentEntity {
     @JoinColumn(name = "courseId")
     private Course course;
 
+    @ManyToOne
+    @JoinColumn(name = "studentId")
+    private Student student;
+    
     private String status;
     private String email;
     private String countryCode;

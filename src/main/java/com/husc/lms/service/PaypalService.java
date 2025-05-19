@@ -5,13 +5,24 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.husc.lms.dto.response.CourseViewResponse;
+import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.OrderEntity;
 import com.husc.lms.entity.PaymentEntity;
+import com.husc.lms.entity.PendingPayment;
+import com.husc.lms.entity.Student;
+import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.exception.AppException;
+import com.husc.lms.mapper.CourseMapper;
+import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.PaymentEntityRepository;
+import com.husc.lms.repository.PendingPaymentRepository;
+import com.husc.lms.repository.StudentRepository;
 import com.paypal.api.payments.Amount;
 import com.paypal.api.payments.Links;
 import com.paypal.api.payments.Payer;
@@ -21,6 +32,8 @@ import com.paypal.api.payments.RedirectUrls;
 import com.paypal.api.payments.Transaction;
 import com.paypal.base.rest.APIContext;
 import com.paypal.base.rest.PayPalRESTException;
+
+import jakarta.servlet.http.HttpSession;
 
 @Service
 public class PaypalService {
@@ -33,9 +46,21 @@ public class PaypalService {
 	@Autowired
 	private CourseRepository courseRepository;
 	
+	@Autowired
+	private AccountRepository accountRepository;
+	
+	@Autowired
+	private StudentRepository studentRepository;
+	
+	@Autowired
+	private CourseMapper courseMapper;
+	
+	@Autowired
+	private PendingPaymentRepository pendingPaymentRepository;
+	
 	public String createPayment(double total, String currency, String method,
             String intent, String description,
-            String cancelUrl, String successUrl) throws PayPalRESTException {
+            String cancelUrl, String successUrl, String courseId) throws PayPalRESTException {
 		Amount amount = new Amount();
 		amount.setCurrency(currency);
 		amount.setTotal(String.format("%.2f", total));
@@ -61,6 +86,21 @@ public class PaypalService {
 		
 		Payment createdPayment = payment.create(apiContext);
 		
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+		Student student = studentRepository.findByAccount(account).orElseThrow(() -> new AppException(ErrorCode.STUDENT_NOT_FOUND));
+		
+        Course course = courseRepository.findById(courseId).orElseThrow(()-> new AppException(ErrorCode.COURSE_NOT_FOUND));
+		
+        PendingPayment pending = new PendingPayment();
+        pending.setPaymentId(createdPayment.getId());
+        pending.setStudent(student); // lấy từ context hoặc param
+        pending.setCourse(course);   // lấy từ param hoặc trước đó
+        pending.setCompleted(false);
+
+        pendingPaymentRepository.save(pending);
+        
 		for (Links link : createdPayment.getLinks()) {
 				if (link.getRel().equalsIgnoreCase("approval_url")) {
 					return link.getHref();
@@ -68,7 +108,12 @@ public class PaypalService {
 		}
 		
 		return null;
-}
+	}
+	
+	public CourseViewResponse preparePayment(String courseId) {
+        Course course = courseRepository.findById(courseId).orElseThrow(()-> new AppException(ErrorCode.COURSE_NOT_FOUND));
+        return courseMapper.toCourseViewResponse(course);
+    }
 	
 	public Payment executePayment(String paymentId, String payerId) throws PayPalRESTException{
 		Payment payment = new Payment();
@@ -78,30 +123,17 @@ public class PaypalService {
 		return payment.execute(apiContext, paymentExecute);
 	}
 
-//	public Boolean processPayment(OrderEntity order) {
-//        try {
-//            Payment payment = createPayment(order.getPrice(), order.getCurrency(), order.getMethod(),
-//                    order.getIntent(), order.getDescription(), "http://localhost:8080/lms/paypal/pay/cancel",
-//                    "http://localhost:8080/lms/paypal/pay/success");
-//
-//            for (Links link : payment.getLinks()) {
-//                if (link.getRel().equals("approval_url")) {
-//                    return true;
-//                }
-//            }
-//        } catch (PayPalRESTException e) {
-//            e.printStackTrace();
-//        }
-//        return false;
-//    }
-
     public boolean successPayment(Payment payment) {
-        System.out.println(payment.toJSON());
-		//Course course = courseRepository.findByIdAndDeletedDateIsNull(courseId);
+    	PendingPayment pending = pendingPaymentRepository.findById(payment.getId())
+    	        .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
+
+	    Student student = pending.getStudent();
+	    Course course = pending.getCourse();
 		if ("approved".equals(payment.getState())) {
 		    PaymentEntity pay = new PaymentEntity();
 		    pay.setPaymentId(payment.getId());
-		    //pay.setCourse(course);
+		    pay.setCourse(course);
+		    pay.setStudent(student);
 		    pay.setDescription(payment.getTransactions().get(0).getDescription());
 		    pay.setCreateTime(payment.getCreateTime());
 		    pay.setCountryCode(payment.getTransactions().get(0).getItemList().getShippingAddress().getCountryCode());
@@ -110,9 +142,11 @@ public class PaypalService {
 		    pay.setTotalPrice(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getAmount().getTotal()));
 		    pay.setStatus(payment.getPayer().getStatus());
 		    pay.setTransactionFee(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getTransactionFee().getValue()));
-
 		    paymentEntityRepository.save(pay);
-
+		    
+		    pending.setCompleted(true);
+		    pendingPaymentRepository.save(pending);
+		    
 		    return true;
 		}
         return false;
