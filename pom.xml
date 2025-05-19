@@ -118,7 +118,12 @@
 		    <artifactId>rest-api-sdk</artifactId>
 		    <version>1.4.2</version>
 		</dependency>
-
+		
+        <!-- Security Websocket -->
+		<dependency>
+	        <groupId>org.springframework.security</groupId>
+	        <artifactId>spring-security-messaging</artifactId>
+	    </dependency>
 
         <!-- Testing -->
         <dependency>
