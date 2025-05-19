@@ -117,7 +117,7 @@ public class CourseService {
 				course.setFeeType(feeType);
 				course.setMajor(major.getName());
 				course.setCreatedDate(new Date());	
-		if(learningDurationType.equals(CourseLearningDurationType.UNLIMITED.name())) {
+		if(learningDurationType.equals(CourseLearningDurationType.LIMITED.name())) {
 			if(request.getEndDate() != null){
 				course.setEndDate(request.getEndDate());
 			}
