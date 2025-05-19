@@ -3,7 +3,7 @@ package com.husc.lms.controller;
 import com.husc.lms.dto.request.PaymentRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
-
+import com.husc.lms.dto.response.PaymentEntityResponse;
 import com.husc.lms.service.PaypalService;
 import com.paypal.api.payments.Payment;
 import com.paypal.base.rest.PayPalRESTException;
@@ -44,22 +44,21 @@ public class PaypalController {
     }
     
     @GetMapping("/success")
-    public APIResponse<Boolean> successPay(@RequestParam("paymentId") String paymentId,
+    public APIResponse<PaymentEntityResponse> successPay(@RequestParam("paymentId") String paymentId,
                              @RequestParam("PayerID") String payerId) {
         try {
             Payment payment = paypalService.executePayment(paymentId, payerId);
             if ("approved".equalsIgnoreCase(payment.getState())) {
-            	paypalService.successPayment(payment);
-                return APIResponse.<Boolean>builder()
-                		.result(true)
+            	;
+                return APIResponse.<PaymentEntityResponse>builder()
+                		.result(paypalService.successPayment(payment))
                 		.message("Thanh toán thành công !")
                 		.build();
             }
         } catch (PayPalRESTException e) {
             e.printStackTrace();
         }
-        return APIResponse.<Boolean>builder()
-        		.result(false)
+        return APIResponse.<PaymentEntityResponse>builder()
         		.message("Thanh toán thất bại !")
         		.build();
     }

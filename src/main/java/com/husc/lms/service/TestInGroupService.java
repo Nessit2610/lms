@@ -22,6 +22,7 @@ import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.TestInGroupMapper;
 import com.husc.lms.repository.GroupRepository;
 import com.husc.lms.repository.TestInGroupRepository;
+import com.husc.lms.repository.TestQuestionRepository;
 
 @Service
 public class TestInGroupService {
@@ -35,6 +36,8 @@ public class TestInGroupService {
 	@Autowired
 	private TestQuestionService testQuestionService;
 	
+	@Autowired
+	private TestQuestionRepository testQuestionRepository;
 	
 	@Autowired
 	private TestStudentResultService testStudentResultService;
@@ -64,21 +67,27 @@ public class TestInGroupService {
 	}
 	
 	public TestInGroupResponse updateTestInGroup(TestInGroupUpdateRequest request) {
-			
-		OffsetDateTime startedAtUtc = request.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
-		OffsetDateTime expiredAtUtc = request.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
-		
-		TestInGroup testInGroup = testInGroupRepository.findById(request.getTestInGroupId()).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
-					testInGroup.setTitle(request.getTitle());
-					testInGroup.setDescription(request.getDescription());
-					testInGroup.setStartedAt(startedAtUtc);
-					testInGroup.setExpiredAt(expiredAtUtc);
-		List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
-		testInGroup.setQuestions(listQuestions);
-		testInGroup = testInGroupRepository.save(testInGroup);
-		return testInGroupMapper.toTestInGroupResponse(testInGroup);
-		
+
+	    OffsetDateTime startedAtUtc = request.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
+	    OffsetDateTime expiredAtUtc = request.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
+
+	    TestInGroup testInGroup = testInGroupRepository.findById(request.getTestInGroupId())
+	            .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
+
+	    testInGroup.setTitle(request.getTitle());
+	    testInGroup.setDescription(request.getDescription());
+	    testInGroup.setStartedAt(startedAtUtc);
+	    testInGroup.setExpiredAt(expiredAtUtc);
+   
+	    
+
+	    List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
+	    testInGroup.setQuestions(listQuestions);
+
+	    testInGroup = testInGroupRepository.save(testInGroup);
+	    return testInGroupMapper.toTestInGroupResponse(testInGroup);
 	}
+
 	
 	public TestInGroupResponse getById(String id) {
 		TestInGroup testInGroup = testInGroupRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));

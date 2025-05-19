@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LessonMaterialResponse {
 	
+	private String id;
+	
 	private String fileName;
 	
 	private String path;

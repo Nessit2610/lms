@@ -12,4 +12,7 @@ import com.husc.lms.entity.TestQuestion;
 public interface TestQuestionRepository extends JpaRepository<TestQuestion, String> {
 
 	List<TestQuestion> findByTestInGroup(TestInGroup testInGroup);
+	
+	void deleteByTestInGroup(TestInGroup testInGroup);
+
 }

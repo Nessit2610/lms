@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.PaymentRequest;
 import com.husc.lms.dto.response.CourseViewResponse;
+import com.husc.lms.dto.response.PaymentEntityResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.OrderEntity;
@@ -19,6 +20,7 @@ import com.husc.lms.entity.Student;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.CourseMapper;
+import com.husc.lms.mapper.PaymentEntityMapper;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.PaymentEntityRepository;
@@ -61,6 +63,9 @@ public class PaypalService {
 	
 	@Autowired
 	private StudentCourseService studentCourseService;
+	
+	@Autowired
+	private PaymentEntityMapper paymentEntityMapper;
 	
 	public String createPayment(PaymentRequest request) throws PayPalRESTException {
 		Amount amount = new Amount();
@@ -125,7 +130,7 @@ public class PaypalService {
 		return payment.execute(apiContext, paymentExecute);
 	}
 
-    public boolean successPayment(Payment payment) {
+    public PaymentEntityResponse successPayment(Payment payment) {
     	PendingPayment pending = pendingPaymentRepository.findById(payment.getId())
     	        .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
 
@@ -144,14 +149,14 @@ public class PaypalService {
 		    pay.setTotalPrice(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getAmount().getTotal()));
 		    pay.setStatus(payment.getPayer().getStatus());
 		    pay.setTransactionFee(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getTransactionFee().getValue()));
-		    paymentEntityRepository.save(pay);
-		    studentCourseService.addStudentToCourse(student, course);
 		    pending.setCompleted(true);
 		    pendingPaymentRepository.save(pending);
+		    paymentEntityRepository.save(pay);
+		    studentCourseService.addStudentBuyCourse(student, course);
 		    
-		    return true;
+		    return paymentEntityMapper.toPaymentEntityResponse(pay);
 		}
-        return false;
+		return null;
     }
 }
 
