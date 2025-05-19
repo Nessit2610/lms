@@ -144,10 +144,10 @@ public class PaypalService {
 		    pay.setTotalPrice(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getAmount().getTotal()));
 		    pay.setStatus(payment.getPayer().getStatus());
 		    pay.setTransactionFee(Float.parseFloat(payment.getTransactions().get(0).getRelatedResources().get(0).getSale().getTransactionFee().getValue()));
-		    paymentEntityRepository.save(pay);
-		    studentCourseService.addStudentToCourse(student, course);
 		    pending.setCompleted(true);
 		    pendingPaymentRepository.save(pending);
+		    paymentEntityRepository.save(pay);
+		    studentCourseService.addStudentBuyCourse(student, course);
 		    
 		    return true;
 		}

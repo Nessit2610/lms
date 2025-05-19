@@ -110,6 +110,15 @@ public class StudentCourseService {
 			
 		}
 	}
+	public void addStudentBuyCourse(Student student , Course course) {
+		StudentCourse studentCourse = StudentCourse.builder()
+				.registrationDate(new Date())
+				.createdDate(new Date())
+				.student(student)
+				.course(course)
+				.build();
+		studentCourseRepository.save(studentCourse);
+	}
 	
 	public boolean deleteStudentOfCourse(String studentId, String courseId) {
 		var context = SecurityContextHolder.getContext();
