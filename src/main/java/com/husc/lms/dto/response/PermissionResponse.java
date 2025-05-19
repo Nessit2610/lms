@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class PermissionResponse {
 
+	private String id;
 	private String name;
 	private String description;
 }

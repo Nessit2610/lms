@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class LessonQuizResponse {
 
+	private String id;
+	
 	private String question;
     
     private String option;
