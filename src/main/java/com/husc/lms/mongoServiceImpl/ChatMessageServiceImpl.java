@@ -29,6 +29,7 @@ import com.husc.lms.mongoRepository.ChatMessageRepository;
 import com.husc.lms.mongoRepository.ChatMessageStatusRepository;
 import com.husc.lms.mongoService.ChatMessageService;
 import com.husc.lms.repository.AccountRepository;
+import com.husc.lms.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -48,6 +49,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
         private final ChatBoxMemberRepository memberRepo;
         private final ChatMessageStatusRepository statusRepo;
         private final AccountRepository accountRepo;
+        private final NotificationService notificationService;
 
         private final Function<String, String> fileExtension = filename -> Optional.ofNullable(filename)
                         .filter(name -> name.contains("."))
@@ -182,6 +184,24 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                         statuses.add(status);
                 }
                 statusRepo.saveAll(statuses);
+
+                // Gửi notification cho các thành viên (trừ người gửi)
+                List<String> memberUsernames = members.stream().map(ChatBoxMember::getAccountUsername).toList();
+                for (String username : memberUsernames) {
+                        if (username.equals(senderAccount))
+                                continue;
+                        // Tạo notification trong DB
+                        notificationService.createChatMessageNotificationForChatBoxMembers(message, List.of(username));
+                        // Gửi realtime (tái sử dụng hàm)
+                        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                        payload.put("type", "CHAT_MESSAGE");
+                        payload.put("chatBoxId", message.getChatBoxId());
+                        payload.put("chatMessageId", message.getId());
+                        payload.put("content", message.getContent());
+                        payload.put("senderAccount", message.getSenderAccount());
+                        payload.put("createdAt", message.getCreatedAt());
+                        notificationService.sendCustomWebSocketNotificationToUser(username, payload);
+                }
 
                 return message;
         }
