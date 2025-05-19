@@ -37,11 +37,13 @@ public class Notification {
     @JsonBackReference
     private CommentReply commentReply;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "messageId")
-    @JsonBackReference
-    private Message message;
+//    @ManyToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "messageId")
+//    @JsonBackReference
+//    private Message message;
 
+    private String chatMessageId;
+    
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private NotificationType type;

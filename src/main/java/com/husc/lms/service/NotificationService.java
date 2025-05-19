@@ -29,6 +29,7 @@ import com.husc.lms.entity.Course;
 
 import lombok.RequiredArgsConstructor;
 import com.husc.lms.service.OffsetLimitPageRequest;
+import com.husc.lms.mongoEntity.ChatMessage;
 
 @Service
 @RequiredArgsConstructor
@@ -210,6 +211,41 @@ public class NotificationService {
                                 .orElseThrow(() -> new RuntimeException("Account not found for username: " + username));
 
                 notificationRepository.setNotificationAsReadByAccount(account);
+        }
+
+        public void createChatMessageNotificationForChatBoxMembers(ChatMessage chatMessage,
+                        List<String> memberUsernames) {
+                if (chatMessage == null || memberUsernames == null || memberUsernames.isEmpty())
+                        return;
+                String sender = chatMessage.getSenderAccount();
+                for (String username : memberUsernames) {
+                        if (username.equals(sender))
+                                continue; // Không gửi cho người gửi
+                        Account receiver = accountRepository.findByUsernameAndDeletedDateIsNull(username).orElse(null);
+                        if (receiver == null)
+                                continue;
+                        Notification notification = Notification.builder()
+                                        .account(receiver)
+                                        .type(NotificationType.CHAT_MESSAGE)
+                                        .isRead(false)
+                                        .description("Bạn có tin nhắn mới trong chatbox " + chatMessage.getChatBoxId()
+                                                        + ". Nội dung: "
+                                                        + (chatMessage.getContent() != null ? chatMessage.getContent()
+                                                                        : "[File]"))
+                                        .createdAt(java.time.OffsetDateTime.now())
+                                        .build();
+                        notificationRepository.save(notification);
+                        // Gửi realtime
+                        java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                        payload.put("type", NotificationType.CHAT_MESSAGE.name());
+                        payload.put("chatBoxId", chatMessage.getChatBoxId());
+                        payload.put("chatMessageId", chatMessage.getId());
+                        payload.put("content", chatMessage.getContent());
+                        payload.put("senderAccount", chatMessage.getSenderAccount());
+                        payload.put("createdAt", chatMessage.getCreatedAt());
+                        payload.put("notificationId", notification.getId());
+                        this.sendCustomWebSocketNotificationToUser(username, payload);
+                }
         }
 
 }
