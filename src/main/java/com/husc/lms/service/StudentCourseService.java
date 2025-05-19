@@ -15,6 +15,7 @@ import com.husc.lms.dto.request.StudentDeleteRequest;
 import com.husc.lms.dto.response.CourseViewResponse;
 import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.entity.Account;
+import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.JoinClassRequest;
 import com.husc.lms.entity.Student;
@@ -25,6 +26,7 @@ import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.CourseMapper;
 import com.husc.lms.mapper.StudentMapper;
 import com.husc.lms.repository.AccountRepository;
+import com.husc.lms.repository.ChapterRepository;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.JoinClassRequestRepository;
 import com.husc.lms.repository.LessonRepository;
@@ -50,7 +52,7 @@ public class StudentCourseService {
 	private CourseRepository courseRepository;
 	
 	@Autowired
-	private LessonRepository lessonRepository;
+	private ChapterRepository chapterRepository;
 	
 	@Autowired
 	private CourseMapper courseMapper;
@@ -174,6 +176,32 @@ public class StudentCourseService {
 		return true;
 	}
 	
+	public boolean deleteListStudentBeforeDeleteCourse(List<StudentCourse> listStudentCourses) {
+		var context = SecurityContextHolder.getContext();
+		String name = context.getAuthentication().getName();
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name)
+			.orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+		for (StudentCourse studentCourse : listStudentCourses) {
+			if (studentCourse.getDeletedDate() == null) {
+				studentCourse.setDeletedBy(account.getEmail());
+				studentCourse.setDeletedDate(new Date());
+				Student student = studentCourse.getStudent();
+				Course course = studentCourse.getCourse();
+
+				if (joinClassRequestRepository.existsByStudentAndCourseAndStatus(student, course, JoinClassStatus.APPROVED.name())) {
+					JoinClassRequest joinClassRequest = joinClassRequestRepository.findByStudentAndCourse(student, course);
+					joinClassRequest.setStatus(JoinClassStatus.REJECTED.name());
+					joinClassRequestRepository.save(joinClassRequest);
+				}
+			}
+		}
+
+		studentCourseRepository.saveAll(listStudentCourses);
+		return true;
+	}
+
+	
 	public Page<CourseViewResponse> getAllCourseOfStudent(int page, int size) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
@@ -186,7 +214,7 @@ public class StudentCourseService {
 		Page<CourseViewResponse> courseResponsePage = coursePage.map(course -> {
 	        CourseViewResponse cr = courseMapper.toCourseViewResponse(course);
 	        cr.setStudentCount(studentCourseRepository.countStudentsByCourse(course));
-	        cr.setChapterCount(lessonRepository.countLessonsByCourse(course));
+	        cr.setChapterCount(chapterRepository.countChaptersByCourse(course));
 	        return cr;
 	    });
 		

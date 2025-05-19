@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -29,6 +30,7 @@ import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Major;
 import com.husc.lms.entity.Student;
+import com.husc.lms.entity.StudentCourse;
 import com.husc.lms.entity.Teacher;
 import com.husc.lms.enums.CourseLearningDurationType;
 import com.husc.lms.enums.ErrorCode;
@@ -75,6 +77,9 @@ public class CourseService {
 	
 	@Autowired
 	private StudentCourseRepository studentCourseRepository;
+	
+	@Autowired
+	private StudentCourseService studentCourseService;
 	
 	@Autowired
 	private ChapterRepository chapterRepository;
@@ -204,6 +209,10 @@ public class CourseService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Course course = courseRepository.findByIdAndDeletedDateIsNull(id);
+		List<StudentCourse> listStudentCourse = studentCourseRepository.findByCourseAndDeletedDateIsNull(course);
+		if(listStudentCourse != null && !listStudentCourse.isEmpty()) {			
+			studentCourseService.deleteListStudentBeforeDeleteCourse(listStudentCourse);
+		}
 		if(course != null) {
 			lessonService.deleteLessonByCourse(course);
 			course.setDeletedBy(name);

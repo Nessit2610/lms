@@ -22,6 +22,7 @@ public class CourseUpdateRequest {
 
     private String description;
     
+    @NotNull(message = "NOT_NULL")
     private Date startDate;
 
     @NotNull(message = "NOT_NULL")
