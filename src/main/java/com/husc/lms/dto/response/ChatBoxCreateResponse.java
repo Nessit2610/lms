@@ -36,8 +36,8 @@ public class ChatBoxCreateResponse {
         @AllArgsConstructor
         @Builder
         public static class ListOfMember {
-                private String memberAccountUsername;
-                private String memberFullname;
-                private String memberAvatar;
+                private String accountUsername;
+                private String accountFullname;
+                private String avatar;
         }
 }
