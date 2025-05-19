@@ -130,7 +130,7 @@ public class CourseService {
 				throw new AppException(ErrorCode.NOT_NULL);
 			}
 		}
-		if(learningDurationType.equals(FeeStatus.CHARGEABLE.name())) {
+		if(feeType.equals(FeeStatus.CHARGEABLE.name())) {
 			if(request.getPrice() != null) {
 				course.setPrice(request.getPrice());				
 			}
@@ -193,7 +193,7 @@ public class CourseService {
 				throw new AppException(ErrorCode.NOT_NULL);
 			}
 		}
-		if(learningDurationType.equals(FeeStatus.CHARGEABLE.name())) {
+		if(feeType.equals(FeeStatus.CHARGEABLE.name())) {
 			if(request.getPrice() != null) {
 				course.setPrice(request.getPrice());				
 			}
