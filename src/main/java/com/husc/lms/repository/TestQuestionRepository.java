@@ -13,6 +13,5 @@ public interface TestQuestionRepository extends JpaRepository<TestQuestion, Stri
 
 	List<TestQuestion> findByTestInGroup(TestInGroup testInGroup);
 	
-	void deleteByTestInGroup(TestInGroup testInGroup);
 
 }

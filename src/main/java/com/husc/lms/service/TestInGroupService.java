@@ -24,6 +24,8 @@ import com.husc.lms.repository.GroupRepository;
 import com.husc.lms.repository.TestInGroupRepository;
 import com.husc.lms.repository.TestQuestionRepository;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class TestInGroupService {
 
@@ -35,9 +37,6 @@ public class TestInGroupService {
 	
 	@Autowired
 	private TestQuestionService testQuestionService;
-	
-	@Autowired
-	private TestQuestionRepository testQuestionRepository;
 	
 	@Autowired
 	private TestStudentResultService testStudentResultService;
@@ -66,8 +65,8 @@ public class TestInGroupService {
 		
 	}
 	
+	@Transactional
 	public TestInGroupResponse updateTestInGroup(TestInGroupUpdateRequest request) {
-
 	    OffsetDateTime startedAtUtc = request.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
 	    OffsetDateTime expiredAtUtc = request.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
 
@@ -78,15 +77,20 @@ public class TestInGroupService {
 	    testInGroup.setDescription(request.getDescription());
 	    testInGroup.setStartedAt(startedAtUtc);
 	    testInGroup.setExpiredAt(expiredAtUtc);
-   
-	    
 
+	    
+	    testQuestionService.deleteQuestionByTest(testInGroup); 
+
+	    
 	    List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
 	    testInGroup.setQuestions(listQuestions);
 
+	  
 	    testInGroup = testInGroupRepository.save(testInGroup);
+
 	    return testInGroupMapper.toTestInGroupResponse(testInGroup);
 	}
+
 
 	
 	public TestInGroupResponse getById(String id) {

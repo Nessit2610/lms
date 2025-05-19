@@ -17,19 +17,20 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TestInGroupUpdateRequest {
 
-	@NotNull
+	@NotNull(message = "NOT_NULL")
 	private String testInGroupId;
 	
-	@NotNull
+	@NotNull(message = "NOT_NULL")
 	private String title;
 
     private String description;
     
+    @NotNull(message = "NOT_NULL")
     private OffsetDateTime startedAt;
     
-    @NotNull
+    @NotNull(message = "NOT_NULL")
     private OffsetDateTime expiredAt;
     
-    @NotNull
+    @NotNull(message = "NOT_NULL")
     private List<TestQuestionRequest> listQuestionRequest;
 }

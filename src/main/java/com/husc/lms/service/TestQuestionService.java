@@ -68,5 +68,14 @@ public class TestQuestionService {
 		return false;
 	}
 	
+	public void deleteQuestionByTest(TestInGroup testInGroup) {
+		List<TestQuestion> listQuestions = testQuestionRepository.findByTestInGroup(testInGroup);
+		if(listQuestions != null && !listQuestions.isEmpty()) {
+			for(TestQuestion tq : listQuestions) {
+				testQuestionRepository.delete(tq);
+			}
+		}
+	}
+	
 	
 }
