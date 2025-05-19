@@ -124,7 +124,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 ", IsGroup: " + chatBoxEntity.isGroup() +
                                 ", Members in response: "
                                 + memberResponses.stream()
-                                                .map(ChatBoxCreateResponse.ListOfMember::getMemberAccountUsername)
+                                                .map(ChatBoxCreateResponse.ListOfMember::getAccountUsername)
                                                 .collect(Collectors.toList()));
 
                 ChatBoxCreateResponse response = ChatBoxCreateResponse.builder()
@@ -151,22 +151,22 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
         private void addMemberToResponse(List<ChatBoxCreateResponse.ListOfMember> list, Account acc1, Account acc2) {
                 if (acc1 != null) {
                         list.add(ChatBoxCreateResponse.ListOfMember.builder()
-                                        .memberAccountUsername(acc1.getUsername())
-                                        .memberFullname(acc1.getStudent() != null ? acc1.getStudent().getFullName()
+                                        .accountUsername(acc1.getUsername())
+                                        .accountFullname(acc1.getStudent() != null ? acc1.getStudent().getFullName()
                                                         : (acc1.getTeacher() != null ? acc1.getTeacher().getFullName()
                                                                         : acc1.getUsername()))
-                                        .memberAvatar(acc1.getStudent() != null ? acc1.getStudent().getAvatar()
+                                        .avatar(acc1.getStudent() != null ? acc1.getStudent().getAvatar()
                                                         : (acc1.getTeacher() != null ? acc1.getTeacher().getAvatar()
                                                                         : ""))
                                         .build());
                 }
                 if (acc2 != null) {
                         list.add(ChatBoxCreateResponse.ListOfMember.builder()
-                                        .memberAccountUsername(acc2.getUsername())
-                                        .memberFullname(acc2.getStudent() != null ? acc2.getStudent().getFullName()
+                                        .accountUsername(acc2.getUsername())
+                                        .accountFullname(acc2.getStudent() != null ? acc2.getStudent().getFullName()
                                                         : (acc2.getTeacher() != null ? acc2.getTeacher().getFullName()
                                                                         : acc2.getUsername()))
-                                        .memberAvatar(acc2.getStudent() != null ? acc2.getStudent().getAvatar()
+                                        .avatar(acc2.getStudent() != null ? acc2.getStudent().getAvatar()
                                                         : (acc2.getTeacher() != null ? acc2.getTeacher().getAvatar()
                                                                         : ""))
                                         .build());
