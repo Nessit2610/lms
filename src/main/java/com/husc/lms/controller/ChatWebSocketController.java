@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import com.husc.lms.dto.request.ChatBoxAddMemberRequest;
 import com.husc.lms.dto.response.ChatBoxAddMemberResponse;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 @Controller
 @RequiredArgsConstructor
@@ -42,6 +44,8 @@ public class ChatWebSocketController {
 
 	@MessageMapping("/chat/sendMessage")
 	public void handleSendMessage(@Payload ChatMessageSenderRequest request) {
+//		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+//		System.out.println("[DEBUG] Authorities: " + auth.getAuthorities());
 		try {
 			System.out
 					.println("[DEBUG] Controller: Received /chat/sendMessage request: "
