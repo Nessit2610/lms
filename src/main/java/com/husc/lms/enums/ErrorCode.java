@@ -65,7 +65,8 @@ public enum ErrorCode {
 	DOCUMENT_NOT_FOUND(1045, "Failed to upload file", HttpStatus.INTERNAL_SERVER_ERROR),
 	INVALID_OPERATION(1046, "Invalid operation performed", HttpStatus.BAD_REQUEST),
 	MEMBER_NOT_FOUND_IN_CHATBOX(1047, "Thành viên không tìm thấy trong nhóm chat", HttpStatus.NOT_FOUND),
-	PAYMENT_NOT_FOUND(1048, "Không tìm thấy thông tin thanh toán", HttpStatus.NOT_FOUND);
+	PAYMENT_NOT_FOUND(1048, "Không tìm thấy thông tin thanh toán", HttpStatus.NOT_FOUND),
+	ACCOUNT_LOCKED(1049, "Tài khoản đã bị khóa", HttpStatus.FORBIDDEN);
 
 
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {

@@ -62,4 +62,12 @@ public class AccountController {
 				.result(accountService.getAccountDetails(id))
 				.build();
 	}
+	
+	@PutMapping("/changeactive")
+	public APIResponse<Boolean> changeActive(@RequestParam("accountId") String accountId, @RequestParam("active") boolean active){
+		return APIResponse.<Boolean>builder()
+				.result(accountService.setActiveAccount(accountId, active))
+				.build();
+	}
+	
 }

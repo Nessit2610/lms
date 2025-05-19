@@ -82,11 +82,7 @@ public class AccountService {
         roleRepository.findById(PredefinedRole.STUDENT_ROLE).ifPresent(roles::add);
         account.setRoles(roles);
 
-        try {
-        	account = accountRepository.save(account);
-        } catch (DataIntegrityViolationException exception) {
-            throw new AppException(ErrorCode.ACCOUNT_NOT_FOUND);
-        }
+        account = accountRepository.save(account);
 
         return accountMapper.toAccountResponse(account);
 		 
@@ -109,13 +105,8 @@ public class AccountService {
         HashSet<Role> roles = new HashSet<>();
         roleRepository.findById(PredefinedRole.TEACHER_ROLE).ifPresent(roles::add);
         account.setRoles(roles);
-
-        try {
-        	account = accountRepository.save(account);
-        } catch (DataIntegrityViolationException exception) {
-            throw new AppException(ErrorCode.ACCOUNT_NOT_FOUND);
-        }
-
+        
+    	account = accountRepository.save(account);
         return accountMapper.toAccountResponse(account);
 		
 	}
@@ -158,6 +149,13 @@ public class AccountService {
 	public AccountResponse getAccountById(String id) {
 		Account account = accountRepository.findById(id).get();
 		return accountMapper.toAccountResponse(account);
+	}
+	
+	public Boolean setActiveAccount(String accountId, boolean active) {
+		Account account = accountRepository.findById(accountId).get();
+		account.setActive(active);
+		accountRepository.save(account);
+		return true;
 	}
 	
 }

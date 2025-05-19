@@ -108,12 +108,17 @@ public class AuthenticationService {
 	public AuthenticationResponse Authenticate(AuthenticationRequest request){
 		
 		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-		var account = accountRepository.findByUsernameAndDeletedDateIsNull(request.getUsername())
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(request.getUsername())
 				.orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 		
 		boolean auth =  passwordEncoder.matches(request.getPassword(), account.getPassword());
 		if(!auth) {
 			throw new AppException(ErrorCode.USER_UNAUTHENTICATED);
+		}
+		else {
+			if(account.isActive() == false) {
+				throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+			}
 		}
 		var token = generateToken(account);
 		

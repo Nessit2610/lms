@@ -31,17 +31,15 @@ public class AuthenticationController {
 
 	@PostMapping("/token")
 	public APIResponse<AuthenticationResponse> authenticate(@RequestBody @Valid AuthenticationRequest request){
-		var result = authenticationService.Authenticate(request);
 		return APIResponse.<AuthenticationResponse>builder()
-				.result(result)
+				.result(authenticationService.Authenticate(request))
 				.build();
 	}
 	
 	@PostMapping("/introspect")
 	public APIResponse<IntrospectResponse> authenticate(@RequestBody @Valid IntrospectRequest request) throws JOSEException, ParseException{
-		var result = authenticationService.introspect(request);
 		return APIResponse.<IntrospectResponse>builder()
-				.result(result)
+				.result(authenticationService.introspect(request))
 				.build();
 	}	
 	
@@ -53,9 +51,8 @@ public class AuthenticationController {
 	
 	@PostMapping("/refresh")
 	public APIResponse<AuthenticationResponse> refresh(@RequestBody @Valid RefreshRequest request) throws JOSEException, ParseException{
-		var result = authenticationService.refreshToken(request);
 		return APIResponse.<AuthenticationResponse>builder()
-				.result(result)
+				.result(authenticationService.refreshToken(request))
 				.build();
 	}
 	 
