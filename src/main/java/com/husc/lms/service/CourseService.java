@@ -151,16 +151,51 @@ public class CourseService {
 		
 		Major major = majorRepository.findById(request.getMajorId()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
 		
+		String status = switch (request.getStatus()) {
+        case "PRIVATE" -> StatusCourse.PRIVATE.name();
+        case "PUBLIC" -> StatusCourse.PUBLIC.name();
+        case "REQUEST" -> StatusCourse.REQUEST.name();
+        default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
+		};
+		
+		String learningDurationType = switch (request.getLearningDurationType()) {
+		case "LIMITED" -> CourseLearningDurationType.LIMITED.name();
+		case "UNLIMITED" -> CourseLearningDurationType.UNLIMITED.name();
+		default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
+		};
+		
+		String feeType = switch (request.getFeeType()) {
+		case "CHARGEABLE" -> FeeStatus.CHARGEABLE.name();
+		case "NON_CHARGEABLE" -> FeeStatus.NON_CHARGEABLE.name();
+		default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
+		};
 		
 		Course course = courseRepository.findById(request.getIdCourse()).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
 		course.setName(request.getName());
 		course.setDescription(request.getDescription());
-		course.setEndDate(request.getEndDate());
 		course.setMajor(major.getName());
-		course.setStatus(request.getStatus());
-		course.setLearningDurationType(request.getLearningDurationType());
+		course.setStatus(status);
+		course.setStartDate(request.getStartDate());
+		course.setLearningDurationType(learningDurationType);
+		course.setFeeType(feeType);
 		course.setLastModifiedBy(name);
 		course.setLastModifiedDate(new Date());
+		if(learningDurationType.equals(CourseLearningDurationType.LIMITED.name())) {
+			if(request.getEndDate() != null){
+				course.setEndDate(request.getEndDate());
+			}
+			else {
+				throw new AppException(ErrorCode.NOT_NULL);
+			}
+		}
+		if(learningDurationType.equals(FeeStatus.CHARGEABLE.name())) {
+			if(request.getPrice() != null) {
+				course.setPrice(request.getPrice());				
+			}
+			else {
+				throw new AppException(ErrorCode.NOT_NULL);
+			}
+		}
 		course = courseRepository.save(course);
 		return courseMapper.toCourseResponse(course);
 	}

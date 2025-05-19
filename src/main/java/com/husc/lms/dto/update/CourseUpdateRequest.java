@@ -21,8 +21,14 @@ public class CourseUpdateRequest {
 	private String name;
 
     private String description;
+    
+    private Date startDate;
 
+    @NotNull(message = "NOT_NULL")
+    private String learningDurationType;
+    
     private Date endDate;
+    
 
     @NotNull(message = "NOT_NULL")
     private String majorId;
@@ -31,5 +37,9 @@ public class CourseUpdateRequest {
     private String status;
     
     @NotNull(message = "NOT_NULL")
-    private String learningDurationType;
+    private String feeType;
+
+    private Double price;
+    
+    
 }

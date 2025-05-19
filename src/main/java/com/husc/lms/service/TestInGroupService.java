@@ -74,16 +74,13 @@ public class TestInGroupService {
 	    TestInGroup testInGroup = testInGroupRepository.findById(request.getTestInGroupId())
 	            .orElseThrow(() -> new AppException(ErrorCode.TEST_NOT_FOUND));
 
-	    // Cập nhật thông tin cơ bản
 	    testInGroup.setTitle(request.getTitle());
 	    testInGroup.setDescription(request.getDescription());
 	    testInGroup.setStartedAt(startedAtUtc);
 	    testInGroup.setExpiredAt(expiredAtUtc);
+   
+	    
 
-	    // XÓA danh sách câu hỏi cũ trước
-	    testQuestionRepository.deleteByTestInGroup(testInGroup);
-
-	    // TẠO danh sách câu hỏi mới
 	    List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
 	    testInGroup.setQuestions(listQuestions);
 
