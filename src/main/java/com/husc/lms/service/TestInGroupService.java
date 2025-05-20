@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.TestInGroupRequest;
@@ -99,7 +100,7 @@ public class TestInGroupService {
 	}
 	
 	public Page<TestInGroupViewResponse> getAllTestInGroup(String groupId, int pageNumber , int pageSize) {
-		 Pageable pageable = PageRequest.of(pageNumber, pageSize);
+		 Pageable pageable = PageRequest.of(pageNumber, pageSize,Sort.by(Sort.Direction.DESC, "createdAt"));
 		 Group group = groupRepository.findById(groupId).orElseThrow(()-> new AppException(ErrorCode.GROUP_NOT_FOUND));
 		 Page<TestInGroup> testInGroup = testInGroupRepository.findByGroup(group, pageable);
 		 return testInGroup.map(testInGroupMapper::toTestInGroupViewResponse);

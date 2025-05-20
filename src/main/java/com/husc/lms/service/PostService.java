@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -99,26 +100,26 @@ public class PostService {
 	            .build();
 	    post = postRepository.save(post);
 
-	  
-        List<PostFile> postFiles = new ArrayList<>();
-        for (FileUploadRequest fileRequest : uploads) {
-            if (!isValidFileUpload(fileRequest)) continue;
-            MultipartFile file = fileRequest.getFile();
-            String type = fileRequest.getType();
-            
-            if(file != null  && !file.isEmpty() && type != null) {
-    			String extension = fileExtension.apply(file.getOriginalFilename());
-    			validateFileExtension(type, extension);
-    		}
-            
-            PostFile pf = postFileService.creatPostFile(post, file, type);
-            postFiles.add(pf);
-        }
-        if (!postFiles.isEmpty()) {
-            post.setFiles(postFiles);
-            post = postRepository.save(post); 
-        }
-	    
+	    if (uploads != null && !uploads.isEmpty()) {
+	        List<PostFile> postFiles = new ArrayList<>();
+	        for (FileUploadRequest fileRequest : uploads) {
+	            if (!isValidFileUpload(fileRequest)) continue;
+	            MultipartFile file = fileRequest.getFile();
+	            String type = fileRequest.getType();
+	            
+	            if(file != null  && !file.isEmpty() && type != null) {
+	    			String extension = fileExtension.apply(file.getOriginalFilename());
+	    			validateFileExtension(type, extension);
+	    		}
+	            
+	            PostFile pf = postFileService.creatPostFile(post, file, type);
+	            postFiles.add(pf);
+	        }
+	        if (!postFiles.isEmpty()) {
+	            post.setFiles(postFiles);
+	            post = postRepository.save(post); 
+	        }
+	    }
 	    return postMapper.toPostResponse(post);
 	}
 
@@ -220,7 +221,7 @@ public class PostService {
 	}
 	
 	public Page<PostResponse> getAllPostInGroup(String groupId ,int pageNumber , int pageSize){
-		Pageable pageable = PageRequest.of(pageNumber, pageSize);
+		Pageable pageable = PageRequest.of(pageNumber, pageSize,Sort.by(Sort.Direction.DESC, "createdAt"));
 		Group group = groupRepository.findById(groupId).orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 		Page<Post> posts = postRepository.findByGroup(group, pageable);
 		return posts.map(postMapper::toPostResponse);
