@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.husc.lms.dto.request.RoleRequest;
 import com.husc.lms.dto.response.RoleResponse;
+import com.husc.lms.entity.Role;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.RoleMapper;
@@ -50,7 +51,7 @@ public class RoleService {
 	}
 	
 	public RoleResponse updatePermissionsForRole(RoleRequest request) {
-	    var role = roleRepository.findById( request.getName())
+	    Role role = roleRepository.findById( request.getName())
 	            .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 	    var permissions = permissionRepository.findAllById(request.getPermissions());
 	    role.setPermission(new HashSet<>(permissions));

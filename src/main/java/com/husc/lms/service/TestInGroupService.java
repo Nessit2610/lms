@@ -3,6 +3,7 @@ package com.husc.lms.service;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -58,14 +59,13 @@ public class TestInGroupService {
 	            .createdAt(OffsetDateTime.now(ZoneOffset.UTC))  
 	            .expiredAt(expiredAtUtc)  
 	            .build();
-		List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
+		Set<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
 		testInGroup.setQuestions(listQuestions);
 		testInGroup = testInGroupRepository.save(testInGroup);
 		return testInGroupMapper.toTestInGroupResponse(testInGroup);
 		
 	}
 	
-	@Transactional
 	public TestInGroupResponse updateTestInGroup(TestInGroupUpdateRequest request) {
 	    OffsetDateTime startedAtUtc = request.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
 	    OffsetDateTime expiredAtUtc = request.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
@@ -77,12 +77,7 @@ public class TestInGroupService {
 	    testInGroup.setDescription(request.getDescription());
 	    testInGroup.setStartedAt(startedAtUtc);
 	    testInGroup.setExpiredAt(expiredAtUtc);
-
-	    
-	    testQuestionService.deleteQuestionByTest(testInGroup); 
-
-	    
-	    List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
+	    Set<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
 	    testInGroup.setQuestions(listQuestions);
 
 	  

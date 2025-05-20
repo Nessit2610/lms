@@ -2,6 +2,7 @@ package com.husc.lms.entity;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -47,5 +48,5 @@ public class TestInGroup {
     private OffsetDateTime expiredAt;
 
     @OneToMany(mappedBy = "testInGroup", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<TestQuestion> questions;
+    private Set<TestQuestion> questions;
 }

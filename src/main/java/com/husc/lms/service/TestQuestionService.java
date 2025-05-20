@@ -1,7 +1,9 @@
 package com.husc.lms.service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -43,8 +45,8 @@ public class TestQuestionService {
 		return listQuestions.stream().map(testQuestionMapper::toTestQuestionResponse).toList();
 	}
 	
-	public List<TestQuestion> createTestQuestion(TestInGroup test,List<TestQuestionRequest> requests) {
-		List<TestQuestion> listQuestions = new ArrayList<TestQuestion>();
+	public Set<TestQuestion> createTestQuestion(TestInGroup test,List<TestQuestionRequest> requests) {
+		Set<TestQuestion> listQuestions = new HashSet<TestQuestion>();
 		for(TestQuestionRequest testQuestionRequest : requests) {
 			String type = switch (testQuestionRequest.getType()) {
 	        case "SINGLE_CHOICE" -> QuestionEnum.SINGLE_CHOICE.name();
