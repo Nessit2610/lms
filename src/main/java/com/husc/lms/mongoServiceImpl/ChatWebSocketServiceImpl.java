@@ -175,12 +175,13 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
         @Override
         public ChatMessageSenderResponse handleSendMessage(ChatMessageSenderRequest chatMessageSenderRequest) {
-                String username = SecurityContextHolder.getContext().getAuthentication().getName();
-                System.out.println("Username Account: " + username);
+                String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+                System.out.println("Username Account: " + currentUsername);
                 System.out.println("[DEBUG] ChatWebSocketServiceImpl: handleSendMessage called for chatBoxId: " +
                                 chatMessageSenderRequest.getChatBoxId() + ", Sender: "
                                 + chatMessageSenderRequest.getSenderAccount());
 
+                // 1. Lưu tin nhắn vào DB (đã có)
                 ChatMessage chatMessage = chatMessageService.sendMessage(
                                 chatMessageSenderRequest.getChatBoxId(),
                                 chatMessageSenderRequest.getSenderAccount(),
@@ -191,9 +192,11 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                 if (chatMessage == null) {
                         System.err.println(
                                         "[DEBUG] ChatWebSocketServiceImpl: chatMessageService.sendMessage returned null. Message sending potentially failed or was handled with only syserr in service.");
+                        // Có thể ném lỗi hoặc trả về một response lỗi cụ thể nếu cần
                         return null;
                 }
 
+                // 2. Chuẩn bị response (đã có)
                 Account senderAccountDetails = accountRepo
                                 .findByUsernameAndDeletedDateIsNull(chatMessage.getSenderAccount()).orElse(null);
                 String avatar = "";
@@ -205,7 +208,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                                         : "");
                 }
 
-                System.out.println("[DEBUG] ChatWebSocketServiceImpl: Message sent. ID: " + chatMessage.getId() +
+                System.out.println("[DEBUG] ChatWebSocketServiceImpl: Message saved. ID: " + chatMessage.getId() +
                                 ", ChatBoxID: " + chatMessage.getChatBoxId() + ", Sender: "
                                 + chatMessage.getSenderAccount());
 
@@ -221,9 +224,15 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 .filename(chatMessage.getFilename())
                                 .build();
 
-                System.out.println("[DEBUG] ChatWebSocketServiceImpl: Returning ChatMessageSenderResponse: "
-                                + response.toString());
+                // 3. Gửi response đến topic chung của chat box
+                String destination = "/topic/chatbox/" + chatMessage.getChatBoxId();
+                System.out.println("[DEBUG] ChatWebSocketServiceImpl: Broadcasting message to " + destination
+                                + " with payload: " + response.toString());
+                messagingTemplate.convertAndSend(destination, response);
 
+                System.out.println(
+                                "[DEBUG] ChatWebSocketServiceImpl: Returning ChatMessageSenderResponse for potential @SendToUser: "
+                                                + response.toString());
                 return response;
         }
 

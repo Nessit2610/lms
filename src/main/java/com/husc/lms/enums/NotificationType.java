@@ -4,5 +4,6 @@ public enum NotificationType {
 	COMMENT,
 	MESSAGE,
 	COMMENT_REPLY,
-	CHAT_MESSAGE
+	CHAT_MESSAGE,
+	JOIN_CLASS
 }
