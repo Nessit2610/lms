@@ -48,5 +48,5 @@ public class TestInGroup {
     private OffsetDateTime expiredAt;
 
     @OneToMany(mappedBy = "testInGroup", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<TestQuestion> questions;
+    private List<TestQuestion> questions;
 }

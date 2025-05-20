@@ -3,7 +3,6 @@ package com.husc.lms.service;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -59,13 +58,14 @@ public class TestInGroupService {
 	            .createdAt(OffsetDateTime.now(ZoneOffset.UTC))  
 	            .expiredAt(expiredAtUtc)  
 	            .build();
-		Set<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
+		List<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
 		testInGroup.setQuestions(listQuestions);
 		testInGroup = testInGroupRepository.save(testInGroup);
 		return testInGroupMapper.toTestInGroupResponse(testInGroup);
 		
 	}
 	
+	@Transactional
 	public TestInGroupResponse updateTestInGroup(TestInGroupUpdateRequest request) {
 	    OffsetDateTime startedAtUtc = request.getStartedAt().withOffsetSameInstant(ZoneOffset.UTC);
 	    OffsetDateTime expiredAtUtc = request.getExpiredAt().withOffsetSameInstant(ZoneOffset.UTC);
@@ -77,10 +77,15 @@ public class TestInGroupService {
 	    testInGroup.setDescription(request.getDescription());
 	    testInGroup.setStartedAt(startedAtUtc);
 	    testInGroup.setExpiredAt(expiredAtUtc);
-	    Set<TestQuestion> listQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
-	    testInGroup.setQuestions(listQuestions);
 
-	  
+	 // Tạo hoặc cập nhật danh sách câu hỏi mới
+	    List<TestQuestion> updatedQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
+
+	    // Cập nhật collection hiện tại tránh gán list mới
+	    List<TestQuestion> currentQuestions = testInGroup.getQuestions();
+	    currentQuestions.clear();
+	    currentQuestions.addAll(updatedQuestions);
+
 	    testInGroup = testInGroupRepository.save(testInGroup);
 
 	    return testInGroupMapper.toTestInGroupResponse(testInGroup);

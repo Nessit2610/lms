@@ -2,6 +2,7 @@ package com.husc.lms.dto.response;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Set;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,5 +27,5 @@ public class TestInGroupResponse {
 
     private OffsetDateTime expiredAt;
     
-    private List<TestQuestionResponse> questions;
+    private Set<TestQuestionResponse> questions;
 }
