@@ -14,10 +14,12 @@ import com.husc.lms.dto.response.StudentViewResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.JoinClassRequest;
+import com.husc.lms.entity.Notification;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentCourse;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.JoinClassStatus;
+import com.husc.lms.enums.NotificationType;
 import com.husc.lms.enums.StatusCourse;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.CourseMapper;
@@ -60,6 +62,9 @@ public class JoinClassRequestService {
 	
 	@Autowired
 	private StudentCourseService studentCourseService;
+	
+	@Autowired
+	private NotificationService notificationService;
 	
 	@Transactional
 	public boolean pendingRequest(String courseId) {
@@ -105,6 +110,14 @@ public class JoinClassRequestService {
 						.build();
 				joinClassRequestRepository.save(joinClassRequest);
 				studentCourseService.addStudentToCourse(student, course);
+				
+//				Notification notificationForTeacher = Notification.builder()
+//															.account(course.getTeacher().getAccount())
+//															.description("Bạn có 1 sinh viên tên " + student.getFullName() + " vừa đăng ký vào khoá học " + course.getName())
+//															.joinClassRequest(joinClassRequest)
+//															.type(NotificationType.JOIN_CLASS)
+//															.build();
+				
 				return true;
 			}
 			else {

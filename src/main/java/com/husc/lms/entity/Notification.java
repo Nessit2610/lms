@@ -36,6 +36,11 @@ public class Notification {
     @JoinColumn(name = "commentReplyId")
     @JsonBackReference
     private CommentReply commentReply;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "joinClassRequestId")
+    @JsonBackReference
+    private JoinClassRequest joinClassRequest;
 
 //    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "messageId")

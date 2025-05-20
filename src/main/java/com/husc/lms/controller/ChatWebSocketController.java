@@ -44,8 +44,6 @@ public class ChatWebSocketController {
 
 	@MessageMapping("/chat/sendMessage")
 	public void handleSendMessage(@Payload ChatMessageSenderRequest request) {
-//		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-//		System.out.println("[DEBUG] Authorities: " + auth.getAuthorities());
 		try {
 			System.out
 					.println("[DEBUG] Controller: Received /chat/sendMessage request: "
