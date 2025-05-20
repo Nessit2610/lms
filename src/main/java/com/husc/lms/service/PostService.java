@@ -121,40 +121,35 @@ public class PostService {
 	        existingFiles.addAll(post.getFiles());
 	    }
 
-	    if (uploads != null) {
-	
-	    	Set<String> updatedFileNames = new HashSet<>();
-	    	if (request.getOldFileNames() != null) {
-	    	    updatedFileNames.addAll(
-	    	        request.getOldFileNames().stream()
-	    	            .filter(Objects::nonNull)
-	    	            .map(String::toLowerCase)
-	    	            .collect(Collectors.toSet()));
-	    	}
+	    // Xử lý file
+	    if (uploads != null || request.getOldFileIds() != null) {
 
-
-	        List<PostFile> filesToKeep = existingFiles.stream()
-	                .filter(existing -> updatedFileNames.contains(existing.getFileName().toLowerCase()))
-	                .collect(Collectors.toList());
-
-	        List<PostFile> filesToDelete = existingFiles.stream()
-	                .filter(existing -> !updatedFileNames.contains(existing.getFileName().toLowerCase()))
-	                .collect(Collectors.toList());
-
-	        for (PostFile fileToDelete : filesToDelete) {
-	            postFileService.deleteFile(post,fileToDelete); 
+	        // Danh sách ID file cũ cần giữ lại
+	        Set<String> keepFileIds = new HashSet<>();
+	        if (request.getOldFileIds() != null) {
+	            keepFileIds.addAll(request.getOldFileIds());
 	        }
 
-	        for (FileUploadRequest fileRequest : uploads) {
-	            if (!isValidFileUpload(fileRequest)) continue;
+	        // Lọc các file cần xoá
+	        List<PostFile> filesToDelete = existingFiles.stream()
+	                .filter(file -> file.getId() == null || !keepFileIds.contains(file.getId()))
+	                .collect(Collectors.toList());
 
-	            MultipartFile file = fileRequest.getFile();
-	            String fileName = file.getOriginalFilename();
+	        // Xoá file cũ không còn dùng
+	        for (PostFile fileToDelete : filesToDelete) {
+	            postFileService.deleteFile(post, fileToDelete);
+	        }
 
-	            boolean isAlreadyIncluded = filesToKeep.stream().anyMatch(existing ->
-	                    existing.getFileName().equalsIgnoreCase(fileName));
+	        // Thêm file mới
+	        if (uploads != null) {
+	            for (FileUploadRequest fileRequest : uploads) {
+	                if (!isValidFileUpload(fileRequest)) continue;
 
-	            if (!isAlreadyIncluded) {
+	                MultipartFile file = fileRequest.getFile();
+	                if (file == null || file.isEmpty()) continue;
+
+	                String fileName = file.getOriginalFilename();
+	                if (fileName == null) continue;
 	                postFileService.creatPostFile(post, file, fileRequest.getType());
 	            }
 	        }
@@ -163,6 +158,7 @@ public class PostService {
 	    post = postRepository.save(post);
 	    return postMapper.toPostResponse(post);
 	}
+
 	
 	public Boolean deletePost(String postId) {
 		Post post = postRepository.findById(postId).orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
