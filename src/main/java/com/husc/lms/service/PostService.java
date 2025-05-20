@@ -124,6 +124,8 @@ public class PostService {
 	    // Xử lý file
 	    if (uploads != null || request.getOldFileIds() != null) {
 
+	    	System.out.println("Đã đến bước này");
+	    	
 	        // Danh sách ID file cũ cần giữ lại
 	        Set<String> keepFileIds = new HashSet<>();
 	        if (request.getOldFileIds() != null) {
@@ -136,9 +138,18 @@ public class PostService {
 	                .collect(Collectors.toList());
 
 	        // Xoá file cũ không còn dùng
-	        for (PostFile fileToDelete : filesToDelete) {
-	            postFileService.deleteFile(post, fileToDelete);
+	        if(request.getOldFileIds().isEmpty()) {
+	        	for (PostFile fileToDelete : existingFiles) {
+		            postFileService.deleteFile(post, fileToDelete);
+		            System.out.println("Xóa toàn bộ");
+		        }
 	        }
+	        else {
+	        	for (PostFile fileToDelete : filesToDelete) {
+		            postFileService.deleteFile(post, fileToDelete);
+		            System.out.println("xóa theo file được chọn");
+		        }
+	        }  
 
 	        // Thêm file mới
 	        if (uploads != null) {
