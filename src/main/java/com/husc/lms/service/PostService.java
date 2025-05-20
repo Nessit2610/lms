@@ -8,8 +8,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,19 @@ public class PostService {
 	    Group group = groupRepository.findById(request.getGroupId())
 	            .orElseThrow(() -> new AppException(ErrorCode.GROUP_NOT_FOUND));
 
+	    List<FileUploadRequest> uploads = request.getFileUploadRequests();
+	    if (uploads != null && !uploads.isEmpty()) {
+	        for (FileUploadRequest fileRequest : uploads) {
+	            if (!isValidFileUpload(fileRequest)) continue;
+	            MultipartFile file = fileRequest.getFile();
+	            String type = fileRequest.getType(); 
+	            if(file != null  && !file.isEmpty() && type != null) {
+	    			String extension = fileExtension.apply(file.getOriginalFilename());
+	    			validateFileExtension(type, extension);
+	    		}  
+	        }   
+	    }
+	    
 	    Post post = Post.builder()
 	            .group(group)
 	            .title(request.getTitle())
@@ -82,27 +96,58 @@ public class PostService {
 	            .teacher(teacher)
 	            .createdAt(new Date())
 	            .build();
-	    post = postRepository.save(post);
-
-	    List<FileUploadRequest> uploads = request.getFileUploadRequests();
-	    if (uploads != null && !uploads.isEmpty()) {
-	        List<PostFile> postFiles = new ArrayList<>();
-	        for (FileUploadRequest fileRequest : uploads) {
-	            if (!isValidFileUpload(fileRequest)) continue;
-	            MultipartFile file = fileRequest.getFile();
-	            String type = fileRequest.getType();
-	            PostFile pf = postFileService.creatPostFile(post, file, type);
-	            postFiles.add(pf);
-	        }
-	        if (!postFiles.isEmpty()) {
-	            post.setFiles(postFiles);
-	            post = postRepository.save(post); 
-	        }
-	    }
+	  
+        List<PostFile> postFiles = new ArrayList<>();
+        for (FileUploadRequest fileRequest : uploads) {
+            if (!isValidFileUpload(fileRequest)) continue;
+            MultipartFile file = fileRequest.getFile();
+            String type = fileRequest.getType();
+            if(file != null  && !file.isEmpty() && type != null) {
+    			String extension = fileExtension.apply(file.getOriginalFilename());
+    			validateFileExtension(type, extension);
+    		}
+            PostFile pf = postFileService.creatPostFile(post, file, type);
+            postFiles.add(pf);
+        }
+        if (!postFiles.isEmpty()) {
+            post.setFiles(postFiles);
+        }
+        post = postRepository.save(post);
 	    return postMapper.toPostResponse(post);
 	}
 
+	private final Function<String, String> fileExtension = filename ->
+    Optional.ofNullable(filename)
+            .filter(name -> name.contains("."))
+            .map(name -> "." + name.substring(name.lastIndexOf('.') + 1))
+            .orElse("");
+	
 
+    private void validateFileExtension(String type, String extension) {
+	    Set<String> imageExtensions = Set.of(".jpg", ".jpeg", ".png", ".gif");
+	    Set<String> videoExtensions = Set.of(".mp4", ".avi", ".mov");
+	    Set<String> fileExtensions = Set.of(".pdf", ".doc", ".docx", ".txt");
+
+	    switch (type.toLowerCase()) {
+	        case "image" -> {
+	            if (!imageExtensions.contains(extension)) {
+	                throw new AppException(ErrorCode.INVALID_IMAGE_TYPE);
+	            }
+	        }
+	        case "video" -> {
+	            if (!videoExtensions.contains(extension)) {
+	                throw new AppException(ErrorCode.INVALID_VIDEO_TYPE);
+	            }
+	        }
+	        case "file" -> {
+	            if (!fileExtensions.contains(extension)) {
+	                throw new AppException(ErrorCode.INVALID_FILE_TYPE);
+	            }
+	        }
+	        default -> throw new AppException(ErrorCode.UNSUPPORTED_FILE_TYPE);
+	    }
+	}
+    
 	public PostResponse updatePost(PostUpdateRequest request) {
 	    Post post = postRepository.findById(request.getPostId())
 	            .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
