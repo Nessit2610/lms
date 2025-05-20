@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -122,12 +123,14 @@ public class PostService {
 
 	    if (uploads != null) {
 	
-	        Set<String> updatedFileNames = uploads.stream()
-	                .filter(this::isValidFileUpload)
-	                .map(req -> req.getFile().getOriginalFilename())
-	                .filter(Objects::nonNull)
-	                .map(String::toLowerCase)
-	                .collect(Collectors.toSet());
+	    	Set<String> updatedFileNames = new HashSet<>();
+	    	if (request.getOldFileNames() != null) {
+	    	    updatedFileNames.addAll(
+	    	        request.getOldFileNames().stream()
+	    	            .filter(Objects::nonNull)
+	    	            .map(String::toLowerCase)
+	    	            .collect(Collectors.toSet()));
+	    	}
 
 
 	        List<PostFile> filesToKeep = existingFiles.stream()

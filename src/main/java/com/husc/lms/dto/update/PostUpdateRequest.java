@@ -23,5 +23,7 @@ public class PostUpdateRequest {
     
     private String text;
     
+    private List<String> oldFileNames;
+    
     private List<FileUploadRequest> fileUploadRequests;
 }
