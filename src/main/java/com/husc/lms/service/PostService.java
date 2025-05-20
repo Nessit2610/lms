@@ -78,6 +78,7 @@ public class PostService {
 
 	    List<FileUploadRequest> uploads = request.getFileUploadRequests();
 	    if (uploads != null && !uploads.isEmpty()) {
+	        
 	        for (FileUploadRequest fileRequest : uploads) {
 	            if (!isValidFileUpload(fileRequest)) continue;
 	            MultipartFile file = fileRequest.getFile();
@@ -96,23 +97,28 @@ public class PostService {
 	            .teacher(teacher)
 	            .createdAt(new Date())
 	            .build();
+	    post = postRepository.save(post);
+
 	  
         List<PostFile> postFiles = new ArrayList<>();
         for (FileUploadRequest fileRequest : uploads) {
             if (!isValidFileUpload(fileRequest)) continue;
             MultipartFile file = fileRequest.getFile();
             String type = fileRequest.getType();
+            
             if(file != null  && !file.isEmpty() && type != null) {
     			String extension = fileExtension.apply(file.getOriginalFilename());
     			validateFileExtension(type, extension);
     		}
+            
             PostFile pf = postFileService.creatPostFile(post, file, type);
             postFiles.add(pf);
         }
         if (!postFiles.isEmpty()) {
             post.setFiles(postFiles);
+            post = postRepository.save(post); 
         }
-        post = postRepository.save(post);
+	    
 	    return postMapper.toPostResponse(post);
 	}
 
