@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.http.HttpStatus;
 
 import com.husc.lms.dto.response.APIResponse;
+import com.husc.lms.dto.response.ChatBoxResponse;
 import com.husc.lms.mongoEntity.ChatBox;
 import com.husc.lms.mongoEntity.ChatMessage;
 import com.husc.lms.mongoEntity.ChatBoxMember;
@@ -43,13 +44,27 @@ public class ChatBoxController {
 	private final ChatMessageStatusService chatMessageStatusService;
 	private final ChatBoxMemberService chatBoxMemberService;
 
+	// @GetMapping("")
+	// public APIResponse<Page<ChatBox>> getAllChatBoxes(
+	// @RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
+	// @RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
+	// Pageable pageable = PageRequest.of(pageNumber, pageSize);
+	// Page<ChatBox> chatBoxes =
+	// chatBoxService.getAllChatBoxesForCurrentAccount(pageable);
+	// return APIResponse.<Page<ChatBox>>builder()
+	// .result(chatBoxes)
+	// .build();
+	// }
+
 	@GetMapping("")
-	public APIResponse<Page<ChatBox>> getAllChatBoxes(
+	public APIResponse<Page<ChatBoxResponse>> getAllChatBoxes(
 			@RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
 			@RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
-		Pageable pageable = PageRequest.of(pageNumber, pageSize);
-		Page<ChatBox> chatBoxes = chatBoxService.getAllChatBoxesForCurrentAccount(pageable);
-		return APIResponse.<Page<ChatBox>>builder()
+		// Không tạo Pageable ở đây nữa, truyền trực tiếp pageNumber và pageSize
+		// Thông tin Sort sẽ được quản lý trong ServiceImpl theo logic của
+		// CommentService
+		Page<ChatBoxResponse> chatBoxes = chatBoxService.getAllChatBoxesForCurrentAccount(pageNumber, pageSize);
+		return APIResponse.<Page<ChatBoxResponse>>builder()
 				.result(chatBoxes)
 				.build();
 	}
