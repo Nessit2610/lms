@@ -199,6 +199,9 @@ public class CourseService {
 				throw new AppException(ErrorCode.NOT_NULL);
 			}
 		}
+		else {
+			course.setEndDate(null);
+		}
 		if(feeType.equals(FeeStatus.CHARGEABLE.name())) {
 			if(request.getPrice() != null) {
 				course.setPrice(request.getPrice());				
@@ -206,6 +209,9 @@ public class CourseService {
 			else {
 				throw new AppException(ErrorCode.NOT_NULL);
 			}
+		}
+		else {
+			course.setPrice(null);
 		}
 		course = courseRepository.save(course);
 		return courseMapper.toCourseResponse(course);
