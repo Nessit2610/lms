@@ -120,51 +120,32 @@ public class PostService {
 	    if (post.getFiles() != null) {
 	        existingFiles.addAll(post.getFiles());
 	    }
+	    
+        Set<String> keepFileIds = new HashSet<>();
+        if (request.getOldFileIds() != null) {
+            keepFileIds.addAll(request.getOldFileIds());
+        }
 
-	    // Xử lý file
-	    if (uploads != null || request.getOldFileIds() != null) {
+        List<PostFile> filesToDelete = existingFiles.stream()
+                .filter(file -> file.getId() == null || !keepFileIds.contains(file.getId()))
+                .collect(Collectors.toList());
 
-	    	System.out.println("Đã đến bước này");
-	    	
-	        // Danh sách ID file cũ cần giữ lại
-	        Set<String> keepFileIds = new HashSet<>();
-	        if (request.getOldFileIds() != null) {
-	            keepFileIds.addAll(request.getOldFileIds());
-	        }
+    	for (PostFile fileToDelete : filesToDelete) {
+            postFileService.deleteFile(post, fileToDelete);
+        }
+	   
+        if (uploads != null) {
+            for (FileUploadRequest fileRequest : uploads) {
+                if (!isValidFileUpload(fileRequest)) continue;
 
-	        // Lọc các file cần xoá
-	        List<PostFile> filesToDelete = existingFiles.stream()
-	                .filter(file -> file.getId() == null || !keepFileIds.contains(file.getId()))
-	                .collect(Collectors.toList());
+                MultipartFile file = fileRequest.getFile();
+                if (file == null || file.isEmpty()) continue;
 
-	        // Xoá file cũ không còn dùng
-	        if(request.getOldFileIds().isEmpty()) {
-	        	for (PostFile fileToDelete : existingFiles) {
-		            postFileService.deleteFile(post, fileToDelete);
-		            System.out.println("Xóa toàn bộ");
-		        }
-	        }
-	        else {
-	        	for (PostFile fileToDelete : filesToDelete) {
-		            postFileService.deleteFile(post, fileToDelete);
-		            System.out.println("xóa theo file được chọn");
-		        }
-	        }  
-
-	        // Thêm file mới
-	        if (uploads != null) {
-	            for (FileUploadRequest fileRequest : uploads) {
-	                if (!isValidFileUpload(fileRequest)) continue;
-
-	                MultipartFile file = fileRequest.getFile();
-	                if (file == null || file.isEmpty()) continue;
-
-	                String fileName = file.getOriginalFilename();
-	                if (fileName == null) continue;
-	                postFileService.creatPostFile(post, file, fileRequest.getType());
-	            }
-	        }
-	    }
+                String fileName = file.getOriginalFilename();
+                if (fileName == null) continue;
+                postFileService.creatPostFile(post, file, fileRequest.getType());
+            }
+        }
 
 	    post = postRepository.save(post);
 	    return postMapper.toPostResponse(post);
