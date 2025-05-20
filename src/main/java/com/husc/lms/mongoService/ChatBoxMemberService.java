@@ -5,6 +5,7 @@ import com.husc.lms.entity.Account;
 import com.husc.lms.mongoEntity.ChatBox;
 import com.husc.lms.mongoEntity.ChatBoxMember;
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 public interface ChatBoxMemberService {
     ChatBox addMemberToChatBox(String chatBoxId, String usernameOfMemberToAdd, String usernameOfRequestor);
@@ -13,5 +14,6 @@ public interface ChatBoxMemberService {
 
     void removeMemberFromChatBox(String chatBoxId, String usernameOfMemberToRemove, String usernameOfRequestor);
 
-    List<ChatMemberSearchResponse> findAccountsNotInChatBox(String chatBoxId, String searchString);
+    Page<ChatMemberSearchResponse> findAccountsNotInChatBox(String chatBoxId, String searchString, int pageNumber,
+            int pageSize);
 }

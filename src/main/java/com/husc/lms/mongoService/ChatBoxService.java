@@ -22,6 +22,8 @@ public interface ChatBoxService {
     Optional<ChatBox> getChatBoxById(String chatBoxId);
 
     List<ChatBoxMember> getChatBoxMembers(String chatBoxId);
-    
+
     ChatBox renameChatBox(String chatBoxId, String newName);
+    
+    Page<ChatBoxResponse> searchByNameOfChatBox(String nameRegex, int pageNumber, int pageSize);
 }
