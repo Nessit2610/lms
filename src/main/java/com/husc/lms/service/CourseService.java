@@ -133,17 +133,23 @@ public class CourseService {
 		else {
 			course.setEndDate(null);
 		}
-		if(feeType.equals(FeeStatus.CHARGEABLE.name())) {
-			if(request.getPrice() != null) {
-				course.setPrice(request.getPrice());				
+		if(status.equals(StatusCourse.REQUEST.name())) {
+			if(feeType.equals(FeeStatus.CHARGEABLE.name())) {
+				if(request.getPrice() != null) {
+					course.setPrice(request.getPrice());				
+				}
+				else {
+					throw new AppException(ErrorCode.NOT_NULL);
+				}
 			}
 			else {
-				throw new AppException(ErrorCode.NOT_NULL);
+				course.setPrice(null);
 			}
 		}
 		else {
 			course.setPrice(null);
 		}
+		
 		course = courseRepository.save(course);		
 		
 		return courseMapper.toCourseResponse(course);
@@ -202,12 +208,17 @@ public class CourseService {
 		else {
 			course.setEndDate(null);
 		}
-		if(feeType.equals(FeeStatus.CHARGEABLE.name())) {
-			if(request.getPrice() != null) {
-				course.setPrice(request.getPrice());				
+		if(status.equals(StatusCourse.REQUEST.name())) {
+			if(feeType.equals(FeeStatus.CHARGEABLE.name())) {
+				if(request.getPrice() != null) {
+					course.setPrice(request.getPrice());				
+				}
+				else {
+					throw new AppException(ErrorCode.NOT_NULL);
+				}
 			}
 			else {
-				throw new AppException(ErrorCode.NOT_NULL);
+				course.setPrice(null);
 			}
 		}
 		else {
