@@ -30,5 +30,5 @@ public interface AccountRepository extends JpaRepository<Account, String> {
 	List<Account> findBySearchTermAndUsernameNotInAndDeletedDateIsNull(
 			@Param("searchTerm") String searchTerm,
 			@Param("excludedUsernames") List<String> excludedUsernames);
-	
+
 }
