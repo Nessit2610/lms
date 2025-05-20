@@ -19,21 +19,11 @@ public interface ChatBoxRepository extends MongoRepository<ChatBox, String> {
 
     Page<ChatBox> findByIdInAndIsGroupFalse(List<String> chatBoxIds, Pageable pageable);
 
-    /**
-     * Tìm tất cả chatbox theo danh sách ID
-     * 
-     * @param chatBoxIds Danh sách ID của chatbox
-     * @param pageable   Thông tin phân trang
-     * @return Page chứa danh sách chatbox
-     */
     Page<ChatBox> findByIdIn(List<String> chatBoxIds, Pageable pageable);
 
-    /**
-     * Cập nhật tên của chatbox
-     * 
-     * @param id   ID của chatbox
-     * @param name Tên mới của chatbox
-     */
     @Query("{ '_id' : ?0 }, { '$set' : { 'name' : ?1 } }")
     void updateNameById(String id, String name);
+
+    @Query(value = "{ 'isGroup': true, 'name': { $regex: ?1, $options: 'i' }, 'memberAccountUsernames': ?0 }")
+    Page<ChatBox> findGroupChatsByMemberAndNameLike(String chatMemberUsername, String nameRegex, Pageable pageable);
 }

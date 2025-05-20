@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,8 @@ import com.husc.lms.mongoService.ChatBoxService; // Assuming you might want to r
 import com.husc.lms.repository.AccountRepository; // To validate users
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
+import com.husc.lms.service.OffsetLimitPageRequest;
 
 @Service
 @RequiredArgsConstructor
@@ -150,7 +155,7 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
         @Transactional
         public void removeMemberFromChatBox(String chatBoxId, String usernameOfMemberToRemove,
                         String usernameOfRequestor) {
-                // Validate accounts
+
                 accountRepository.findByUsernameAndDeletedDateIsNull(usernameOfRequestor)
                                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
                                                 "Tài khoản yêu cầu (requestor) không tìm thấy: "
@@ -160,51 +165,40 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                                                 "Tài khoản cần xoá (member to remove) không tìm thấy: "
                                                                 + usernameOfMemberToRemove));
 
-                // Fetch ChatBox
                 ChatBox chatBox = chatBoxRepository.findById(chatBoxId)
                                 .orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND,
                                                 "ChatBox không tìm thấy với ID: " + chatBoxId));
 
-                // Authorization: Only the creator of the group can remove members
                 if (!chatBox.getCreatedBy().equals(usernameOfRequestor)) {
                         throw new AppException(ErrorCode.UNAUTHORIZED,
                                         "Chỉ người tạo nhóm mới có quyền xoá thành viên.");
                 }
 
-                // Cannot remove from a 1-on-1 chat this way (it's not a group management
-                // operation)
                 if (!chatBox.isGroup()) {
                         throw new AppException(ErrorCode.INVALID_OPERATION,
                                         "Không thể xoá thành viên từ một cuộc trò chuyện 1-1 bằng chức năng này.");
                 }
 
-                // Prevent creator from removing themselves
                 if (usernameOfMemberToRemove.equals(chatBox.getCreatedBy())) {
                         throw new AppException(ErrorCode.INVALID_OPERATION,
                                         "Người tạo nhóm không thể tự xoá chính mình khỏi nhóm.");
                 }
 
-                // Check if the member to remove is actually in the chatBox's member list
                 if (!chatBox.getMemberAccountUsernames().contains(usernameOfMemberToRemove)) {
                         throw new AppException(ErrorCode.MEMBER_NOT_FOUND_IN_CHATBOX,
                                         "Thành viên " + usernameOfMemberToRemove + " không có trong nhóm chat "
                                                         + chatBoxId);
                 }
 
-                // Also check using ChatBoxMemberRepository for consistency, though the above
-                // check is primary for the list in ChatBox
                 if (!chatBoxMemberRepository.existsByChatBoxIdAndAccountUsername(chatBoxId, usernameOfMemberToRemove)) {
-                        // This case should ideally not happen if ChatBox.memberAccountUsernames is kept
-                        // in sync
+
                         System.err.println("[WARN] Member " + usernameOfMemberToRemove
                                         + " was in ChatBox.memberAccountUsernames but not found in ChatBoxMemberRepository for chatBoxId "
                                         + chatBoxId + ". Proceeding with removal based on ChatBox list.");
                 }
 
-                // Perform deletion from ChatBoxMember collection
                 chatBoxMemberRepository.deleteByChatBoxIdAndAccountUsername(chatBoxId, usernameOfMemberToRemove);
 
-                // Update ChatBox entity: remove member from the list and update timestamp
                 boolean removed = chatBox.getMemberAccountUsernames().remove(usernameOfMemberToRemove);
                 if (removed) {
                         chatBox.setUpdatedAt(new Date());
@@ -213,52 +207,68 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                                         + chatBoxId
                                         + " bởi người tạo: " + usernameOfRequestor);
                 } else {
-                        // This should ideally not be reached if the .contains check above passed and no
-                        // concurrent modification occurred
                         System.err.println("[WARN] Thành viên " + usernameOfMemberToRemove
                                         + " không thể xoá khỏi danh sách memberAccountUsernames của ChatBox ID: "
                                         + chatBoxId
                                         + " dù đã tồn tại trước đó.");
-                        // Consider if an exception should be thrown here if strict consistency is
-                        // required
                 }
         }
 
         @Override
-        public List<ChatMemberSearchResponse> findAccountsNotInChatBox(String chatBoxId, String searchString) {
-                // 1. Get members already in the chat box
-                List<ChatBoxMember> membersInChatBox = chatBoxMemberRepository.findByChatBoxId(chatBoxId);
+        public Page<ChatMemberSearchResponse> findAccountsNotInChatBox(String chatBoxId, String searchString,
+                        int pageNumber, int pageSize) {
+                if (pageSize < 1) {
+                        throw new IllegalArgumentException("pageSize must be 1 or greater.");
+                }
 
-                // 2. Extract their usernames
+                List<ChatBoxMember> membersInChatBox = chatBoxMemberRepository.findByChatBoxId(chatBoxId);
                 List<String> excludedUsernames = membersInChatBox.stream()
                                 .map(ChatBoxMember::getAccountUsername)
                                 .collect(Collectors.toList());
 
-                // 3. Find accounts matching the search term but not in the excluded list
-                List<Account> accounts = accountRepository.findBySearchTermAndUsernameNotInAndDeletedDateIsNull(
-                                searchString,
-                                excludedUsernames);
+                int actualOffset = pageNumber;
+                int actualLimit = pageSize + 1;
 
-                // 4. Map List<Account> to List<ChatMemberSearchResponse>
-                List<ChatMemberSearchResponse> responseList = new ArrayList<>();
-                for (Account account : accounts) {
-                        String fullname = account.getStudent() != null ? account.getStudent().getFullName()
-                        				: account.getTeacher() != null ? account.getTeacher().getFullName()
-                        				: "";
-                        String avatar = account.getStudent() != null ? account.getStudent().getAvatar()
-		                				: account.getTeacher() != null ? account.getTeacher().getAvatar()
-		                				: "";;
+                // Sử dụng OffsetLimitPageRequest giống như searchByNameOfChatBox
+                Sort sort = Sort.by(Sort.Direction.ASC, "username");
+                OffsetLimitPageRequest fetchPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
 
-                        
+                Page<Account> fetchedAccountsPage = accountRepository
+                                .findBySearchTermAndUsernameNotInAndDeletedDateIsNullWithPagination(
+                                                searchString,
+                                                excludedUsernames,
+                                                fetchPageable);
+                List<Account> fetchedContent = fetchedAccountsPage.getContent();
 
-                        responseList.add(ChatMemberSearchResponse.builder()
-                                        .accountId(account.getId())
-                                        .accountUsername(account.getUsername())
-                                        .accountFullname(fullname)
-                                        .avatar(avatar)
-                                        .build());
-                }
-                return responseList;
+                boolean hasNext = fetchedContent.size() > pageSize;
+                List<Account> accountsToReturn = hasNext ? fetchedContent.subList(0, pageSize) : fetchedContent;
+
+                List<ChatMemberSearchResponse> responseList = accountsToReturn.stream()
+                                .map(account -> {
+                                        String fullname = account.getStudent() != null
+                                                        ? account.getStudent().getFullName()
+                                                        : account.getTeacher() != null
+                                                                        ? account.getTeacher().getFullName()
+                                                                        : "";
+                                        String avatar = account.getStudent() != null ? account.getStudent().getAvatar()
+                                                        : account.getTeacher() != null
+                                                                        ? account.getTeacher().getAvatar()
+                                                                        : "";
+
+                                        return ChatMemberSearchResponse.builder()
+                                                        .accountId(account.getId())
+                                                        .accountUsername(account.getUsername())
+                                                        .accountFullname(fullname)
+                                                        .avatar(avatar)
+                                                        .build();
+                                })
+                                .collect(Collectors.toList());
+
+                // Tạo PageRequest giống như searchByNameOfChatBox
+                org.springframework.data.domain.Pageable returnPageable = org.springframework.data.domain.PageRequest
+                                .of(pageNumber / pageSize, pageSize, sort);
+                long totalElements = fetchedAccountsPage.getTotalElements();
+                return new PageImpl<>(responseList, returnPageable, totalElements);
         }
 
 }

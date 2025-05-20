@@ -2,6 +2,7 @@ package com.husc.lms.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,15 +22,17 @@ public class ChatMemberController {
     private final ChatBoxMemberService chatBoxMemberService;
 
     @GetMapping("/search")
-    public APIResponse<List<ChatMemberSearchResponse>> searchPotentialMembers(
+    public APIResponse<Page<ChatMemberSearchResponse>> searchPotentialMembers(
             @RequestParam String chatBoxId,
-            @RequestParam String searchString) {
+            @RequestParam String searchString,
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize) {
 
-        List<ChatMemberSearchResponse> searchMembers = chatBoxMemberService.findAccountsNotInChatBox(chatBoxId,
-                searchString);
-        return APIResponse.<List<ChatMemberSearchResponse>>builder()
-        		.result(searchMembers)
-        		.build();
+        Page<ChatMemberSearchResponse> searchMembers = chatBoxMemberService.findAccountsNotInChatBox(chatBoxId,
+                searchString, pageNumber, pageSize);
+        return APIResponse.<Page<ChatMemberSearchResponse>>builder()
+                .result(searchMembers)
+                .build();
     }
 
 }

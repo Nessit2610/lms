@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.PutMapping;
 
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.ChatBoxResponse;
@@ -113,4 +114,22 @@ public class ChatBoxController {
 				+ "' for chatBoxId '" + chatBoxId + "' to remove member '" + memberUsername + "'.");
 		return ResponseEntity.ok().build();
 	}
+
+	@GetMapping("/searchGroupByName")
+	public APIResponse<Page<ChatBoxResponse>> searchGroupByName(
+			@RequestParam(name = "name") String name,
+			@RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
+			@RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
+		Page<ChatBoxResponse> result = chatBoxService.searchByNameOfChatBox(name, pageNumber, pageSize);
+		return APIResponse.<Page<ChatBoxResponse>>builder().result(result).build();
+	}
+
+	@PutMapping("/rename")
+	public APIResponse<ChatBox> renameChatBox(
+			@RequestParam String chatBoxId,
+			@RequestParam String newName) {
+		ChatBox updated = chatBoxService.renameChatBox(chatBoxId, newName);
+		return APIResponse.<ChatBox>builder().result(updated).build();
+	}
+
 }
