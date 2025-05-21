@@ -53,6 +53,19 @@ public class CustomJwtAuthChannelInterceptor implements ChannelInterceptor {
                                 (sessionId != null && authenticatedSessions.containsKey(sessionId)),
                                 (accessor.getUser() != null ? accessor.getUser().getName() : "null"));
 
+                // Handle CONNECT command with new token
+                if (StompCommand.CONNECT.equals(command)) {
+                        String authHeader = accessor.getFirstNativeHeader("Authorization");
+                        if (authHeader != null && authHeader.toLowerCase().startsWith("bearer ")) {
+                                // Clean up any existing session with the same sessionId
+                                if (sessionId != null) {
+                                        authenticatedSessions.remove(sessionId);
+                                        logger.info("[JWT WS Auth Interceptor] Cleaned up old session {} for reconnection",
+                                                        sessionId);
+                                }
+                        }
+                }
+
                 // Check if we have a stored authentication for this session
                 if (sessionId != null && authenticatedSessions.containsKey(sessionId)) {
                         UsernamePasswordAuthenticationToken existingAuth = authenticatedSessions.get(sessionId);

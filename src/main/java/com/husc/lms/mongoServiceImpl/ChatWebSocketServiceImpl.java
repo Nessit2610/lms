@@ -141,9 +141,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 .listMemmber(memberResponses)
                                 .build();
 
-                // Gửi realtime cho người tạo
                 messagingTemplate.convertAndSend("/topic/chatbox/" + currentAccountUsername + "/created", response);
-                // Nếu là chat 1-1, gửi cho người còn lại
                 if (!isGroup && request.getAnotherAccounts().size() == 1) {
                         String anotherUsername = request.getAnotherAccounts().get(0);
                         messagingTemplate.convertAndSend("/topic/chatbox/" + anotherUsername + "/created", response);
