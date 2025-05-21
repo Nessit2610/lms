@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PutMapping;
 
 import com.husc.lms.dto.response.APIResponse;
+import com.husc.lms.dto.response.ChatBoxMemberResponse;
 import com.husc.lms.dto.response.ChatBoxResponse;
 import com.husc.lms.dto.response.ChatMessageResponse;
 import com.husc.lms.mongoEntity.ChatBox;
@@ -86,9 +87,9 @@ public class ChatBoxController {
 	}
 
 	@GetMapping("/{chatBoxId}/members")
-	public APIResponse<List<ChatBoxMember>> getChatBoxMembers(@PathVariable String chatBoxId) {
-		List<ChatBoxMember> members = chatBoxMemberService.getChatBoxMembersByChatBoxId(chatBoxId);
-		return APIResponse.<List<ChatBoxMember>>builder()
+	public APIResponse<List<ChatBoxMemberResponse>> getChatBoxMembers(@PathVariable String chatBoxId) {
+		List<ChatBoxMemberResponse> members = chatBoxMemberService.getChatBoxMembersByChatBoxId(chatBoxId);
+		return APIResponse.<List<ChatBoxMemberResponse>>builder()
 				.result(members)
 				.build();
 	}

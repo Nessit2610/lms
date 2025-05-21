@@ -59,33 +59,26 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
 
         @Override
         public ChatBoxCreateResponse handleChatCreation(ChatBoxCreateRequest request) {
-
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
-
                 System.out.println("Username Account: " + username);
                 System.out.println("[DEBUG] ChatWebSocketServiceImpl: handleChatCreation called with creator: "
                                 + request.getCurrentAccountUsername() + ", others: " + request.getAnotherAccounts());
 
                 String currentAccountUsername = request.getCurrentAccountUsername();
-//                if (currentAccountUsername == null || currentAccountUsername.trim().isEmpty()) {
-//                        System.err.println(
-//                                        "[DEBUG] ChatWebSocketServiceImpl: currentAccountUsername is missing in handleChatCreation request.");
-//                        throw new AppException(ErrorCode.INVALID_PARAMETER, "Current account username is required.");
-//                }
                 Account currentAccount;
+
+                // Nếu currentAccountUsername rỗng hoặc null thì dùng username từ
+                // SecurityContext
                 if (currentAccountUsername == null || currentAccountUsername.isEmpty()) {
-                	currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(currentAccountUsername)
-                            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
-                                            "Current account (creator) not found: " + currentAccountUsername));
-				}
-                else {
-                	currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(username)
-                            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
-                                            "Current account (creator) not found: " + username));
-				}
-//                Account currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(currentAccountUsername)
-//                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
-//                                                "Current account (creator) not found: " + currentAccountUsername));
+                        currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(username)
+                                        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
+                                                        "Current account (creator) not found: " + username));
+                } else {
+                        currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(currentAccountUsername)
+                                        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
+                                                        "Current account (creator) not found: "
+                                                                        + currentAccountUsername));
+                }
 
                 String currentAccountFullname = currentAccount.getStudent() != null
                                 ? currentAccount.getStudent().getFullName()
