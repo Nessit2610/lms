@@ -308,10 +308,6 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 .chatMemberReponses(memberResponses)
                                 .build();
 
-                // Gửi thông báo cho tất cả thành viên trong chatbox
-                String destination = "/topic/chatbox/" + chatBoxId + "/members";
-                messagingTemplate.convertAndSend(destination, response);
-
                 // Gửi thông báo riêng cho thành viên mới
                 String newMemberDestination = "/topic/chatbox/" + usernameOfMemberToAdd + "/added";
                 messagingTemplate.convertAndSend(newMemberDestination, response);

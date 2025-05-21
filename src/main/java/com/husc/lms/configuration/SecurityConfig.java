@@ -129,7 +129,7 @@ public class SecurityConfig {
 		    "/course/search",
 		    "/permission",
 		    "/roles",
-		    "/student/search",
+//		    "/student/search",
 		    "/teacher"
 		};
 		private final String[] ADMIN_PUT_API = {
