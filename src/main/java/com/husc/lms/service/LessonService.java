@@ -84,7 +84,7 @@ public class LessonService {
 			Notification notification = Notification.builder()
 					.account(student.getAccount())
 					.description(
-							"Giảng viên " + course.getTeacher().getFullName() + " vừa đăng 1 bài học mới trong khoá học " + course.getName())
+							"Giảng viên " + course.getTeacher().getFullName() + " vừa đăng 1 chương mới trong khoá học " + course.getName())
 					.type(NotificationType.JOIN_CLASS_PENDING)
 					.createdAt(OffsetDateTime.now())
 					.build();
@@ -94,7 +94,7 @@ public class LessonService {
 			Map<String, Object> payload = new HashMap<>();
 			payload.put("receivedAccount", student.getAccount().getUsername());
 			payload.put("message",
-					"Giảng viên " + course.getTeacher().getFullName() + " vừa đăng bài mới trong nhóm " + course.getName());
+					"Giảng viên " + course.getTeacher().getFullName() + " vừa đăng chương mới trong nhóm " + course.getName());
 			payload.put("type", NotificationType.POST_CREATED.name());
 			payload.put("courseId", course.getId());
 			payload.put("lessonId", lesson.getId());
