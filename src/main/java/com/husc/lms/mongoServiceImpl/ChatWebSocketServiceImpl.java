@@ -202,12 +202,18 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                 Account senderAccountDetails = accountRepo
                                 .findByUsernameAndDeletedDateIsNull(chatMessage.getSenderAccount()).orElse(null);
                 String avatar = "";
+                String fullname = "";
                 if (senderAccountDetails != null) {
                         avatar = senderAccountDetails.getStudent() != null
                                         ? senderAccountDetails.getStudent().getAvatar()
                                         : (senderAccountDetails.getTeacher() != null
                                                         ? senderAccountDetails.getTeacher().getAvatar()
                                                         : "");
+                        fullname = senderAccountDetails.getStudent() != null
+                                ? senderAccountDetails.getStudent().getFullName()
+                                : (senderAccountDetails.getTeacher() != null
+                                                ? senderAccountDetails.getTeacher().getFullName()
+                                                : "");
                 }
 
                 System.out.println("[DEBUG] ChatWebSocketServiceImpl: Message saved. ID: " + chatMessage.getId() +
@@ -219,6 +225,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 .chatBoxId(chatMessage.getChatBoxId())
                                 .senderAccount(chatMessage.getSenderAccount())
                                 .avatarSenderAccount(avatar)
+                                .fullNameSenderAccount(fullname)
                                 .content(chatMessage.getContent())
                                 .createdAt(convertToOffsetDateTime(chatMessage.getCreatedAt()))
                                 .path(chatMessage.getPath())
