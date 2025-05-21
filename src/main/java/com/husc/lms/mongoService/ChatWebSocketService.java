@@ -23,6 +23,6 @@ public interface ChatWebSocketService {
      * @return Tin nhắn đã gửi
      */
     ChatMessageSenderResponse handleSendMessage(ChatMessageSenderRequest chatMessageSenderRequest);
-    
+
     ChatBoxAddMemberResponse handleAddMembersToChatbox(ChatBoxAddMemberRequest chatBoxAddMemberRequest);
 }
