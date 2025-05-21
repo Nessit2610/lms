@@ -51,24 +51,14 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                                                 "ChatBox không tìm thấy với ID: " + chatBoxId));
 
                 if (!currentChatBox.isGroup()) {
-                        // This is a 1-on-1 chat. We are converting it to a new group chat.
-                        // The new group should contain the original two members +
-                        // usernameOfMemberToAdd.
-
                         List<String> newGroupMemberUsernames = new ArrayList<>();
 
-                        // Add the person requesting the change (one of the original 1-on-1 members)
                         newGroupMemberUsernames.add(usernameOfRequestor);
 
-                        // Add the new member to be added
                         if (!newGroupMemberUsernames.contains(usernameOfMemberToAdd)) {
                                 newGroupMemberUsernames.add(usernameOfMemberToAdd);
                         }
 
-                        // Find all members of the original 1-on-1 chat using ChatBoxMemberRepository
-                        // This is more reliable than currentChatBox.getMemberAccountUsernames() if that
-                        // field
-                        // is not consistently populated for 1-on-1 chats.
                         List<ChatBoxMember> originalChatMembers = chatBoxMemberRepository
                                         .findByChatBoxId(currentChatBox.getId());
                         for (ChatBoxMember member : originalChatMembers) {
@@ -77,15 +67,10 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                                 }
                         }
 
-                        // Ensure distinctness, though the above logic tries to maintain it.
                         List<String> finalMemberUsernamesForNewGroup = newGroupMemberUsernames.stream().distinct()
                                         .collect(Collectors.toList());
 
                         if (finalMemberUsernamesForNewGroup.size() < 3) {
-                                // This can still happen if, e.g., usernameOfMemberToAdd was one of the original
-                                // 1-on-1 members,
-                                // or if the original 1-on-1 chat somehow had fewer than 2 distinct members via
-                                // chatBoxMemberRepository.
                                 System.err.println("[DEBUG] Failed to form a group of at least 3. Requestor: "
                                                 + usernameOfRequestor +
                                                 ", MemberToAdd: " + usernameOfMemberToAdd +
@@ -121,10 +106,9 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                         if (currentChatBox.getMemberAccountUsernames().contains(usernameOfMemberToAdd)) {
                                 System.out.println("Người dùng " + usernameOfMemberToAdd + " đã là thành viên của nhóm "
                                                 + chatBoxId);
-                                return currentChatBox; // Or throw exception
+                                return currentChatBox;
                         }
 
-                        // Add the new member
                         currentChatBox.getMemberAccountUsernames().add(usernameOfMemberToAdd);
                         currentChatBox.setUpdatedAt(new Date());
                         ChatBox updatedChatBox = chatBoxRepository.save(currentChatBox);
