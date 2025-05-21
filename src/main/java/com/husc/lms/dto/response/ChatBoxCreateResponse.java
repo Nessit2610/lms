@@ -29,7 +29,7 @@ public class ChatBoxCreateResponse {
 
         private String nameOfChatBox;
 
-        private List<ListOfMember> listMemmber;
+        private List<ListOfMember> listMember;
 
         @Data
         @NoArgsConstructor

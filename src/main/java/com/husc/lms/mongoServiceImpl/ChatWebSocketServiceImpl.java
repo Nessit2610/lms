@@ -138,7 +138,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                 .nameOfCreatedBy(currentAccountFullname)
                                 .createdAt(convertToOffsetDateTime(chatBoxEntity.getCreatedAt()))
                                 .nameOfChatBox(chatBoxEntity.getName())
-                                .listMemmber(memberResponses)
+                                .listMember(memberResponses)
                                 .build();
 
                 messagingTemplate.convertAndSend("/topic/chatbox/" + currentAccountUsername + "/created", response);
