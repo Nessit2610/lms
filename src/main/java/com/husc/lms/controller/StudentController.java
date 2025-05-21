@@ -34,14 +34,6 @@ public class StudentController {
 	@Autowired
 	private StudentService studentService;
 	
-	
-	@GetMapping
-	public APIResponse<List<StudentResponse>> getAllStudent(){
-		return APIResponse.<List<StudentResponse>>builder()
-				.result(studentService.getAllStudent())
-				.build();
-	}
-	
 	@GetMapping("/search")
 	public APIResponse<Page<StudentViewResponse>> searchStudent(@RequestParam("fullName") String fullName,
 															@RequestParam("email") String email,

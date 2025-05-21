@@ -7,8 +7,10 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.request.RoleRequest;
@@ -33,7 +35,7 @@ public class RoleController {
 				.build();
 	}
 	
-	@PostMapping("/update")
+	@PutMapping("/update")
 	public APIResponse<RoleResponse> updatePermissionsForRole(@RequestBody @Valid RoleRequest request){
 		return APIResponse.<RoleResponse>builder()
 				.result(roleService.updatePermissionsForRole(request))
@@ -47,8 +49,8 @@ public class RoleController {
 				.build();
 	}
 	
-	@DeleteMapping("{roleName}")
-	public APIResponse<Void> Delete(@PathVariable("roleName") String roleName){
+	@DeleteMapping("/delete")
+	public APIResponse<Void> Delete(@RequestParam("roleName") String roleName){
 		roleService.detele(roleName);
 		return APIResponse.<Void>builder().build();
 	}

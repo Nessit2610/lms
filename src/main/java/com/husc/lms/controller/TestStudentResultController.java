@@ -54,7 +54,7 @@ public class TestStudentResultController {
 	}
 	
 	@GetMapping("/getallresult")
-	public APIResponse<Page<TestResultViewResponse>> searchCourse(@RequestParam("testId") String testId, 
+	public APIResponse<Page<TestResultViewResponse>> getAllResult(@RequestParam("testId") String testId, 
 															@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
     														@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
 		return APIResponse.<Page<TestResultViewResponse>>builder()
