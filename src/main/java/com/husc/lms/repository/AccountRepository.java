@@ -41,6 +41,6 @@ public interface AccountRepository extends JpaRepository<Account, String> {
 	Page<Account> findBySearchTermAndUsernameNotInAndDeletedDateIsNullWithPagination(
 			@Param("searchTerm") String searchTerm,
 			@Param("excludedUsernames") List<String> excludedUsernames,
-			 Pageable pageable);
+			Pageable pageable);
 
 }

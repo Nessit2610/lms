@@ -40,7 +40,7 @@ public class ChatBoxResponse {
     @Builder
     public static class MemberAccountInChatBox {
     	private String accountId;
-    	private String acountUsername;
+    	private String accountUsername;
     	private String accountFullname;
     	private String avatar;
     }
