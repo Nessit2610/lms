@@ -8,11 +8,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.OffsetDateTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
@@ -33,13 +37,19 @@ import com.husc.lms.dto.request.ChapterRequest;
 import com.husc.lms.dto.response.ChapterResponse;
 import com.husc.lms.dto.update.ChapterUpdateRequest;
 import com.husc.lms.entity.Chapter;
+import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
+import com.husc.lms.entity.Notification;
+import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentLessonChapterProgress;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.NotificationType;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.ChapterMapper;
 import com.husc.lms.repository.ChapterRepository;
+import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.LessonRepository;
+import com.husc.lms.repository.NotificationRepository;
 import com.husc.lms.repository.StudentLessonChapterProgressRepository;
 
 @Service
@@ -47,7 +57,16 @@ public class ChapterService {
 
 	@Autowired
 	private ChapterRepository chapterRepository;
+	
+	@Autowired
+	private CourseRepository courseRepository;
 
+	@Autowired
+	private NotificationRepository notificationRepository;
+	
+	@Autowired
+	private NotificationService notificationService;
+	
 	@Autowired
 	private ChapterMapper chapterMapper;
 	
@@ -80,6 +99,36 @@ public class ChapterService {
 		String chapterId = chapter.getId();
 		uploadFile(chapterId, request.getFile(), request.getType());
 		
+		Course course = courseRepository.findById(lesson.getCourse().getId())
+				.orElseThrow(() -> new AppException(ErrorCode.COURSE_NOT_FOUND));
+
+		List<Student> studentsInCourse = course.getStudentCourses().stream()
+				.map(studentCourse -> studentCourse.getStudent())
+				.collect(Collectors.toList());
+		// Tạo notification cho các sinh viên trong Course
+		for (Student student : studentsInCourse) {
+			Notification notification = Notification.builder()
+					.account(student.getAccount())
+					.description(
+							"Giảng viên " + course.getTeacher().getFullName() + " vừa đăng 1 bài học mới trong chương " + lesson.getDescription())
+					.type(NotificationType.JOIN_CLASS_PENDING)
+					.createdAt(OffsetDateTime.now())
+					.build();
+			notificationRepository.save(notification);
+
+			// Gửi thông báo qua WebSocket
+			Map<String, Object> payload = new HashMap<>();
+			payload.put("receivedAccount", student.getAccount().getUsername());
+			payload.put("message",
+					"Giảng viên " + course.getTeacher().getFullName() + " vừa đăng 1 bài học mới trong chương " + course.getName());
+			payload.put("type", NotificationType.POST_CREATED.name());
+			payload.put("courseId", course.getId());
+			payload.put("lessonId", lesson.getId());
+			payload.put("chapterId", chapter.getId());
+			payload.put("createdAt", OffsetDateTime.now());
+
+			notificationService.sendCustomWebSocketNotificationToUser(student.getAccount().getUsername(), payload);
+		}
 		
 		return chapterMapper.toChapterResponse(chapter);
 	}
