@@ -1,5 +1,6 @@
 package com.husc.lms.mongoService;
 
+import com.husc.lms.dto.response.ChatBoxMemberResponse;
 import com.husc.lms.dto.response.ChatMemberSearchResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.mongoEntity.ChatBox;
@@ -10,7 +11,10 @@ import org.springframework.data.domain.Page;
 public interface ChatBoxMemberService {
     ChatBox addMemberToChatBox(String chatBoxId, String usernameOfMemberToAdd, String usernameOfRequestor);
 
-    List<ChatBoxMember> getChatBoxMembersByChatBoxId(String chatBoxId);
+//    List<ChatBoxMember> getChatBoxMembersByChatBoxId(String chatBoxId);
+    
+    List<ChatBoxMemberResponse> getChatBoxMembersByChatBoxId(String chatBoxId);
+
 
     void removeMemberFromChatBox(String chatBoxId, String usernameOfMemberToRemove, String usernameOfRequestor);
 

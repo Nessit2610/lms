@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.husc.lms.dto.response.ChatBoxMemberResponse;
 import com.husc.lms.dto.response.ChatMemberSearchResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.enums.ErrorCode;
@@ -127,12 +128,54 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                 }
         }
 
+        // @Override
+        // public List<ChatBoxMember> getChatBoxMembersByChatBoxId(String chatBoxId) {
+        // if (chatBoxId == null || chatBoxId.trim().isEmpty()) {
+        // throw new AppException(ErrorCode.INVALID_PARAMETER, "ChatBox ID không được để
+        // trống.");
+        // }
+        // return chatBoxMemberRepository.findByChatBoxId(chatBoxId);
+        // }
         @Override
-        public List<ChatBoxMember> getChatBoxMembersByChatBoxId(String chatBoxId) {
-                if (chatBoxId == null || chatBoxId.trim().isEmpty()) {
-                        throw new AppException(ErrorCode.INVALID_PARAMETER, "ChatBox ID không được để trống.");
-                }
-                return chatBoxMemberRepository.findByChatBoxId(chatBoxId);
+        public List<ChatBoxMemberResponse> getChatBoxMembersByChatBoxId(String chatBoxId) {
+            if (chatBoxId == null || chatBoxId.trim().isEmpty()) {
+                throw new AppException(ErrorCode.INVALID_PARAMETER, "ChatBox ID không được để trống.");
+            }
+
+            List<ChatBoxMember> chatBoxMembers = chatBoxMemberRepository.findByChatBoxId(chatBoxId);
+
+            List<ChatBoxMemberResponse> response = chatBoxMembers.stream()
+                        .map(member -> {
+                            Account account = accountRepository
+                                            .findByUsernameAndDeletedDateIsNull(member.getAccountUsername())
+                                            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
+                                                            "Account not found: "
+                                                                            + member.getAccountUsername()));
+
+                            String fullName = account.getStudent() != null
+                                            ? account.getStudent().getFullName()
+                                            : (account.getTeacher() != null
+                                                            ? account.getTeacher().getFullName()
+                                                            : account.getUsername());
+
+                            String avatar = account.getStudent() != null
+                                            ? account.getStudent().getAvatar()
+                                            : (account.getTeacher() != null
+                                                            ? account.getTeacher().getAvatar()
+                                                            : "");
+
+                            return ChatBoxMemberResponse.builder()
+                                            .id(member.getId())
+                                            .chatBoxId(member.getChatBoxId())
+                                            .accountUsername(member.getAccountUsername())
+                                            .accountFullname(fullName)
+                                            .avatar(avatar)
+                                            .joinedAt(member.getJoinedAt())
+                                            .build();
+                        })
+                        .collect(Collectors.toList());
+
+            return response;
         }
 
         @Override
