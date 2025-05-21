@@ -18,6 +18,8 @@ public class ChatMessageSenderResponse {
     private String chatBoxId;
 
     private String senderAccount;
+    
+    private String fullNameSenderAccount;
 
     private String avatarSenderAccount;
 
