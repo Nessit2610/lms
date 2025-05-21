@@ -42,7 +42,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
 
     private OffsetDateTime convertToOffsetDateTime(Date date) {
         if (date == null) {
-                return null;
+            return null;
         }
         return date.toInstant().atOffset(ZoneId.systemDefault().getRules().getOffset(Instant.now()));
     }
@@ -55,13 +55,13 @@ public class ChatBoxServiceImpl implements ChatBoxService {
             List<ChatBoxMember> members = memberRepo.findByChatBoxId(chatBox.getId());
             if (members.size() == 2) {
                 boolean hasCurrentUser = members.stream()
-                                .anyMatch(member -> member.getAccountUsername()
-                                                .equals(currentUsername));
+                        .anyMatch(member -> member.getAccountUsername()
+                                .equals(currentUsername));
                 boolean hasAnotherUser = members.stream()
-                                .anyMatch(member -> member.getAccountUsername()
-                                                .equals(anotherUsername));
+                        .anyMatch(member -> member.getAccountUsername()
+                                .equals(anotherUsername));
                 if (hasCurrentUser && hasAnotherUser) {
-                        return chatBox;
+                    return chatBox;
                 }
             }
         }
@@ -69,26 +69,26 @@ public class ChatBoxServiceImpl implements ChatBoxService {
         // Create new chatbox if not exists
         Date now = new Date();
         ChatBox chatBox = ChatBox.builder()
-                        .isGroup(false)
-                        .createdAt(now)
-                        .createdBy(currentUsername)
-                        .memberAccountUsernames(Arrays.asList(currentUsername, anotherUsername))
-                        .updatedAt(now)
-                        .build();
+                .isGroup(false)
+                .createdAt(now)
+                .createdBy(currentUsername)
+                .memberAccountUsernames(Arrays.asList(currentUsername, anotherUsername))
+                .updatedAt(now)
+                .build();
         chatBox = chatBoxRepo.save(chatBox);
 
         // Create members
         List<ChatBoxMember> members = new ArrayList<>();
         members.add(ChatBoxMember.builder()
-                        .chatBoxId(chatBox.getId())
-                        .accountUsername(currentUsername)
-                        .joinedAt(now)
-                        .build());
+                .chatBoxId(chatBox.getId())
+                .accountUsername(currentUsername)
+                .joinedAt(now)
+                .build());
         members.add(ChatBoxMember.builder()
-                        .chatBoxId(chatBox.getId())
-                        .accountUsername(anotherUsername)
-                        .joinedAt(now)
-                        .build());
+                .chatBoxId(chatBox.getId())
+                .accountUsername(anotherUsername)
+                .joinedAt(now)
+                .build());
         memberRepo.saveAll(members);
 
         return chatBox;
@@ -103,22 +103,22 @@ public class ChatBoxServiceImpl implements ChatBoxService {
         }
 
         ChatBox chatBox = ChatBox.builder()
-                        .isGroup(true)
-                        .name(name)
-                        .createdAt(now)
-                        .createdBy(creatorUsername)
-                        .memberAccountUsernames(allMembers)
-                        .updatedAt(now)
-                        .build();
+                .isGroup(true)
+                .name(name)
+                .createdAt(now)
+                .createdBy(creatorUsername)
+                .memberAccountUsernames(allMembers)
+                .updatedAt(now)
+                .build();
         ChatBox saveChatBox = chatBoxRepo.save(chatBox);
 
         List<ChatBoxMember> members = allMembers.stream()
-                        .map(username -> ChatBoxMember.builder()
-                                        .chatBoxId(saveChatBox.getId())
-                                        .accountUsername(username)
-                                        .joinedAt(now)
-                                        .build())
-                        .toList();
+                .map(username -> ChatBoxMember.builder()
+                        .chatBoxId(saveChatBox.getId())
+                        .accountUsername(username)
+                        .joinedAt(now)
+                        .build())
+                .toList();
         memberRepo.saveAll(members);
 
         return chatBox;
@@ -127,9 +127,9 @@ public class ChatBoxServiceImpl implements ChatBoxService {
     @Override
     public Page<ChatBox> getOneToOneChatBoxesForAccount(String accountUsername, Pageable pageable) {
         List<String> chatBoxIds = memberRepo.findByAccountUsername(accountUsername)
-                        .stream()
-                        .map(ChatBoxMember::getChatBoxId)
-                        .toList();
+                .stream()
+                .map(ChatBoxMember::getChatBoxId)
+                .toList();
         return chatBoxRepo.findByIdInAndIsGroupFalse(chatBoxIds, pageable);
     }
 
@@ -139,9 +139,9 @@ public class ChatBoxServiceImpl implements ChatBoxService {
         String currentUsername = authentication.getName();
 
         List<String> chatBoxIds = memberRepo.findByAccountUsername(currentUsername)
-                        .stream()
-                        .map(ChatBoxMember::getChatBoxId)
-                        .collect(Collectors.toList());
+                .stream()
+                .map(ChatBoxMember::getChatBoxId)
+                .collect(Collectors.toList());
 
         if (pageSize < 1) {
             throw new IllegalArgumentException("pageSize must be 1 or greater.");
@@ -167,37 +167,37 @@ public class ChatBoxServiceImpl implements ChatBoxService {
             List<ChatBoxResponse.MemberAccountInChatBox> memberAccounts = new ArrayList<>();
             if (memberUsernamesList != null) {
                 memberAccounts = memberUsernamesList.stream()
-                                .map(username -> {
-                                    Account account = accountRepo.findByUsernameAndDeletedDateIsNull(username)
-                                                    .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
-                                    return ChatBoxResponse.MemberAccountInChatBox.builder()
-                                                .accountId(String.valueOf(account.getId()))
-                                                .accountUsername(username)
-                                                .accountFullname(account.getStudent() != null
-                                                                ? account.getStudent().getFullName()
-                                                                : account.getTeacher() != null
-                                                                    ? account.getTeacher().getFullName()
-                                                                    : "")
-                                                .avatar(account.getStudent() != null
-                                                                ? account.getStudent().getAvatar()
-                                                                : account.getTeacher() != null
-                                                                    ? account.getTeacher().getAvatar()
-                                                                    : "")
-                                                .build();
-                                }).collect(Collectors.toList());
-                }
-                return ChatBoxResponse.builder()
-                                .id(chatBox.getId())
-                                .isGroup(chatBox.isGroup())
-                                .createdAt(chatBox.getCreatedAt())
-                                .createdBy(chatBox.getCreatedBy())
-                                .name(chatBox.getName())
-                                .updatedAt(chatBox.getUpdatedAt())
-                                .lastMessage(chatBox.getLastMessage())
-                                .lastMessageAt(chatBox.getLastMessageAt())
-                                .lastMessageBy(chatBox.getLastMessageBy())
-                                .memberAccountUsernames(memberAccounts)
-                                .build();
+                        .map(username -> {
+                            Account account = accountRepo.findByUsernameAndDeletedDateIsNull(username)
+                                    .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+                            return ChatBoxResponse.MemberAccountInChatBox.builder()
+                                    .accountId(String.valueOf(account.getId()))
+                                    .accountUsername(username)
+                                    .accountFullname(account.getStudent() != null
+                                            ? account.getStudent().getFullName()
+                                            : account.getTeacher() != null
+                                                    ? account.getTeacher().getFullName()
+                                                    : "")
+                                    .avatar(account.getStudent() != null
+                                            ? account.getStudent().getAvatar()
+                                            : account.getTeacher() != null
+                                                    ? account.getTeacher().getAvatar()
+                                                    : "")
+                                    .build();
+                        }).collect(Collectors.toList());
+            }
+            return ChatBoxResponse.builder()
+                    .id(chatBox.getId())
+                    .isGroup(chatBox.isGroup())
+                    .createdAt(chatBox.getCreatedAt())
+                    .createdBy(chatBox.getCreatedBy())
+                    .name(chatBox.getName())
+                    .updatedAt(chatBox.getUpdatedAt())
+                    .lastMessage(chatBox.getLastMessage())
+                    .lastMessageAt(chatBox.getLastMessageAt())
+                    .lastMessageBy(chatBox.getLastMessageBy())
+                    .memberAccountUsernames(memberAccounts)
+                    .build();
         }).collect(Collectors.toList());
 
         long totalElements = fetchedChatBoxesPage.getTotalElements();
@@ -206,34 +206,35 @@ public class ChatBoxServiceImpl implements ChatBoxService {
 
     @Override
     public Optional<ChatBox> getChatBoxById(String chatBoxId) {
-            return chatBoxRepo.findById(chatBoxId);
+        return chatBoxRepo.findById(chatBoxId);
     }
 
     @Override
     public List<ChatBoxMember> getChatBoxMembers(String chatBoxId) {
-            return memberRepo.findByChatBoxId(chatBoxId);
+        return memberRepo.findByChatBoxId(chatBoxId);
     }
 
     @Override
     public ChatBox renameChatBox(String chatBoxId, String newName) {
-            // Lấy thông tin người dùng hiện tại
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            String currentUsername = authentication.getName();
+        // Lấy thông tin người dùng hiện tại
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = authentication.getName();
 
-            // Kiểm tra chatbox tồn tại
-            ChatBox chatBox = chatBoxRepo.findById(chatBoxId)
-                            .orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND));
+        // Kiểm tra chatbox tồn tại
+        ChatBox chatBox = chatBoxRepo.findById(chatBoxId)
+                .orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND));
 
-            // Kiểm tra quyền đổi tên
-            if (!chatBox.getCreatedBy().equals(currentUsername)) {
-                    throw new AppException(ErrorCode.FORBIDDEN);
-            }
+        // Kiểm tra quyền đổi tên
+        if (!chatBox.getCreatedBy().equals(currentUsername)) {
+            throw new AppException(ErrorCode.FORBIDDEN);
+        }
 
-            // Cập nhật tên mới
-            chatBoxRepo.updateNameById(chatBoxId, newName);
+        // Cập nhật tên mới và lưu lại
+        chatBox.setName(newName);
+        chatBoxRepo.save(chatBox);
 
-            // Lấy và trả về chatbox đã cập nhật
-            return chatBoxRepo.findById(chatBoxId).orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND));
+        // Trả về chatbox đã cập nhật
+        return chatBox;
     }
 
     @Override
@@ -242,7 +243,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
         String currentUsername = authentication.getName();
 
         if (pageSize < 1) {
-                throw new IllegalArgumentException("pageSize must be 1 or greater.");
+            throw new IllegalArgumentException("pageSize must be 1 or greater.");
         }
 
         int actualOffset = pageNumber;
@@ -255,7 +256,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
         String nameRegex = ".*" + java.util.regex.Pattern.quote(nameKeyword) + ".*";
 
         Page<ChatBox> fetchedChatBoxesPage = chatBoxRepo.findGroupChatsByMemberAndNameLike(currentUsername,
-                        nameRegex, fetchPageable);
+                nameRegex, fetchPageable);
         List<ChatBox> fetchedContent = fetchedChatBoxesPage.getContent();
 
         boolean hasNext = fetchedContent.size() > pageSize;
@@ -264,41 +265,41 @@ public class ChatBoxServiceImpl implements ChatBoxService {
         Pageable returnPageable = PageRequest.of(pageNumber / pageSize, pageSize, sort);
 
         List<ChatBoxResponse> chatBoxResponses = chatBoxesToReturn.stream().map(chatBox -> {
-                List<String> memberUsernamesList = chatBox.getMemberAccountUsernames();
-                List<ChatBoxResponse.MemberAccountInChatBox> memberAccounts = new ArrayList<>();
-                if (memberUsernamesList != null) {
-                    memberAccounts = memberUsernamesList.stream()
-                                    .map(username -> {
-                                        Account account = accountRepo.findByUsernameAndDeletedDateIsNull(username)
-                                                        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
-                                        return ChatBoxResponse.MemberAccountInChatBox.builder()
-                                                        .accountId(String.valueOf(account.getId()))
-                                                        .accountUsername(username)
-                                                        .accountFullname(account.getStudent() != null
-                                                                        ? account.getStudent().getFullName()
-                                                                        : account.getTeacher() != null
-                                                                            ? account.getTeacher().getFullName()
-                                                                            : "")
-                                                        .avatar(account.getStudent() != null
-                                                                        ? account.getStudent().getAvatar()
-                                                                        : account.getTeacher() != null
-                                                                            ? account.getTeacher().getAvatar()
-                                                                            : "")
-                                                        .build();
-                                    }).collect(Collectors.toList());
-                }
-                return ChatBoxResponse.builder()
-                                .id(chatBox.getId())
-                                .isGroup(chatBox.isGroup())
-                                .createdAt(chatBox.getCreatedAt())
-                                .createdBy(chatBox.getCreatedBy())
-                                .name(chatBox.getName())
-                                .updatedAt(chatBox.getUpdatedAt())
-                                .lastMessage(chatBox.getLastMessage())
-                                .lastMessageAt(chatBox.getLastMessageAt())
-                                .lastMessageBy(chatBox.getLastMessageBy())
-                                .memberAccountUsernames(memberAccounts)
-                                .build();
+            List<String> memberUsernamesList = chatBox.getMemberAccountUsernames();
+            List<ChatBoxResponse.MemberAccountInChatBox> memberAccounts = new ArrayList<>();
+            if (memberUsernamesList != null) {
+                memberAccounts = memberUsernamesList.stream()
+                        .map(username -> {
+                            Account account = accountRepo.findByUsernameAndDeletedDateIsNull(username)
+                                    .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+                            return ChatBoxResponse.MemberAccountInChatBox.builder()
+                                    .accountId(String.valueOf(account.getId()))
+                                    .accountUsername(username)
+                                    .accountFullname(account.getStudent() != null
+                                            ? account.getStudent().getFullName()
+                                            : account.getTeacher() != null
+                                                    ? account.getTeacher().getFullName()
+                                                    : "")
+                                    .avatar(account.getStudent() != null
+                                            ? account.getStudent().getAvatar()
+                                            : account.getTeacher() != null
+                                                    ? account.getTeacher().getAvatar()
+                                                    : "")
+                                    .build();
+                        }).collect(Collectors.toList());
+            }
+            return ChatBoxResponse.builder()
+                    .id(chatBox.getId())
+                    .isGroup(chatBox.isGroup())
+                    .createdAt(chatBox.getCreatedAt())
+                    .createdBy(chatBox.getCreatedBy())
+                    .name(chatBox.getName())
+                    .updatedAt(chatBox.getUpdatedAt())
+                    .lastMessage(chatBox.getLastMessage())
+                    .lastMessageAt(chatBox.getLastMessageAt())
+                    .lastMessageBy(chatBox.getLastMessageBy())
+                    .memberAccountUsernames(memberAccounts)
+                    .build();
         }).collect(Collectors.toList());
 
         long totalElements = fetchedChatBoxesPage.getTotalElements();
