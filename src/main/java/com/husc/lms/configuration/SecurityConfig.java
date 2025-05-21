@@ -144,10 +144,6 @@ public class SecurityConfig {
 			    "/roles/delete"
 			};
 
-
-
-	
-
 	@Autowired
 	private CustomJwtDecoder customJwtDecoder;
 

@@ -98,11 +98,6 @@ public class StudentService {
 		return studentMapper.toStudentResponse(student);
 	}
 	
-	public List<StudentResponse> getAllStudent(){
-		return studentRepository.findAll().stream().map(studentMapper::toStudentResponse).toList();
-	}
-	
-	
 	public Page<StudentViewResponse> searchStudents(String fullName, String email, String majorName, int page, int size) {
 	    if (fullName != null && fullName.trim().isEmpty()) fullName = null;
 	    if (email != null && email.trim().isEmpty()) email = null;

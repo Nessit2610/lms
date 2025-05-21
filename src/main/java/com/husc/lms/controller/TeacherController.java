@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,9 +33,11 @@ public class TeacherController {
 	private TeacherService teacherService;
 	
 	@GetMapping
-	public APIResponse<List<TeacherResponse>> getAllTeacher(){
-		return APIResponse.<List<TeacherResponse>>builder()
-				.result(teacherService.getAllTeacher())
+	public APIResponse<Page<TeacherResponse>> getAllTeacher(@RequestParam("keyword") String keyword,
+			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
+			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+		return APIResponse.<Page<TeacherResponse>>builder()
+				.result(teacherService.search(keyword, pageNumber, pageSize))
 				.build();
 	}
 	

@@ -10,6 +10,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,6 +66,13 @@ public class TeacherService {
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).get();
 		Teacher teacher = teacherRepository.findByAccountAndDeletedDateIsNull(account);
 		return teacherMapper.toTeacherResponse(teacher);
+	}
+	
+	public Page<TeacherResponse> search(String keyword, int page, int size) {
+		if(keyword != null && keyword.trim().isEmpty()) keyword = null;
+		Pageable pageable = PageRequest.of(page, size);
+		
+		return teacherRepository.searchTeacherByKeyword(keyword, pageable).map(teacherMapper::toTeacherResponse);
 	}
 	
 	public String uploadPhoto(String id, MultipartFile file) {
