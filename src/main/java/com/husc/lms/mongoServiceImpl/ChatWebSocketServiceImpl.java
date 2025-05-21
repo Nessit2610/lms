@@ -247,8 +247,6 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                         "Yêu cầu thêm thành viên không hợp lệ, thiếu thông tin.");
                 }
 
-                // Assuming we are adding one member at a time as per the original service
-                // signature
                 String usernameOfMemberToAdd = chatBoxAddMemberRequest.getChatMemberRequests().get(0)
                                 .getMemberAccount();
                 String requestor = chatBoxAddMemberRequest.getUsernameOfRequestor();
@@ -276,7 +274,7 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                                         .orElse(null);
                                         String fullName = username;
                                         String avatar = "";
-                                        Date joinedAt = null; // Placeholder, ideally fetch from ChatBoxMember entity
+                                        Date joinedAt = null;
 
                                         if (acc != null) {
                                                 fullName = acc.getStudent() != null ? acc.getStudent().getFullName()
@@ -290,11 +288,9 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                         }
                                         if (username.equals(usernameOfMemberToAdd) && !updatedOrNewChatBox.getId()
                                                         .equals(chatBoxAddMemberRequest.getChatboxId())) {
-
                                                 joinedAt = new Date();
                                         } else {
-                                                joinedAt = updatedOrNewChatBox.getUpdatedAt(); // Or null, or fetch
-                                                // actual join date
+                                                joinedAt = updatedOrNewChatBox.getUpdatedAt();
                                         }
 
                                         return ChatBoxAddMemberResponse.ChatMemberResponse.builder()
@@ -302,16 +298,24 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                                         .memberName(fullName)
                                                         .memberAvatar(avatar)
                                                         .joinAt(joinedAt)
-                                                        // .chatMemberId( ) // Needs ID from ChatBoxMember entity
                                                         .build();
                                 })
                                 .collect(Collectors.toList());
 
                 ChatBoxAddMemberResponse response = ChatBoxAddMemberResponse.builder()
-                                .chatboxId(updatedOrNewChatBox.getId()) // Corrected field name for response DTO
-                                .chatboxName(updatedOrNewChatBox.getName()) // Corrected field name for response DTO
-                                .chatMemberReponses(memberResponses) // Corrected field name
+                                .chatboxId(updatedOrNewChatBox.getId())
+                                .chatboxName(updatedOrNewChatBox.getName())
+                                .chatMemberReponses(memberResponses)
                                 .build();
+
+                // Gửi thông báo cho tất cả thành viên trong chatbox
+                String destination = "/topic/chatbox/" + chatBoxId + "/members";
+                messagingTemplate.convertAndSend(destination, response);
+
+                // Gửi thông báo riêng cho thành viên mới
+                String newMemberDestination = "/topic/chatbox/" + usernameOfMemberToAdd + "/added";
+                messagingTemplate.convertAndSend(newMemberDestination, response);
+
                 System.out.println("[DEBUG] ChatWebSocketServiceImpl: Returning ChatBoxAddMemberResponse: "
                                 + response.toString());
                 return response;
