@@ -9,13 +9,18 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.husc.lms.constant.Constant;
+import com.husc.lms.dto.response.ChatMessageResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
@@ -30,6 +35,7 @@ import com.husc.lms.mongoRepository.ChatMessageStatusRepository;
 import com.husc.lms.mongoService.ChatMessageService;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.service.NotificationService;
+import com.husc.lms.service.OffsetLimitPageRequest;
 
 import lombok.RequiredArgsConstructor;
 
@@ -202,12 +208,62 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                         payload.put("createdAt", message.getCreatedAt());
                         notificationService.sendCustomWebSocketNotificationToUser(username, payload);
                 }
-
                 return message;
         }
 
         @Override
-        public Page<ChatMessage> getMessagesByChatBoxId(String chatBoxId, Pageable pageable) {
-                return messageRepo.findByChatBoxId(chatBoxId, pageable);
+        public Page<ChatMessageResponse> getMessagesByChatBoxId(String chatBoxId, int pageNumber, int pageSize) {
+                if (pageSize < 1) {
+                        throw new IllegalArgumentException("pageSize must be 1 or greater.");
+                }
+
+                int actualOffset = pageNumber;
+                int actualLimit = pageSize + 1;
+
+                Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+                Pageable fetchPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
+
+                Page<ChatMessage> fetchedMessagesPage = messageRepo.findByChatBoxId(chatBoxId, fetchPageable);
+                List<ChatMessage> fetchedContent = fetchedMessagesPage.getContent();
+
+                boolean hasNext = fetchedContent.size() > pageSize;
+                List<ChatMessage> messagesToReturn = hasNext ? fetchedContent.subList(0, pageSize) : fetchedContent;
+
+                Pageable returnPageable = PageRequest.of(pageNumber / pageSize, pageSize, sort);
+
+                List<ChatMessageResponse> messageResponses = messagesToReturn.stream().map(message -> {
+                        Account senderAccount = accountRepo
+                                        .findByUsernameAndDeletedDateIsNull(message.getSenderAccount())
+                                        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+                        ChatMessageResponse.SenderAccount sender = ChatMessageResponse.SenderAccount.builder()
+                                        .accountId(String.valueOf(senderAccount.getId()))
+                                        .accountUsername(senderAccount.getUsername())
+                                        .accountFullname(senderAccount.getStudent() != null
+                                                        ? senderAccount.getStudent().getFullName()
+                                                        : senderAccount.getTeacher() != null
+                                                                        ? senderAccount.getTeacher().getFullName()
+                                                                        : "")
+                                        .avatar(senderAccount.getStudent() != null
+                                                        ? senderAccount.getStudent().getAvatar()
+                                                        : senderAccount.getTeacher() != null
+                                                                        ? senderAccount.getTeacher().getAvatar()
+                                                                        : "")
+                                        .build();
+
+                        return ChatMessageResponse.builder()
+                                        .id(message.getId())
+                                        .chatBoxId(message.getChatBoxId())
+                                        .content(message.getContent())
+                                        .createdAt(message.getCreatedAt())
+                                        .path(message.getPath())
+                                        .type(message.getType())
+                                        .filename(message.getFilename())
+                                        .senderAccount(List.of(sender))
+                                        .build();
+                }).collect(Collectors.toList());
+
+                long totalElements = fetchedMessagesPage.getTotalElements();
+                return new PageImpl<>(messageResponses, returnPageable, totalElements);
         }
 }

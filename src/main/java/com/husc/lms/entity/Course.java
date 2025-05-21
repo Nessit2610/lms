@@ -48,6 +48,9 @@ public class Course {
     @OneToMany(mappedBy = "course", fetch = FetchType.EAGER)
     private List<Lesson> lesson;
     
+    @OneToMany(mappedBy = "course", fetch = FetchType.EAGER)
+    private List<StudentCourse> studentCourses;
+    
     private String learningDurationType;
     
     @JoinColumn(name = "teacherId")

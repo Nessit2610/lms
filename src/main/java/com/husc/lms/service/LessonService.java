@@ -1,7 +1,11 @@
 package com.husc.lms.service;
 
+import java.time.OffsetDateTime;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,10 +16,14 @@ import com.husc.lms.dto.response.LessonResponse;
 import com.husc.lms.dto.update.LessonUpdateRequest;
 import com.husc.lms.entity.Course;
 import com.husc.lms.entity.Lesson;
+import com.husc.lms.entity.Notification;
+import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentLessonProgress;
+import com.husc.lms.enums.NotificationType;
 import com.husc.lms.mapper.LessonMapper;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.LessonRepository;
+import com.husc.lms.repository.NotificationRepository;
 import com.husc.lms.repository.StudentLessonProgressRepository;
 
 @Service
@@ -29,6 +37,12 @@ public class LessonService {
 	
 	@Autowired
 	private LessonMapper lessonMapper;
+	
+	@Autowired
+	private NotificationRepository notificationRepository;
+
+	@Autowired
+	private NotificationService notificationService;
 	
 	@Autowired
 	private ChapterService chapterService;
@@ -61,6 +75,33 @@ public class LessonService {
 				.createdDate(new Date())
 				.build();
 		lesson = lessonRepository.save(lesson);
+		
+		List<Student> studentsInCourse = course.getStudentCourses().stream()
+				.map(studentCourse -> studentCourse.getStudent())
+				.collect(Collectors.toList());
+		// Tạo notification cho các sinh viên trong group
+		for (Student student : studentsInCourse) {
+			Notification notification = Notification.builder()
+					.account(student.getAccount())
+					.description(
+							"Giảng viên " + course.getTeacher().getFullName() + " vừa đăng 1 bài học mới trong khoá học " + course.getName())
+					.type(NotificationType.JOIN_CLASS_PENDING)
+					.createdAt(OffsetDateTime.now())
+					.build();
+			notificationRepository.save(notification);
+
+			// Gửi thông báo qua WebSocket
+			Map<String, Object> payload = new HashMap<>();
+			payload.put("receivedAccount", student.getAccount().getUsername());
+			payload.put("message",
+					"Giảng viên " + course.getTeacher().getFullName() + " vừa đăng bài mới trong nhóm " + course.getName());
+			payload.put("type", NotificationType.POST_CREATED.name());
+			payload.put("courseId", course.getId());
+			payload.put("lessonId", lesson.getId());
+			payload.put("createdAt", OffsetDateTime.now());
+
+			notificationService.sendCustomWebSocketNotificationToUser(student.getAccount().getUsername(), payload);
+		}
 		return lessonMapper.toLessonResponse(lesson);
 	}
 	

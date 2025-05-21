@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.ChatBoxResponse;
+import com.husc.lms.dto.response.ChatMessageResponse;
 import com.husc.lms.mongoEntity.ChatBox;
 import com.husc.lms.mongoEntity.ChatMessage;
 import com.husc.lms.mongoEntity.ChatBoxMember;
@@ -56,13 +57,12 @@ public class ChatBoxController {
 	}
 
 	@GetMapping("/{chatBoxId}/messages")
-	public APIResponse<Page<ChatMessage>> getMessagesForChatBox(
+	public APIResponse<Page<ChatMessageResponse>> getMessagesForChatBox(
 			@PathVariable String chatBoxId,
 			@RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
 			@RequestParam(name = "pageSize", defaultValue = "20") int pageSize) {
-		Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-		Page<ChatMessage> messages = chatMessageService.getMessagesByChatBoxId(chatBoxId, pageable);
-		return APIResponse.<Page<ChatMessage>>builder()
+		Page<ChatMessageResponse> messages = chatMessageService.getMessagesByChatBoxId(chatBoxId, pageNumber, pageSize);
+		return APIResponse.<Page<ChatMessageResponse>>builder()
 				.result(messages)
 				.build();
 	}

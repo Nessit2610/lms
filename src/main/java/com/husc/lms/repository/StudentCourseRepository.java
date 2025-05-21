@@ -68,4 +68,5 @@ public interface StudentCourseRepository extends JpaRepository<StudentCourse, St
     boolean existsByStudentAndCourseAndDeletedDateIsNull(Student student, Course course);
     boolean existsByStudentAndCourseAndDeletedDateIsNotNull(Student student, Course course);
 
+//    List<StudentCourse> getByCourse(Course course);
 }
