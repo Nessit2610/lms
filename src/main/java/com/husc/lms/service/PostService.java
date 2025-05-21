@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -29,14 +32,18 @@ import com.husc.lms.dto.response.PostResponse;
 import com.husc.lms.dto.update.PostUpdateRequest;
 import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Group;
+import com.husc.lms.entity.Notification;
 import com.husc.lms.entity.Post;
 import com.husc.lms.entity.PostFile;
+import com.husc.lms.entity.Student;
 import com.husc.lms.entity.Teacher;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.NotificationType;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.PostMapper;
 import com.husc.lms.repository.AccountRepository;
 import com.husc.lms.repository.GroupRepository;
+import com.husc.lms.repository.NotificationRepository;
 import com.husc.lms.repository.PostFileRepository;
 import com.husc.lms.repository.PostRepository;
 import com.husc.lms.repository.TeacherRepository;
@@ -49,6 +56,12 @@ public class PostService {
 	
 	@Autowired
 	private GroupRepository groupRepository;
+	
+	@Autowired
+	private NotificationRepository notificationRepository;
+	
+	@Autowired
+	private NotificationService notificationService;
 	
 	@Autowired
 	private PostFileService postFileService;
@@ -120,6 +133,26 @@ public class PostService {
 	            post = postRepository.save(post); 
 	        }
 	    }
+	    
+//	    List<Student> studentInGroup = group.getStudentGroups();
+//	    Notification notificationForTeacher = Notification.builder()
+//				.account(course.getTeacher().getAccount())
+//				.description("Bạn có 1 sinh viên tên " + student.getFullName() + " vừa đăng ký vào khoá học " + course.getName())
+//				.joinClassRequest(joinClassRequest)
+//				.type(NotificationType.JOIN_CLASS_PENDING)
+//				.createdAt(OffsetDateTime.now())
+//				.build();
+//		notificationRepository.save(notificationForTeacher);
+//		
+//		// Gửi thông báo riêng cho teacher qua WebSocket
+//		Map<String, Object> teacherPayload = new HashMap<>();
+//		teacherPayload.put("receivedAccount", course.getTeacher().getAccount().getUsername());
+//		teacherPayload.put("message", "Bạn có 1 sinh viên tên " + student.getFullName() + " vừa đăng ký vào khoá học " + course.getName());
+//		teacherPayload.put("type", NotificationType.JOIN_CLASS_PENDING.name());
+//		teacherPayload.put("joinClassRequestId", joinClassRequest.getId());
+//		teacherPayload.put("createdAt", OffsetDateTime.now());
+//		
+//		notificationService.sendCustomWebSocketNotificationToUser(course.getTeacher().getAccount().getUsername(),teacherPayload);
 	    return postMapper.toPostResponse(post);
 	}
 

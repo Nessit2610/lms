@@ -172,7 +172,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
                                                     .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
                                     return ChatBoxResponse.MemberAccountInChatBox.builder()
                                                 .accountId(String.valueOf(account.getId()))
-                                                .acountUsername(username)
+                                                .accountUsername(username)
                                                 .accountFullname(account.getStudent() != null
                                                                 ? account.getStudent().getFullName()
                                                                 : account.getTeacher() != null
@@ -273,7 +273,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
                                                         .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
                                         return ChatBoxResponse.MemberAccountInChatBox.builder()
                                                         .accountId(String.valueOf(account.getId()))
-                                                        .acountUsername(username)
+                                                        .accountUsername(username)
                                                         .accountFullname(account.getStudent() != null
                                                                         ? account.getStudent().getFullName()
                                                                         : account.getTeacher() != null
