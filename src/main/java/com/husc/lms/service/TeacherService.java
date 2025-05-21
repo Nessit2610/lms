@@ -28,6 +28,7 @@ import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.TeacherMapper;
 import com.husc.lms.repository.AccountRepository;
+import com.husc.lms.repository.ConfirmationCodeRepository;
 import com.husc.lms.repository.TeacherRepository;
 
 @Service
@@ -40,12 +41,23 @@ public class TeacherService {
 	private AccountRepository accountRepository;
 	
 	@Autowired
+	private ConfirmationCodeRepository codeRepository;
+	
+	@Autowired
 	private TeacherMapper teacherMapper;
 	
 	@Autowired
 	private AccountService accountService;
 	
 	public TeacherResponse createTeacher(TeacherRequest request) {
+		
+		if(accountRepository.existsByUsername(request.getEmail())) {
+			throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
+		} 
+		
+		if(codeRepository.findByEmail(request.getEmail()) == null || codeRepository.findByEmail(request.getEmail()).isVerify() == false) {
+			throw new AppException(ErrorCode.EMAIL_NOTCONFIRM);
+		}
 		
 		AccountRequest uRequest = AccountRequest.builder()
 				.password(request.getPassword())

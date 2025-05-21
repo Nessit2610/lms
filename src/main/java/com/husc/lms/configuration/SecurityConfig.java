@@ -26,7 +26,7 @@ public class SecurityConfig {
 	private final String[] PUBLIC_WS_API = {
 		    "/ws/**"
 		};	
-	private final String[] PUBLIC_API = {"/auth/**","/email/**","/major"};
+	private final String[] PUBLIC_API = {"/auth/**","/email/**","/major","/student/create","/teacher/create"};
 	
 	private final String[] TEACHER_POST_API = {
 		    "/chapter/create",
@@ -87,62 +87,60 @@ public class SecurityConfig {
 		};
 
 		private final String[] STUDENT_POST_API = {
-			    "/joinclass/pending",
-			    "/paypal/pay",
-			    "/student/{id}/upload-photo",
-			    "/lessonchapterprogress/savechapterprogress/{chapterId}",
-			    "/lessonchapterprogress/completechapter/{chapterId}",
-			    "/lessonprogress/savelessonprogress/{lessonId}",
-			    "/teststudentresult/starttest",
-			    "/teststudentresult/submitTest"
-			};
+		    "/joinclass/pending",
+		    "/paypal/pay",
+		    "/student/{id}/upload-photo",
+		    "/lessonchapterprogress/savechapterprogress/{chapterId}",
+		    "/lessonchapterprogress/completechapter/{chapterId}",
+		    "/lessonprogress/savelessonprogress/{lessonId}",
+		    "/teststudentresult/starttest",
+		    "/teststudentresult/submitTest"
+		};
 		private final String[] STUDENT_GET_API = {
-			    "/course/courseofmajorfirst",
-			    "/joinclass/courserequest",
-			    "/paypal/success",
-			    "/paypal/cancel",
-			    "/studentcourse/mycourse",
-			    "/studentgroup/getgroup",
-			    "/studentgroup/searchgroupofstudent",
-			    "/lessonchapterprogress/getprogress/{chapterId}",
-			    "/lessonprogress/getprogress/{lessonId}",
-			    "/teststudentresult/gettestdetail"
-			};
+		    "/course/courseofmajorfirst",
+		    "/joinclass/courserequest",
+		    "/paypal/success",
+		    "/paypal/cancel",
+		    "/studentcourse/mycourse",
+		    "/studentgroup/getgroup",
+		    "/studentgroup/searchgroupofstudent",
+		    "/lessonchapterprogress/getprogress/{chapterId}",
+		    "/lessonprogress/getprogress/{lessonId}",
+		    "/teststudentresult/gettestdetail"
+		};
 		private final String[] STUDENT_PUT_API = {
-			    "/lessonchapterprogress/completechapter/{chapterId}",
-			    "/lessonprogress/completelesson/{lessonId}"
-			};
+		    "/lessonchapterprogress/completechapter/{chapterId}",
+		    "/lessonprogress/completelesson/{lessonId}"
+		};
 
 		private final String[] STUDENT_DELETE_API = {
-			    // Không có API DELETE cho STUDENT 
-			};
+		    // Không có API DELETE cho STUDENT 
+		};
 
 		private final String[] ADMIN_POST_API = {
-			    "/major/create",
-			    "/permission/create",
-			    "/roles/create",
-			    "/student/create",
-			    "/teacher/create"
-			};
+		    "/major/create",
+		    "/permission/create",
+		    "/roles/create",
+		};
 		private final String[] ADMIN_GET_API = {
-			    "/account",
-			    "/account/{accountId}",
-			    "/account/details/{accountId}",
-			    "/course/search",
-			    "/permission",
-			    "/roles",
-			    "/student/search",
-			    "/teacher"
-			};
+		    "/account",
+		    "/account/{accountId}",
+		    "/account/details/{accountId}",
+		    "/course/search",
+		    "/permission",
+		    "/roles",
+		    "/student/search",
+		    "/teacher"
+		};
 		private final String[] ADMIN_PUT_API = {
-			    "/account/changeactive",
-			    "/roles/update"
-			};
+		    "/account/changeactive",
+		    "/roles/update"
+		};
 		private final String[] ADMIN_DELETE_API = {
-			    "/major/delete",
-			    "/permission/delete",
-			    "/roles/delete"
-			};
+		    "/major/delete",
+		    "/permission/delete",
+		    "/roles/delete"
+		};
 
 	@Autowired
 	private CustomJwtDecoder customJwtDecoder;
