@@ -428,17 +428,20 @@ public class CommentService {
                                 .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
 
                 if (!changeComment.getAccount().getId().equals(ownerAccount.getId())) {
-                        throw new AppException(ErrorCode.OWNER_NOT_MATCH); // hoặc tạo error code phù hợp
+                        throw new AppException(ErrorCode.OWNER_NOT_MATCH);
                 }
 
                 changeComment.setDetail(message.getNewDetail());
                 changeComment.setUpdateDateAt(OffsetDateTime.now());
                 commentRepository.save(changeComment);
 
+                boolean isPostComment = changeComment.getPost() != null;
+
                 return CommentUpdateMessageResponse.builder()
                                 .commentId(changeComment.getId())
-                                .courseId(changeComment.getCourse().getId())
-                                .chapterId(changeComment.getChapter().getId())
+                                .courseId(isPostComment ? null : changeComment.getCourse().getId())
+                                .chapterId(isPostComment ? null : changeComment.getChapter().getId())
+                                .postId(isPostComment ? changeComment.getPost().getId() : null)
                                 .newDetail(changeComment.getDetail())
                                 .updateDate(changeComment.getUpdateDateAt())
                                 .usernameOwner(changeComment.getAccount().getUsername())
@@ -486,7 +489,7 @@ public class CommentService {
         }
 
         public Page<CommentPostResponse> getCommentsByPost(String postId, int pageSize, int pageNumber) {
-        	System.out.println(pageSize);
+                System.out.println(pageSize);
                 if (pageSize < 1) {
                         throw new IllegalArgumentException("pageSize must be 1 or greater.");
                 }
