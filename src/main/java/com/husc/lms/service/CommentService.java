@@ -486,6 +486,7 @@ public class CommentService {
         }
 
         public Page<CommentPostResponse> getCommentsByPost(String postId, int pageSize, int pageNumber) {
+        	System.out.println(pageSize);
                 if (pageSize < 1) {
                         throw new IllegalArgumentException("pageSize must be 1 or greater.");
                 }
