@@ -21,6 +21,7 @@ public class CommentUpdateMessageResponse {
     private String fullnameOwner;
     private String avatarOwner;
     private String newDetail;
+    private int countOfReply;
     private OffsetDateTime updateDate;
     private List<CommentReplyResponse> commentReplyResponses;
 }

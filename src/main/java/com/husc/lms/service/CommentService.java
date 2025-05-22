@@ -455,6 +455,7 @@ public class CommentService {
                                                 : changeComment.getAccount().getTeacher() != null
                                                                 ? changeComment.getAccount().getTeacher().getFullName()
                                                                 : null)
+                                .countOfReply(commentReplyRepository.countByComment(changeComment))
                                 .build();
         }
 
