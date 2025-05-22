@@ -24,6 +24,8 @@ public class NotificationResponse {
 	public static class NotificationDetail {
 		private String notificationId;
 		private String receivedAccountId;
+		private String courseId;
+		private String postId;
 		private String commentId;
 		private String commentReplyId;
 		private String notificationType;

@@ -163,21 +163,11 @@ public class NotificationService {
                 }
 
                 String messageText;
-                // The original logic for message text, ownerOfParentComment here is the account
-                // of the one who made the original comment.
-                // It is being compared with parentComment.getAccount() which should be the same
-                // if called correctly from CommentReplyService.
                 if (parentComment.getAccount().getId().equals(ownerOfParentComment.getId())) {
                         messageText = "Người dùng " + savedReply.getReplyAccount().getUsername()
                                         + " đã trả lời bình luận của bạn: " // Changed to replyAccount's username
                                         + savedReply.getDetail();
                 } else {
-                        // This case implies the notification is for someone else involved in the
-                        // thread, not the original commenter of parentComment
-                        // or that parentComment's owner is not the one who is supposed to receive this
-                        // specific phrasing.
-                        // For a general reply notification to other students, this might be
-                        // appropriate.
                         messageText = "Có trả lời mới cho bình luận \"" + parentComment.getDetail() + "\": "
                                         + savedReply.getDetail() +
                                         " bởi " + savedReply.getReplyAccount().getUsername();
@@ -193,12 +183,6 @@ public class NotificationService {
                 payload.put("commentReplyId", savedReply.getId());
                 payload.put("createdDate", new Date());
                 payload.put("replierUsername", savedReply.getReplyAccount().getUsername());
-                // Add avatar if needed
-                // String avatar = savedReply.getReplyAccount().getStudent() != null ?
-                // savedReply.getReplyAccount().getStudent().getAvatar() :
-                // (savedReply.getReplyAccount().getTeacher() != null ?
-                // savedReply.getReplyAccount().getTeacher().getAvatar() : "");
-                // payload.put("avatar", avatar);
 
                 System.out.println("[NotificationService] Constructing and sending CommentReplyNotification to: "
                                 + targetUsername + " with payload: " + payload);
