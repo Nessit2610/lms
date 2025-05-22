@@ -3,6 +3,7 @@ package com.husc.lms.service;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Map;
+import java.time.OffsetDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Optional;
@@ -247,6 +248,13 @@ public class NotificationService {
                 if (chatMessage == null || memberUsernames == null || memberUsernames.isEmpty())
                         return;
                 String sender = chatMessage.getSenderAccount();
+                // Get sender's account to get their full name
+                Account senderAccount = accountRepository.findByUsernameAndDeletedDateIsNull(sender).orElse(null);
+                if (senderAccount == null)
+                        return;
+                String senderFullname = senderAccount.getStudent() != null ? senderAccount.getStudent().getFullName()
+                                : senderAccount.getTeacher() != null ? senderAccount.getTeacher().getFullName()
+                                                : "";
                 for (String username : memberUsernames) {
                         if (username.equals(sender))
                                 continue; // Không gửi cho người gửi
@@ -256,23 +264,21 @@ public class NotificationService {
                         Notification notification = Notification.builder()
                                         .account(receiver)
                                         .type(NotificationType.CHAT_MESSAGE)
+                                        .chatMessageId(chatMessage.getId())
                                         .isRead(false)
-                                        .description("Bạn có tin nhắn mới trong chatbox " + chatMessage.getChatBoxId()
-                                                        + ". Nội dung: "
-                                                        + (chatMessage.getContent() != null ? chatMessage.getContent()
+                                        .description("Người dùng " + senderFullname + " vừa nhắn: " +
+                                                        (chatMessage.getContent() != null ? chatMessage.getContent()
                                                                         : "[File]"))
-                                        .createdAt(java.time.OffsetDateTime.now())
+                                        .createdAt(OffsetDateTime.now())
                                         .build();
                         notificationRepository.save(notification);
-                        // Gửi realtime
+                        // Gửi realtime notification
                         java.util.Map<String, Object> payload = new java.util.HashMap<>();
                         payload.put("type", NotificationType.CHAT_MESSAGE.name());
-                        payload.put("chatBoxId", chatMessage.getChatBoxId());
-                        payload.put("chatMessageId", chatMessage.getId());
-                        payload.put("content", chatMessage.getContent());
-                        payload.put("senderAccount", chatMessage.getSenderAccount());
-                        payload.put("createdAt", chatMessage.getCreatedAt());
                         payload.put("notificationId", notification.getId());
+                        payload.put("description", notification.getDescription());
+                        payload.put("createdAt", notification.getCreatedAt());
+                        payload.put("isRead", notification.isRead());
                         this.sendCustomWebSocketNotificationToUser(username, payload);
                 }
         }

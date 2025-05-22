@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.husc.lms.entity.Account;
+import com.husc.lms.entity.Notification;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mongoEntity.ChatBox;
@@ -210,10 +211,10 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                                                         ? senderAccountDetails.getTeacher().getAvatar()
                                                         : "");
                         fullname = senderAccountDetails.getStudent() != null
-                                ? senderAccountDetails.getStudent().getFullName()
-                                : (senderAccountDetails.getTeacher() != null
-                                                ? senderAccountDetails.getTeacher().getFullName()
-                                                : "");
+                                        ? senderAccountDetails.getStudent().getFullName()
+                                        : (senderAccountDetails.getTeacher() != null
+                                                        ? senderAccountDetails.getTeacher().getFullName()
+                                                        : "");
                 }
 
                 System.out.println("[DEBUG] ChatWebSocketServiceImpl: Message saved. ID: " + chatMessage.getId() +
