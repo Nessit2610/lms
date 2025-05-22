@@ -46,7 +46,7 @@ public enum ErrorCode {
 	TEST_NOT_FOUND(1026, "Không tìm thấy bài kiểm tra", HttpStatus.NOT_FOUND),
 	STUDENT_ALREADY_IN_COURSE(1027, "Sinh viên này đã tham gia vào lớp học", HttpStatus.BAD_REQUEST),
 	COURSE_NOT_FOUND(1028, "Không tìm thấy khóa học", HttpStatus.NOT_FOUND),
-	NOT_ALLOWED_TYPE(1029, "Không hỗ trợ", HttpStatus.BAD_REQUEST),
+	NOT_ALLOWED_TYPE(1029, "Không hỗ trợ định dạng này", HttpStatus.BAD_REQUEST),
 	TEST_NOT_STARTED_YET(1030, "Test has not started yet", HttpStatus.BAD_REQUEST),
 	TEST_IS_EXPIRED(1031, "Test is expired", HttpStatus.BAD_REQUEST),
 	TEST_ALREADY_STARTED(1032, "Test already started", HttpStatus.BAD_REQUEST),
@@ -67,7 +67,8 @@ public enum ErrorCode {
 	MEMBER_NOT_FOUND_IN_CHATBOX(1047, "Thành viên không tìm thấy trong nhóm chat", HttpStatus.NOT_FOUND),
 	PAYMENT_NOT_FOUND(1048, "Không tìm thấy thông tin thanh toán", HttpStatus.NOT_FOUND),
 	ACCOUNT_LOCKED(1049, "Tài khoản đã bị khóa", HttpStatus.FORBIDDEN),
-	FORBIDDEN(1050,"Tài khoản này không có quyền chỉnh sửa", HttpStatus.FORBIDDEN);
+	FORBIDDEN(1050,"Tài khoản này không có quyền chỉnh sửa", HttpStatus.FORBIDDEN),
+	FILE_EMPTY(1051, "Tệp tải lên bị rỗng", HttpStatus.BAD_REQUEST);
 	
 
 

@@ -59,7 +59,7 @@ public class AuthenticationService {
 	protected long VALID_DURATION;
 	
 	@NonFinal
-	@Value("${jwt.refeshable-duration}")
+	@Value("${jwt.refreshable-duration}")
 	protected long REFRESHABLE_DURATION;
 	
 	

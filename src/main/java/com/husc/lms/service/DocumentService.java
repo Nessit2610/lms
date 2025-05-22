@@ -65,8 +65,7 @@ public class DocumentService {
 	private DocumentMapper documentMapper;
 	
 	public DocumentResponse createDocument(DocumentRequest request) {
-		String extension = fileExtension.apply(request.getFile().getOriginalFilename());
-		validateFileExtension(request.getType(), extension);
+		
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
@@ -78,6 +77,14 @@ public class DocumentService {
 		};
 		
 		Major major = majorRepository.findById(request.getMajorId()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
+		
+		
+		MultipartFile file = request.getFile();
+		String type = request.getType();
+		if (file != null && !file.isEmpty() && type != null) {
+			String extension = fileExtension.apply(file.getOriginalFilename());
+			validateFileExtension(type, extension);
+		}
 		Document document = Document.builder()
 				.account(account)
 				.title(request.getTitle())
@@ -237,7 +244,7 @@ public class DocumentService {
 	
 	public String uploadFile(String id, MultipartFile file, String type) {
 	    if (file == null || file.isEmpty()) {
-	        throw new RuntimeException("File is empty");
+	        throw new AppException(ErrorCode.FILE_EMPTY);
 	    }
 
 	    Document document = documentRepository.findById(id)
