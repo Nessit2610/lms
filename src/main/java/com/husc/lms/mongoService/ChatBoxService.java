@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.husc.lms.dto.response.ChatBoxResponse;
 import com.husc.lms.mongoEntity.ChatBox;
@@ -26,4 +27,7 @@ public interface ChatBoxService {
     ChatBox renameChatBox(String chatBoxId, String newName);
     
     Page<ChatBoxResponse> searchByNameOfChatBox(String nameRegex, int pageNumber, int pageSize);
+    
+    String uploadAvatarChatBox(String chatBoxId, MultipartFile file);
+
 }

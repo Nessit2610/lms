@@ -14,10 +14,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PutMapping;
 
+import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.ChatBoxMemberResponse;
 import com.husc.lms.dto.response.ChatBoxResponse;
@@ -32,6 +35,10 @@ import com.husc.lms.mongoService.ChatMessageStatusService;
 import com.husc.lms.mongoService.ChatBoxMemberService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.Principal;
 
 import lombok.Builder;
@@ -132,5 +139,17 @@ public class ChatBoxController {
 		ChatBox updated = chatBoxService.renameChatBox(chatBoxId, newName);
 		return APIResponse.<ChatBox>builder().result(updated).build();
 	}
+	
+	@PostMapping("/{chatBoxId}/upload-avatar")
+    public APIResponse<String> uploadAvatarToChatBox(@PathVariable String chatBoxId, @RequestParam("file") MultipartFile file) {
+        return APIResponse.<String>builder()
+        		.result(chatBoxService.uploadAvatarChatBox(chatBoxId, file))
+        		.build();
+    }
+	
+ 	@GetMapping(path = "/image/{filename}", produces = { MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_JPEG_VALUE })
+    public byte[] getPhoto(@PathVariable("filename") String filename) throws IOException {
+        return Files.readAllBytes(Paths.get(Constant.PHOTO_DIRECTORY + filename));
+    }
 
 }

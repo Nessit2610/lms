@@ -46,6 +46,11 @@ public class Notification {
 //    @JoinColumn(name = "messageId")
 //    @JsonBackReference
 //    private Message message;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "postId")
+    @JsonBackReference
+    private Post post;
 
     private String chatMessageId;
     

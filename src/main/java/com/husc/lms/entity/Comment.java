@@ -54,6 +54,10 @@ public class Comment {
     @JoinColumn(name = "courseId")
     @JsonBackReference
     private Course course;
+    
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "postId")
+    private Post post;
 
     private String detail;
 

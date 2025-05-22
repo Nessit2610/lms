@@ -18,6 +18,7 @@ public class CommentMessageResponse {
 	private String chapterId;
 	private String courseId;
 	private String commentId;
+	private String postId;
     private String username;
     private String fullname;
     private String avatar;
