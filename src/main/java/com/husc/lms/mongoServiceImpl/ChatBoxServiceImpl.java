@@ -1,5 +1,9 @@
 package com.husc.lms.mongoServiceImpl;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneId;
@@ -8,6 +12,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -18,7 +24,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.husc.lms.constant.Constant;
 import com.husc.lms.dto.response.ChatBoxResponse;
 import com.husc.lms.entity.Account;
 import com.husc.lms.enums.ErrorCode;
@@ -305,4 +313,31 @@ public class ChatBoxServiceImpl implements ChatBoxService {
         long totalElements = fetchedChatBoxesPage.getTotalElements();
         return new PageImpl<>(chatBoxResponses, returnPageable, totalElements);
     }
+
+	@Override
+	public String uploadAvatarChatBox(String chatBoxId, MultipartFile file) {
+		ChatBox chatBox = chatBoxRepo.findById(chatBoxId).orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND));
+		String photoUrl = photoFunction.apply(chatBoxId, file);
+		chatBox.setAvatar(photoUrl);
+		chatBoxRepo.save(chatBox);
+		return photoUrl;
+	}
+	
+	private final Function<String, String> fileExtension = filename -> Optional.of(filename).filter(name -> name.contains("."))
+            .map(name -> "." + name.substring(filename.lastIndexOf(".") + 1)).orElse(".png");
+	
+	private final BiFunction<String, MultipartFile, String> photoFunction = (id,image)->{
+		String filename  =  id + fileExtension.apply(image.getOriginalFilename());
+		try {
+			Path fileStorageLocation = Paths.get(Constant.PHOTO_DIRECTORY).toAbsolutePath().normalize();
+			if(!Files.exists(fileStorageLocation)) {
+				Files.createDirectories(fileStorageLocation);
+			}
+			Files.copy(image.getInputStream(), fileStorageLocation.resolve(id + fileExtension.apply(image.getOriginalFilename())),StandardCopyOption.REPLACE_EXISTING);
+			return "/lms/course/image/" + filename;
+		} catch (Exception e) {
+			throw new RuntimeException("Unable to save image");
+		}
+	};
+	
 }

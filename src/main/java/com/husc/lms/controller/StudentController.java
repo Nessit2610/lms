@@ -80,8 +80,4 @@ public class StudentController {
     public byte[] getPhoto(@PathVariable("filename") String filename) throws IOException {
         return Files.readAllBytes(Paths.get(Constant.PHOTO_DIRECTORY + filename));
     }
-		
-
-	    
-	
 }

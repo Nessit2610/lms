@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CommentChapterResponse;
 import com.husc.lms.dto.response.CommentOfCourseResponse;
+import com.husc.lms.dto.response.CommentPostResponse;
 import com.husc.lms.dto.response.CommentReplyResponse;
 import com.husc.lms.dto.response.CommentsOfChapterInLessonOfCourseResponse;
 import com.husc.lms.dto.response.CourseViewResponse;
@@ -41,7 +42,7 @@ public class CommentRestController {
 	private final ChapterRepository chapterRepository;
 	private final CommentReadStatusService commentReadStatusService;
 
-	@GetMapping("/unreadCommentsOfChapter/details")
+	@GetMapping("/getCommentByChapter/details")
 	public APIResponse<Page<CommentChapterResponse>> getComments(
 			@RequestHeader("chapterId") String chapterId,
 			@RequestHeader(name = "pageNumber", defaultValue = "0") int pageNumber,
@@ -57,7 +58,7 @@ public class CommentRestController {
 				.build();
 	}
 
-	@GetMapping("/unreadCommentsOfChapter/details/reply")
+	@GetMapping("/getCommentReplyByComment/details")
 	public APIResponse<Page<CommentReplyResponse>> getCommentsReplyOfComment(
 			@RequestHeader("commentId") String commentId,
 			@RequestHeader(name = "pageNumber", defaultValue = "0") int pageNumber,
@@ -116,5 +117,21 @@ public class CommentRestController {
 					.result("Có lỗi xảy ra")
 					.build();
 		}
+	}
+	
+	@GetMapping("/getCommentByPost/details")
+	public APIResponse<Page<CommentPostResponse>> getCommentsByPost(
+			@RequestHeader("postId") String postId,
+			@RequestHeader(name = "pageNumber", defaultValue = "0") int pageNumber,
+			@RequestHeader(name = "pageSize", defaultValue = "10") int pageSize) {
+
+		// Gọi service để lấy comments và replies phân trang
+		Page<CommentPostResponse> response = commentService.getCommentsByPost(
+				postId, pageNumber, pageSize);
+
+		// Trả về kết quả dưới dạng APIResponse
+		return APIResponse.<Page<CommentPostResponse>>builder()
+				.result(response)
+				.build();
 	}
 }
