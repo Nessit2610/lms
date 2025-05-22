@@ -13,7 +13,7 @@ import com.husc.lms.entity.Account;
 @Repository
 public interface ChatBoxMemberRepository extends MongoRepository<ChatBoxMember, String> {
     List<ChatBoxMember> findByAccountUsername(String accountUsername);
-    
+
     List<ChatBoxMember> findByChatBoxId(String chatBoxId);
 
     Page<ChatBoxMember> findByChatBoxId(String chatBoxId, Pageable pageable);
