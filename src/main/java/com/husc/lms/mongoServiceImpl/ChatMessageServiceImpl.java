@@ -196,17 +196,7 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 for (String username : memberUsernames) {
                         if (username.equals(senderAccount))
                                 continue;
-                        // Tạo notification trong DB
                         notificationService.createChatMessageNotificationForChatBoxMembers(message, List.of(username));
-                        // Gửi realtime (tái sử dụng hàm)
-                        java.util.Map<String, Object> payload = new java.util.HashMap<>();
-                        payload.put("type", "CHAT_MESSAGE");
-                        payload.put("chatBoxId", message.getChatBoxId());
-                        payload.put("chatMessageId", message.getId());
-                        payload.put("content", message.getContent());
-                        payload.put("senderAccount", message.getSenderAccount());
-                        payload.put("createdAt", message.getCreatedAt());
-                        notificationService.sendCustomWebSocketNotificationToUser(username, payload);
                 }
                 return message;
         }
