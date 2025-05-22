@@ -127,7 +127,7 @@ public class CommentRestController {
 
 		// Gọi service để lấy comments và replies phân trang
 		Page<CommentPostResponse> response = commentService.getCommentsByPost(
-				postId, pageNumber, pageSize);
+				postId, pageSize, pageNumber);
 
 		// Trả về kết quả dưới dạng APIResponse
 		return APIResponse.<Page<CommentPostResponse>>builder()
