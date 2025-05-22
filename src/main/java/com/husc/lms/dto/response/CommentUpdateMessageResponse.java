@@ -13,9 +13,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class CommentUpdateMessageResponse {
-	private String chapterId;
-	private String courseId;
-	private String commentId;
+    private String chapterId;
+    private String courseId;
+    private String postId;
+    private String commentId;
     private String usernameOwner;
     private String fullnameOwner;
     private String avatarOwner;
