@@ -57,4 +57,44 @@ public class CommentReplyWebSocketController {
 			return null;
 		}
 	}
+
+	@MessageMapping("/post-comment-reply")
+	@SendTo("/topic/post-comment-replies")
+	public APIResponse<CommentReplyResponse> handleCommentReplyPost(CommentReplyMessage message) {
+		try {
+			return APIResponse.<CommentReplyResponse>builder()
+					.result(commentReplyService.saveCommentReplyWithReadStatusAndNotification(message))
+					.build();
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@MessageMapping("/post-comment-reply/update")
+	@SendTo("/topic/post-comment-replies")
+	public APIResponse<CommentReplyUpdateMessageResponse> updateCommentReplyPost(CommentReplyUpdateMessage message) {
+		try {
+			return APIResponse.<CommentReplyUpdateMessageResponse>builder()
+					.result(commentReplyService.updateCommentReply(message))
+					.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@MessageMapping("/post-comment-reply/delete")
+	@SendTo("/topic/post-comment-replies")
+	public APIResponse<CommentReplyResponse> deleteCommentPost(CommentReplyUpdateMessage message) {
+		try {
+			return APIResponse.<CommentReplyResponse>builder()
+					.result(commentReplyService.deleteCommentReply(message))
+					.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }

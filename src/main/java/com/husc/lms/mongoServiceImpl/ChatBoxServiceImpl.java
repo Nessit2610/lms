@@ -145,7 +145,6 @@ public class ChatBoxServiceImpl implements ChatBoxService {
     public Page<ChatBoxResponse> getAllChatBoxesForCurrentAccount(int pageNumber, int pageSize) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = authentication.getName();
-
         List<String> chatBoxIds = memberRepo.findByAccountUsername(currentUsername)
                 .stream()
                 .map(ChatBoxMember::getChatBoxId)
@@ -192,7 +191,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
                                                     ? account.getTeacher().getAvatar()
                                                     : "")
                                     .build();
-                        }).collect(Collectors.toList());
+                        }).collect(Collectors.toList());	
             }
             return ChatBoxResponse.builder()
                     .id(chatBox.getId())
