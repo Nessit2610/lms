@@ -57,4 +57,42 @@ public class CommentWebSocketController {
 		}
 	}
 
+	@MessageMapping("/post-comment")
+	@SendTo("/topic/post-comments")
+	public APIResponse<CommentMessageResponse> handleCommentPost(CommentMessage message) {
+		try {
+			return APIResponse.<CommentMessageResponse>builder()
+					.result(commentService.saveCommentWithReadStatusAndNotification(message))
+					.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@MessageMapping("/post-comment/update")
+	@SendTo("/topic/post-comments")
+	public APIResponse<CommentUpdateMessageResponse> updateCommentPost(CommentUpdateMessage message) {
+		try {
+			return APIResponse.<CommentUpdateMessageResponse>builder()
+					.result(commentService.updateComment(message))
+					.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@MessageMapping("/post-comment/delete")
+	@SendTo("/topic/post-comments")
+	public APIResponse<Boolean> deleteCommentPost(CommentUpdateMessage message) {
+		try {
+			return APIResponse.<Boolean>builder()
+					.result(commentService.deleteComment(message))
+					.build();
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }
