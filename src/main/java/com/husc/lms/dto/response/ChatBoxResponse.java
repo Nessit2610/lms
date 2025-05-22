@@ -24,6 +24,8 @@ public class ChatBoxResponse {
 
     private String name;
     
+    private String avatar;
+    
     private Date updatedAt;
 
     private String lastMessage;
