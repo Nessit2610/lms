@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -318,42 +319,57 @@ public class CommentService {
 
                 // Xử lý notification và read status
                 if (isPostComment) {
-                        // Xử lý cho post comment
                         Post post = savedComment.getPost();
-                        Account postOwner = post.getTeacher().getAccount();
+                        if (post != null && post.getGroup() != null) {
+                                // Lấy danh sách sinh viên trong group
+                                List<Student> studentsInGroup = post.getGroup().getStudentGroups().stream()
+                                                .filter(studentGroup -> studentGroup != null
+                                                                && studentGroup.getStudent() != null)
+                                                .map(studentGroup -> studentGroup.getStudent())
+                                                .collect(Collectors.toList());
 
-                        if (postOwner != null && !postOwner.getId().equals(account.getId())) {
-                                // Tạo CommentReadStatus cho chủ post
-                                commentReadStatusRepository.save(CommentReadStatus.builder()
-                                                .account(postOwner)
-                                                .comment(savedComment)
-                                                .commentType(CommentType.COMMENT_POST)
-                                                .isRead(false)
-                                                .build());
+                                // Gửi thông báo cho từng sinh viên (trừ người comment nếu là sinh viên)
+                                for (Student student : studentsInGroup) {
+                                        if (student != null && student.getAccount() != null) {
+                                                String studentUsername = student.getAccount().getUsername();
+                                                if (studentUsername != null && !studentUsername.isEmpty()
+                                                                && !student.getAccount().getId()
+                                                                                .equals(account.getId())) {
+                                                        // Tạo CommentReadStatus cho sinh viên
+                                                        commentReadStatusRepository.save(CommentReadStatus.builder()
+                                                                        .account(student.getAccount())
+                                                                        .comment(savedComment)
+                                                                        .commentType(CommentType.COMMENT_POST)
+                                                                        .isRead(false)
+                                                                        .build());
 
-                                // Tạo notification cho chủ post
-                                Notification postNotification = Notification.builder()
-                                                .account(postOwner)
-                                                .comment(savedComment)
-                                                .post(post)
-                                                .type(NotificationType.POST_COMMENT)
-                                                .description(savedComment.getDetail())
-                                                .isRead(false)
-                                                .createdAt(OffsetDateTime.now())
-                                                .build();
-                                notificationRepository.save(postNotification);
+                                                        // Tạo notification cho sinh viên
+                                                        Notification studentNotification = Notification.builder()
+                                                                        .account(student.getAccount())
+                                                                        .comment(savedComment)
+                                                                        .post(post)
+                                                                        .type(NotificationType.POST_COMMENT)
+                                                                        .description(savedComment.getDetail())
+                                                                        .isRead(false)
+                                                                        .createdAt(OffsetDateTime.now())
+                                                                        .build();
+                                                        notificationRepository.save(studentNotification);
 
-                                // Gửi WebSocket notification
-                                Map<String, Object> payload = new HashMap<>();
-                                payload.put("message",
-                                                "Có bình luận mới trong bài viết của bạn: " + savedComment.getDetail());
-                                payload.put("type", NotificationType.POST_COMMENT.name());
-                                payload.put("postId", post.getId());
-                                payload.put("commentId", savedComment.getId());
-                                payload.put("createdDate", new Date());
+                                                        // Gửi WebSocket notification
+                                                        Map<String, Object> payload = new HashMap<>();
+                                                        payload.put("message",
+                                                                        "Có bình luận mới trong bài viết: "
+                                                                                        + savedComment.getDetail());
+                                                        payload.put("type", NotificationType.POST_COMMENT.name());
+                                                        payload.put("postId", post.getId());
+                                                        payload.put("commentId", savedComment.getId());
+                                                        payload.put("createdDate", new Date());
 
-                                notificationService.sendCustomWebSocketNotificationToUser(postOwner.getUsername(),
-                                                payload);
+                                                        notificationService.sendCustomWebSocketNotificationToUser(
+                                                                        studentUsername, payload);
+                                                }
+                                        }
+                                }
                         }
                 } else {
                         // Xử lý cho chapter comment (giữ nguyên logic cũ)
