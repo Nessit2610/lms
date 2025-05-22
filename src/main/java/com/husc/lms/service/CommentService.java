@@ -452,25 +452,36 @@ public class CommentService {
                 commentRepository.save(changeComment);
 
                 boolean isPostComment = changeComment.getPost() != null;
+                Account commentAccount = changeComment.getAccount();
 
                 return CommentUpdateMessageResponse.builder()
                                 .commentId(changeComment.getId())
-                                .courseId(isPostComment ? null : changeComment.getCourse().getId())
-                                .chapterId(isPostComment ? null : changeComment.getChapter().getId())
-                                .postId(isPostComment ? changeComment.getPost().getId() : null)
+                                .courseId(isPostComment ? null
+                                                : (changeComment.getCourse() != null ? changeComment.getCourse().getId()
+                                                                : null))
+                                .chapterId(isPostComment ? null
+                                                : (changeComment.getChapter() != null
+                                                                ? changeComment.getChapter().getId()
+                                                                : null))
+                                .postId(isPostComment
+                                                ? (changeComment.getPost() != null ? changeComment.getPost().getId()
+                                                                : null)
+                                                : null)
                                 .newDetail(changeComment.getDetail())
                                 .updateDate(changeComment.getUpdateDateAt())
-                                .usernameOwner(changeComment.getAccount().getUsername())
-                                .avatarOwner(changeComment.getAccount().getStudent() != null
-                                                ? changeComment.getAccount().getStudent().getAvatar()
-                                                : changeComment.getAccount().getTeacher() != null
-                                                                ? changeComment.getAccount().getTeacher().getAvatar()
+                                .usernameOwner(commentAccount != null ? commentAccount.getUsername() : null)
+                                .avatarOwner(commentAccount != null ? (commentAccount.getStudent() != null
+                                                ? commentAccount.getStudent().getAvatar()
+                                                : commentAccount.getTeacher() != null
+                                                                ? commentAccount.getTeacher().getAvatar()
                                                                 : null)
-                                .fullnameOwner(changeComment.getAccount().getStudent() != null
-                                                ? changeComment.getAccount().getStudent().getFullName()
-                                                : changeComment.getAccount().getTeacher() != null
-                                                                ? changeComment.getAccount().getTeacher().getFullName()
+                                                : null)
+                                .fullnameOwner(commentAccount != null ? (commentAccount.getStudent() != null
+                                                ? commentAccount.getStudent().getFullName()
+                                                : commentAccount.getTeacher() != null
+                                                                ? commentAccount.getTeacher().getFullName()
                                                                 : null)
+                                                : null)
                                 .countOfReply(commentReplyRepository.countByComment(changeComment))
                                 .build();
         }
