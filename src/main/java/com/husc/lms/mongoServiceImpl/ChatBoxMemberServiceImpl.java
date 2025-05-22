@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,8 @@ import com.husc.lms.repository.AccountRepository; // To validate users
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.husc.lms.service.OffsetLimitPageRequest;
 
 @Service
@@ -138,44 +141,44 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
         // }
         @Override
         public List<ChatBoxMemberResponse> getChatBoxMembersByChatBoxId(String chatBoxId) {
-            if (chatBoxId == null || chatBoxId.trim().isEmpty()) {
-                throw new AppException(ErrorCode.INVALID_PARAMETER, "ChatBox ID không được để trống.");
-            }
+                if (chatBoxId == null || chatBoxId.trim().isEmpty()) {
+                        throw new AppException(ErrorCode.INVALID_PARAMETER, "ChatBox ID không được để trống.");
+                }
 
-            List<ChatBoxMember> chatBoxMembers = chatBoxMemberRepository.findByChatBoxId(chatBoxId);
+                List<ChatBoxMember> chatBoxMembers = chatBoxMemberRepository.findByChatBoxId(chatBoxId);
 
-            List<ChatBoxMemberResponse> response = chatBoxMembers.stream()
-                        .map(member -> {
-                            Account account = accountRepository
-                                            .findByUsernameAndDeletedDateIsNull(member.getAccountUsername())
-                                            .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
-                                                            "Account not found: "
-                                                                            + member.getAccountUsername()));
+                List<ChatBoxMemberResponse> response = chatBoxMembers.stream()
+                                .map(member -> {
+                                        Account account = accountRepository
+                                                        .findByUsernameAndDeletedDateIsNull(member.getAccountUsername())
+                                                        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
+                                                                        "Account not found: "
+                                                                                        + member.getAccountUsername()));
 
-                            String fullName = account.getStudent() != null
-                                            ? account.getStudent().getFullName()
-                                            : (account.getTeacher() != null
-                                                            ? account.getTeacher().getFullName()
-                                                            : account.getUsername());
+                                        String fullName = account.getStudent() != null
+                                                        ? account.getStudent().getFullName()
+                                                        : (account.getTeacher() != null
+                                                                        ? account.getTeacher().getFullName()
+                                                                        : account.getUsername());
 
-                            String avatar = account.getStudent() != null
-                                            ? account.getStudent().getAvatar()
-                                            : (account.getTeacher() != null
-                                                            ? account.getTeacher().getAvatar()
-                                                            : "");
+                                        String avatar = account.getStudent() != null
+                                                        ? account.getStudent().getAvatar()
+                                                        : (account.getTeacher() != null
+                                                                        ? account.getTeacher().getAvatar()
+                                                                        : "");
 
-                            return ChatBoxMemberResponse.builder()
-                                            .id(member.getId())
-                                            .chatBoxId(member.getChatBoxId())
-                                            .accountUsername(member.getAccountUsername())
-                                            .accountFullname(fullName)
-                                            .avatar(avatar)
-                                            .joinedAt(member.getJoinedAt())
-                                            .build();
-                        })
-                        .collect(Collectors.toList());
+                                        return ChatBoxMemberResponse.builder()
+                                                        .id(member.getId())
+                                                        .chatBoxId(member.getChatBoxId())
+                                                        .accountUsername(member.getAccountUsername())
+                                                        .accountFullname(fullName)
+                                                        .avatar(avatar)
+                                                        .joinedAt(member.getJoinedAt())
+                                                        .build();
+                                })
+                                .collect(Collectors.toList());
 
-            return response;
+                return response;
         }
 
         @Override
@@ -247,11 +250,18 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                 if (pageSize < 1) {
                         throw new IllegalArgumentException("pageSize must be 1 or greater.");
                 }
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-                List<ChatBoxMember> membersInChatBox = chatBoxMemberRepository.findByChatBoxId(chatBoxId);
-                List<String> excludedUsernames = membersInChatBox.stream()
-                                .map(ChatBoxMember::getAccountUsername)
-                                .collect(Collectors.toList());
+                List<String> excludedUsernames;
+                if (chatBoxId != null) {
+                        List<ChatBoxMember> membersInChatBox = chatBoxMemberRepository.findByChatBoxId(chatBoxId);
+                        excludedUsernames = membersInChatBox.stream()
+                                        .map(ChatBoxMember::getAccountUsername)
+                                        .collect(Collectors.toList());
+                } else {
+                        excludedUsernames = new ArrayList<>();
+                        excludedUsernames.add(username);
+                }
 
                 int actualOffset = pageNumber;
                 int actualLimit = pageSize + 1;
@@ -277,7 +287,8 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                                                         : account.getTeacher() != null
                                                                         ? account.getTeacher().getFullName()
                                                                         : "";
-                                        String avatar = account.getStudent() != null ? account.getStudent().getAvatar()
+                                        String avatar = account.getStudent() != null
+                                                        ? account.getStudent().getAvatar()
                                                         : account.getTeacher() != null
                                                                         ? account.getTeacher().getAvatar()
                                                                         : "";
@@ -292,8 +303,7 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                                 .collect(Collectors.toList());
 
                 // Tạo PageRequest giống như searchByNameOfChatBox
-                org.springframework.data.domain.Pageable returnPageable = org.springframework.data.domain.PageRequest
-                                .of(pageNumber / pageSize, pageSize, sort);
+                Pageable returnPageable = PageRequest.of(pageNumber / pageSize, pageSize, sort);
                 long totalElements = fetchedAccountsPage.getTotalElements();
                 return new PageImpl<>(responseList, returnPageable, totalElements);
         }
