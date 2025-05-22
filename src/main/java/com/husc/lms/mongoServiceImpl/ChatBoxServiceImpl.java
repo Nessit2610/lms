@@ -200,6 +200,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
                     .createdAt(chatBox.getCreatedAt())
                     .createdBy(chatBox.getCreatedBy())
                     .name(chatBox.getName())
+                    .avatar(chatBox.getAvatar())
                     .updatedAt(chatBox.getUpdatedAt())
                     .lastMessage(chatBox.getLastMessage())
                     .lastMessageAt(chatBox.getLastMessageAt())
