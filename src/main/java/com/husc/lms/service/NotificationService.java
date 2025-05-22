@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 import java.util.Map;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -20,16 +21,19 @@ import com.husc.lms.entity.Account;
 import com.husc.lms.entity.Notification;
 import com.husc.lms.enums.NotificationType;
 import com.husc.lms.repository.AccountRepository;
+import com.husc.lms.repository.LessonRepository;
 import com.husc.lms.repository.NotificationRepository;
 
 import com.husc.lms.entity.Chapter;
 import com.husc.lms.entity.Comment;
 import com.husc.lms.entity.CommentReply;
 import com.husc.lms.entity.Course;
+import com.husc.lms.entity.Lesson;
 
 import lombok.RequiredArgsConstructor;
 import com.husc.lms.service.OffsetLimitPageRequest;
 import com.husc.lms.mongoEntity.ChatMessage;
+import com.husc.lms.mongoRepository.ChatMessageRepository;
 
 @Service
 @RequiredArgsConstructor
@@ -37,6 +41,8 @@ public class NotificationService {
         private final AccountRepository accountRepository;
         private final NotificationRepository notificationRepository;
         private final SimpMessagingTemplate messagingTemplate;
+        private final LessonRepository lessonRepository;
+        private final ChatMessageRepository chatMessageRepository;
 
         public CommentNotificationResponse getAllUnreadCommentNotificationOfAccount() {
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -106,20 +112,59 @@ public class NotificationService {
 
                 List<NotificationResponse.NotificationDetail> notificationDetails = notificationsToReturn
                                 .stream()
-                                .map(notification -> NotificationResponse.NotificationDetail.builder()
-                                                .notificationId(notification.getId())
-                                                .receivedAccountId(notification.getAccount().getId())
-                                                .commentId(notification.getComment() != null
-                                                                ? notification.getComment().getId()
-                                                                : null)
-                                                .commentReplyId(notification.getCommentReply() != null
-                                                                ? notification.getCommentReply().getId()
-                                                                : null)
-                                                .notificationType(notification.getType().name())
-                                                .isRead(notification.isRead())
-                                                .description(notification.getDescription())
-                                                .createdAt(notification.getCreatedAt())
-                                                .build())
+                                .map(notification -> {
+                                        String courseId = null, lessonId = null, chapterId = null;
+                                        if (notification.getComment() != null) {
+                                                courseId = Optional.ofNullable(notification.getComment().getCourse())
+                                                                .map(Course::getId).orElse(null);
+                                                chapterId = Optional.ofNullable(notification.getComment().getChapter())
+                                                                .map(Chapter::getId).orElse(null);
+                                                lessonId = Optional.ofNullable(notification.getComment().getChapter())
+                                                                .map(ch -> lessonRepository
+                                                                                .findByChapterAndDeletedDateIsNull(ch))
+                                                                .map(lesson -> lesson != null ? lesson.getId() : null)
+                                                                .orElse(null);
+                                        } else if (notification.getCommentReply() != null) {
+                                                Comment parentComment = notification.getCommentReply().getComment();
+                                                if (parentComment != null) {
+                                                        courseId = Optional.ofNullable(parentComment.getCourse())
+                                                                        .map(Course::getId).orElse(null);
+                                                        chapterId = Optional.ofNullable(parentComment.getChapter())
+                                                                        .map(Chapter::getId).orElse(null);
+                                                        lessonId = Optional.ofNullable(parentComment.getChapter())
+                                                                        .map(ch -> lessonRepository
+                                                                                        .findByChapterAndDeletedDateIsNull(
+                                                                                                        ch))
+                                                                        .map(lesson -> lesson != null ? lesson.getId()
+                                                                                        : null)
+                                                                        .orElse(null);
+                                                }
+                                        }
+
+                                        String chatBoxId = null;
+                                        if (notification.getChatMessageId() != null) {
+                                                ChatMessage chatMessage = chatMessageRepository
+                                                                .findById(notification.getChatMessageId()).orElse(null);
+                                                chatBoxId = chatMessage != null ? chatMessage.getChatBoxId() : null;
+                                        }
+
+                                        String postId = Optional.ofNullable(notification.getPost()).map(p -> p.getId())
+                                                        .orElse(null);
+
+                                        return NotificationResponse.NotificationDetail.builder()
+                                                        .notificationId(notification.getId())
+                                                        .receivedAccountId(notification.getAccount().getId())
+                                                        .courseId(courseId)
+                                                        .lessonId(lessonId)
+                                                        .chapterId(chapterId)
+                                                        .chatBoxId(chatBoxId)
+                                                        .postId(postId)
+                                                        .notificationType(notification.getType().name())
+                                                        .isRead(notification.isRead())
+                                                        .description(notification.getDescription())
+                                                        .createdAt(notification.getCreatedAt())
+                                                        .build();
+                                })
                                 .collect(Collectors.toList());
 
                 Integer unreadCount = notificationRepository.countByAccountAndIsReadFalse(account);

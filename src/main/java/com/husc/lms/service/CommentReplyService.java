@@ -283,8 +283,12 @@ public class CommentReplyService {
                                 .fullnameReply(changeCommentReply.getReplyAccount().getStudent() != null
                                                 ? changeCommentReply.getReplyAccount().getStudent().getFullName()
                                                 : changeCommentReply.getReplyAccount().getTeacher() != null
-                                                                ? changeCommentReply.getReplyAccount().getTeacher()
-                                                                                .getFullName()
+                                                                ? changeCommentReply.getReplyAccount().getTeacher().getFullName()
+                                                                : null)
+                                .avatarReply(changeCommentReply.getReplyAccount().getStudent() != null
+                                                ? changeCommentReply.getReplyAccount().getStudent().getAvatar()
+                                                : changeCommentReply.getReplyAccount().getTeacher() != null
+                                                                ? changeCommentReply.getReplyAccount().getTeacher().getAvatar()
                                                                 : null)
                                 .newDetail(changeCommentReply.getDetail())
                                 .updateDate(changeCommentReply.getUpdateDateAt())

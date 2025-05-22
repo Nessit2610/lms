@@ -25,9 +25,10 @@ public class NotificationResponse {
 		private String notificationId;
 		private String receivedAccountId;
 		private String courseId;
+		private String lessonId;
+		private String chapterId;
 		private String postId;
-		private String commentId;
-		private String commentReplyId;
+		private String chatBoxId;
 		private String notificationType;
 		private Boolean isRead;
 		private String description;
