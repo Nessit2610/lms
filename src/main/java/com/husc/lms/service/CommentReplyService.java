@@ -106,7 +106,7 @@ public class CommentReplyService {
                                 commentReadStatusRepository.save(CommentReadStatus.builder()
                                                 .account(postOwner)
                                                 .commentReply(savedReply)
-                                                .commentType(CommentType.COMMENT_POST)
+                                                .commentType(CommentType.COMMENT_REPLY_POST)
                                                 .isRead(false)
                                                 .build());
 
