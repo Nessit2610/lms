@@ -22,6 +22,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -40,6 +41,8 @@ import com.husc.lms.entity.Document;
 import com.husc.lms.entity.Major;
 import com.husc.lms.enums.DocumentStatus;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.FeeStatus;
+import com.husc.lms.enums.SortEnum;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.DocumentMapper;
 import com.husc.lms.repository.AccountRepository;
@@ -158,16 +161,24 @@ public class DocumentService {
 	    }
 	}
 	
-	public Page<DocumentResponse> getAllDocument(int page, int size){
-		Pageable pageable = PageRequest.of(page, size);
-		Page<Document> documents = documentRepository.findAllByStatus(DocumentStatus.PUBLIC.name(),pageable);
-		return documents.map(d -> {
+	public Page<DocumentResponse> getAllDocument(int page, int size, String sortBy) {
+	    Pageable pageable;
+	    switch (sortBy) {
+	        case "NEWEST" -> pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+	        case "OLDEST" -> pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
+	        default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
+	    }
+
+	    Page<Document> documents = documentRepository.findAllByStatus(DocumentStatus.PUBLIC.name(), pageable);
+	    
+	    return documents.map(d -> {
 	        DocumentResponse documentResponse = documentMapper.toDocumentResponse(d);
 	        Object object = accountService.getAccountDetails(d.getAccount().getId());
 	        documentResponse.setObject(object);
 	        return documentResponse;
 	    });
 	}
+
 	
 	public Page<DocumentResponse> searchDocument(String title ,String majorId, int page, int size) {
 	    Pageable pageable = PageRequest.of(page, size);

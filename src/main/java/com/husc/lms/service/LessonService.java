@@ -128,11 +128,11 @@ public class LessonService {
 			}
 			List<Lesson> remainingLessons = lessonRepository
 				    .findByCourseAndDeletedDateIsNullOrderByOrderAsc(lesson.getCourse());
-				int newOrder = 1;
-				for (Lesson l : remainingLessons) {
-				    l.setOrder(newOrder++);
-				}
-				lessonRepository.saveAll(remainingLessons);
+			int newOrder = 1;
+			for (Lesson l : remainingLessons) {
+			    l.setOrder(newOrder++);
+			}
+			lessonRepository.saveAll(remainingLessons);
 			
 			return true;
 		}

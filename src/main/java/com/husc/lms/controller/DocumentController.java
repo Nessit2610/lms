@@ -61,9 +61,10 @@ public class DocumentController {
 	
 	@GetMapping
 	public APIResponse<Page<DocumentResponse>> getAllPublicDocument(@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
-																	@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+																	@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize,
+																	@RequestParam(value = "sortBy", required = false, defaultValue = "NEWEST") String sortBy){
 		return APIResponse.<Page<DocumentResponse>>builder()
-				.result(documentService.getAllDocument(pageNumber, pageSize))
+				.result(documentService.getAllDocument(pageNumber, pageSize,sortBy))
 				.build();
 	}
 	
