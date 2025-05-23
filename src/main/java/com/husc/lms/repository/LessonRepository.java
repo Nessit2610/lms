@@ -1,6 +1,7 @@
 package com.husc.lms.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,9 +14,14 @@ import com.husc.lms.entity.Chapter;
 
 @Repository
 public interface LessonRepository extends JpaRepository<Lesson, String> {
+
 	List<Lesson> findByCourseAndDeletedDateIsNull(Course course);
 
+	Optional<Lesson> findByCourseAndOrderAndDeletedDateIsNull(Course course, Integer order);
+	
 	Lesson findByIdAndDeletedDateIsNull(String id);
+	
+	boolean existsByCourseAndOrderAndDeletedDateIsNull(Course course, Integer order);
 
 	@Query("SELECT COUNT(l) FROM Lesson l WHERE l.course = :course AND l.deletedDate IS NULL")
 	long countLessonsByCourse(@Param("course") Course course);

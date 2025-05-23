@@ -30,7 +30,7 @@ public enum ErrorCode {
 	TEACHER_NOT_FOUND(1020, "Không tìm thấy giảng viên", HttpStatus.NOT_FOUND),
 	LESSON_NOT_FOUND(1021, "Không tìm thấy bài học", HttpStatus.NOT_FOUND),
 	CHAPTER_NOT_FOUND(1022, "Không tìm thấy chương", HttpStatus.NOT_FOUND),
-	CHAPTER_ORDER_DUPLICATE(1023, "Thứ tự chương đã tồn tại trong bài học", HttpStatus.BAD_REQUEST),
+	CHAPTER_ORDER_DUPLICATE(1023, "Thứ tự bài học đã tồn tại", HttpStatus.BAD_REQUEST),
 	EMAIL_ALREADY_USED(1024, "Email đã được sử dụng", HttpStatus.BAD_REQUEST),
 	CAN_NOT_REQUEST(1025, "Không thể đăng ký khóa học", HttpStatus.BAD_REQUEST),
 	TOKEN_INVALID(1026, "Token không hợp lệ", HttpStatus.BAD_REQUEST),
@@ -68,8 +68,8 @@ public enum ErrorCode {
 	PAYMENT_NOT_FOUND(1048, "Không tìm thấy thông tin thanh toán", HttpStatus.NOT_FOUND),
 	ACCOUNT_LOCKED(1049, "Tài khoản đã bị khóa", HttpStatus.FORBIDDEN),
 	FORBIDDEN(1050,"Tài khoản này không có quyền chỉnh sửa", HttpStatus.FORBIDDEN),
-	FILE_EMPTY(1051, "Tệp tải lên bị rỗng", HttpStatus.BAD_REQUEST);
-	
+	FILE_EMPTY(1051, "Tệp tải lên bị rỗng", HttpStatus.BAD_REQUEST),
+	LESSON_ORDER_DUPLICATE(1023, "Thứ tự chương đã tồn tại", HttpStatus.BAD_REQUEST);
 
 
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {

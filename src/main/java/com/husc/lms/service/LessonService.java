@@ -19,7 +19,9 @@ import com.husc.lms.entity.Lesson;
 import com.husc.lms.entity.Notification;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentLessonProgress;
+import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.enums.NotificationType;
+import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.LessonMapper;
 import com.husc.lms.repository.CourseRepository;
 import com.husc.lms.repository.LessonRepository;
@@ -66,6 +68,10 @@ public class LessonService {
 		String name = context.getAuthentication().getName();
 		
 		Course course = courseRepository.findById(request.getCourseId()).get();
+		
+		if(lessonRepository.existsByCourseAndOrderAndDeletedDateIsNull(course, request.getOrder())) {
+			throw new AppException(ErrorCode.LESSON_ORDER_DUPLICATE);
+		}
 		
 		Lesson lesson = Lesson.builder()
 				.course(course)
@@ -138,7 +144,19 @@ public class LessonService {
 	public LessonResponse updateLesson(LessonUpdateRequest request) {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
-		Lesson lesson = lessonRepository.findById(request.getIdLesson()).get();
+		Lesson lesson = lessonRepository.findById(request.getIdLesson()).orElseThrow(() -> new AppException(ErrorCode.LESSON_NOT_FOUND));
+		
+		Course course = lesson.getCourse();
+		
+		boolean isOrderExist = lessonRepository
+		        .findByCourseAndOrderAndDeletedDateIsNull(course, request.getOrder())
+		        .map(existing -> !existing.getId().equals(request.getIdLesson())) 
+		        .orElse(false);
+
+	    if (isOrderExist) {
+	        throw new AppException(ErrorCode.LESSON_ORDER_DUPLICATE); 
+	    }
+		
 		lesson.setDescription(request.getDescription());
 		lesson.setOrder(request.getOrder());
 		lesson.setLastModifiedBy(name);
