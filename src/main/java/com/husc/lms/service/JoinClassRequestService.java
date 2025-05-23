@@ -122,7 +122,7 @@ public class JoinClassRequestService {
 															.account(course.getTeacher().getAccount())
 															.description("Bạn có 1 sinh viên tên " + student.getFullName() + " vừa đăng ký vào khoá học " + course.getName())
 															.joinClassRequest(joinClassRequest)
-															.type(NotificationType.JOIN_CLASS_PENDING)
+															.type(NotificationType.JOIN_CLASS_PENDING.name())
 															.createdAt(OffsetDateTime.now())
 															.build();
 				notificationRepository.save(notificationForTeacher);
@@ -166,7 +166,7 @@ public class JoinClassRequestService {
 					.account(student.getAccount())
 					.description("Bạn đã bị giảng viên " + course.getTeacher().getFullName() + " từ chối gia nhập khoá học " + course.getName())
 					.joinClassRequest(joinClassRequest)
-					.type(NotificationType.JOIN_CLASS_REJECTED)
+					.type(NotificationType.JOIN_CLASS_REJECTED.name())
 					.createdAt(OffsetDateTime.now())
 					.build();
 			notificationRepository.save(notificationForStudent);
@@ -199,7 +199,7 @@ public class JoinClassRequestService {
 					.account(student.getAccount())
 					.description("Bạn đã được giảng viên " + course.getTeacher().getFullName() + " duyệt đơn xin gia nhập khoá học " + course.getName())
 					.joinClassRequest(joinClassRequest)
-					.type(NotificationType.JOIN_CLASS_APPROVED)
+					.type(NotificationType.JOIN_CLASS_APPROVED.name())
 					.createdAt(OffsetDateTime.now())
 					.build();
 			notificationRepository.save(notificationForStudent);

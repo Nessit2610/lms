@@ -85,7 +85,7 @@ public class LessonService {
 					.account(student.getAccount())
 					.description(
 							"Giảng viên " + course.getTeacher().getFullName() + " vừa đăng 1 chương mới trong khoá học " + course.getName())
-					.type(NotificationType.JOIN_CLASS_PENDING)
+					.type(NotificationType.JOIN_CLASS_PENDING.name())
 					.createdAt(OffsetDateTime.now())
 					.build();
 			notificationRepository.save(notification);

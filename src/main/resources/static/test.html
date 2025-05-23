@@ -496,7 +496,7 @@
     </div>
 
     <script>
-        function displayComments(chapter, comments = []) {
+        function displayComments(chapterContext, comments = []) {
             const commentsList = Array.isArray(comments) ? comments : [];
 
             // Sắp xếp comments theo thời gian mới nhất
@@ -507,47 +507,70 @@
             });
 
             return `
-
-                    :
-                    '<li class="empty-state">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</li>'
-                }
+                    <ul>
+                        ${sortedComments.map(comment => `
+                            <li class="comment-item">
+                                <div class="comment-content">${comment.detail}</div>
+                                <div class="comment-metadata">
+                                    ${comment.avatar ? `<img src="${comment.avatar}" alt="Avatar" style="width:20px; height:20px; border-radius:50%; margin-right:5px;">` : ''}
+                                    <span class="comment-author">${comment.fullname ? comment.fullname : comment.username}</span>
+                                    <span class="comment-time">${formatTimeAgo(comment.createdDate)}</span>
+                                </div>
+                                <button class="reply-button" onclick="toggleReplyForm('${comment.commentId}', '${comment.username}')">Trả lời</button>
+                                <div class="reply-form" id="reply-form-${comment.commentId}">
+                                    <input type="text" class="reply-input" id="reply-input-${comment.commentId}" placeholder="Viết câu trả lời...">
+                                    <button class="reply-send-button" onclick="sendReply('${comment.commentId}', '${chapterContext.lessonId}', '${chapterContext.id}', '${chapterContext.courseId}', '${comment.username}')">Gửi</button>
+                                </div>
+                                <div class="replies-list" id="replies-${comment.commentId}"></div>
+                            </li>
+                        `).join('')}
+                        ${commentsList.length === 0 ? '<li class="empty-state">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</li>' : ''}
                     </ul>
-                </div>
             `;
         }
 
         function updateCommentInUI(content) {
-            const commentsList = document.getElementById(`comments-${content.chapterId}`);
-            if (commentsList) {
-                const emptyMessage = commentsList.querySelector('.empty-state');
-                if (emptyMessage) {
-                    emptyMessage.remove();
-                }
+            const commentsListContainer = document.getElementById(`comments-list-target-${content.chapterId}`);
+            if (!commentsListContainer) {
+                console.error(`Could not find commentsListContainer for chapterId: ${content.chapterId}`);
+                return;
+            }
 
-                const newComment = document.createElement('li');
-                newComment.className = 'comment-item';
-                newComment.id = `comment-${content.commentId}`;
-                newComment.innerHTML = `
+            let commentsUl = commentsListContainer.querySelector('ul');
+            if (!commentsUl) {
+                commentsUl = document.createElement('ul');
+                commentsListContainer.innerHTML = ''; // Clear if somehow ul wasn't there
+                commentsListContainer.appendChild(commentsUl);
+            }
 
-                    <div class="comment-content">${content.detail}</div>
-                    <div class="comment-metadata">
-                        <span class="comment-author">${content.accountId}</span>
-                        <span class="comment-time">Vừa xong</span>
-                    </div>
-                    <button class="reply-button" onclick="toggleReplyForm('${content.commentId}', '${content.accountId}')">Trả lời</button>
-                    <div class="reply-form" id="reply-form-${content.commentId}">
-                        <input type="text" class="reply-input" id="reply-input-${content.commentId}" placeholder="Viết câu trả lời...">
-                        <button class="reply-send-button" onclick="sendReply('${content.commentId}', '${content.lessonId}', '${content.chapterId}', '${content.courseId}', '${content.accountId}')">Gửi</button>
-                    </div>
-                    <div class="replies-list" id="replies-${content.commentId}"></div>
-                ;
-                commentsList.insertBefore(newComment, commentsList.firstChild);
+            const emptyMessage = commentsUl.querySelector('.empty-state');
+            if (emptyMessage) {
+                emptyMessage.remove();
+            }
 
-                const countElement = document.getElementById(`comment-count-${content.chapterId}`);
-                if (countElement) {
-                    const currentCount = parseInt(countElement.textContent);
-                    countElement.textContent = currentCount + 1;
-                }
+            const newCommentLi = document.createElement('li');
+            newCommentLi.className = 'comment-item';
+            newCommentLi.id = `comment-item-${content.commentId}`; // ID for the new li element
+            newCommentLi.innerHTML = `
+                <div class="comment-content">${content.detail}</div>
+                <div class="comment-metadata">
+                    ${content.avatar ? `<img src="${content.avatar}" alt="Avatar" style="width:20px; height:20px; border-radius:50%; margin-right:5px;">` : ''}
+                    <span class="comment-author">${content.fullname ? content.fullname : content.username}</span>
+                    <span class="comment-time">Vừa xong</span>
+                </div>
+                <button class="reply-button" onclick="toggleReplyForm('${content.commentId}', '${content.username}')">Trả lời</button>
+                <div class="reply-form" id="reply-form-${content.commentId}">
+                    <input type="text" class="reply-input" id="reply-input-${content.commentId}" placeholder="Viết câu trả lời...">
+                    <button class="reply-send-button" onclick="sendReply('${content.commentId}', '${content.lessonId}', '${content.chapterId}', '${content.courseId}', '${content.username}')">Gửi</button>
+                </div>
+                <div class="replies-list" id="replies-${content.commentId}"></div>
+            `;
+            commentsUl.insertBefore(newCommentLi, commentsUl.firstChild);
+
+            const countElement = document.getElementById(`comment-count-${content.chapterId}`);
+            if (countElement) {
+                const currentCount = parseInt(countElement.textContent) || 0;
+                countElement.textContent = currentCount + 1;
             }
         }
 
@@ -629,110 +652,21 @@
         }
 
         function updateReplyInUI(reply) {
-            const repliesList = document.getElementById(`replies-${reply.parentCommentId}`);
+            const repliesList = document.getElementById(`replies-${reply.commentId}`);
             if (repliesList) {
                 const replyItem = document.createElement('div');
                 replyItem.className = 'reply-item';
                 replyItem.innerHTML = `
-				commentsList.insertBefore(newComment, commentsList.firstChild);
-
-				const countElement = document.getElementById(`comment-count-${content.chapterId}`);
-				if (countElement) {
-					const currentCount = parseInt(countElement.textContent);
-					countElement.textContent = currentCount + 1;
-				}
-			}
-		}
-
-		function formatTimeAgo(dateString) {
-			const date = new Date(dateString);
-			const now = new Date();
-			const seconds = Math.floor((now - date) / 1000);
-			const minutes = Math.floor(seconds / 60);
-			const hours = Math.floor(minutes / 60);
-			const days = Math.floor(hours / 24);
-
-			if (days > 7) {
-				return date.toLocaleDateString('vi-VN', {
-					year: 'numeric',
-					month: 'short',
-					day: 'numeric',
-					hour: '2-digit',
-					minute: '2-digit'
-				});
-			} else if (days > 0) {
-				return `${days} ngày trước`;
-			} else if (hours > 0) {
-				return `${hours} giờ trước`;
-			} else if (minutes > 0) {
-				return `${minutes} phút trước`;
-			} else {
-				return 'Vừa xong';
-			}
-		}
-
-		function toggleReplyForm(commentId, username) {
-			const replyForm = document.getElementById(`reply-form-${commentId}`);
-			replyForm.classList.toggle('show');
-			if (replyForm.classList.contains('show')) {
-				const replyInput = document.getElementById(`reply-input-${commentId}`);
-				replyInput.focus();
-			}
-		}
-
-		async function sendReply(commentId, lessonId, chapterId, courseId, ownerUsername) {
-			const replyInput = document.getElementById(`reply-input-${commentId}`);
-			const reply = replyInput.value.trim();
-
-			if (!reply) return;
-
-			const token = localStorage.getItem("token");
-			if (!token) {
-				alert("Vui lòng đăng nhập để trả lời bình luận.");
-				return;
-			}
-
-			const payload = JSON.parse(atob(token.split('.')[1]));
-			const replyUsername = payload.sub;
-
-			try {
-				let client = window.stompClient;
-				if (!client || !client.connected) {
-					client = await reconnectWebSocket();
-				}
-
-				const replyMessage = {
-					ownerAccountId: ownerUsername,
-					replyAccountId: replyUsername,
-					chapterId: chapterId,
-					courseId: courseId,
-					parentCommentId: commentId,
-					detail: reply
-				};
-
-				console.log("Sending reply message:", replyMessage);
-				client.send("/app/comment-reply", {}, JSON.stringify(replyMessage));
-				replyInput.value = '';
-				toggleReplyForm(commentId, ownerUsername);
-			} catch (error) {
-				console.error("Lỗi khi gửi trả lời:", error);
-				alert("Lỗi khi gửi trả lời. Vui lòng thử lại.");
-			}
-		}
-
-		function updateReplyInUI(reply) {
-			const repliesList = document.getElementById(`replies-${reply.parentCommentId}`);
-			if (repliesList) {
-				const replyItem = document.createElement('div');
-				replyItem.className = 'reply-item';
-				replyItem.innerHTML = `
                     <div class="reply-content">${reply.detail}</div>
                     <div class="reply-metadata">
-                        <span class="comment-author">${reply.replyAccountId}</span>
-                        <span class="comment-time">Vừa xong</span>
+                        ${reply.avatarReply ? `<img src="${reply.avatarReply}" alt="Avatar" style="width:20px; height:20px; border-radius:50%; margin-right:5px;">` : ''}
+                        <span class="comment-author">${reply.fullnameReply ? reply.fullnameReply : reply.usernameReply}</span>
+                        <span class="comment-time">${formatTimeAgo(reply.createdDate)}</span>
                     </div>
                 `;
                 repliesList.appendChild(replyItem);
+            } else {
+                console.error(`Could not find repliesList for parentCommentId (used reply.commentId from message): ${reply.commentId}`);
             }
         }
 
@@ -751,15 +685,58 @@
 
                     // Subscribe để nhận comment mới
                     stompClient.subscribe("/topic/comments", function (message) {
-                        const content = JSON.parse(message.body);
-                        updateCommentInUI(content);
+                        console.log("[WebSocket Subscribe /topic/comments] Received message:", message.body);
+                        const rawCommentData = JSON.parse(message.body);
+                        if (rawCommentData && rawCommentData.code === 0 && rawCommentData.result) {
+                            const content = rawCommentData.result;
+                            updateCommentInUI(content);
+                        } else {
+                            console.error("Received invalid comment message from WebSocket:", rawCommentData);
+                        }
                     });
 
                     // Subscribe để nhận reply mới
                     stompClient.subscribe("/topic/comment-replies", function (message) {
-                        const reply = JSON.parse(message.body);
-                        updateReplyInUI(reply);
+                        console.log("[WebSocket Subscribe /topic/comment-replies] Received message:", message.body);
+                        const rawReplyData = JSON.parse(message.body);
+                        if (rawReplyData && rawReplyData.code === 0 && rawReplyData.result) {
+                            const reply = rawReplyData.result;
+                            updateReplyInUI(reply);
+                        } else {
+                            console.error("Received invalid reply message from WebSocket:", rawReplyData);
+                        }
                     });
+
+                    // Subscribe to user-specific notifications if a user is logged in
+                    const token = localStorage.getItem("token");
+                    if (token) {
+                        try {
+                            const payload = JSON.parse(atob(token.split('.')[1]));
+                            const username = payload.sub;
+                            if (username) {
+                                const userNotificationTopic = `/topic/notifications/${username}`;
+                                stompClient.subscribe(userNotificationTopic, function (message) {
+                                    console.log(`[WebSocket Subscribe ${userNotificationTopic}] Received message:`, message.body);
+                                    // Add your logic here to handle the received notification
+                                    // For example, display it in a toast or a notification list
+                                    try {
+                                        const notificationPayload = JSON.parse(message.body);
+                                        alert(`Thông báo mới: ${notificationPayload.message}\nChapter ID: ${notificationPayload.chapterId}\nCourse ID: ${notificationPayload.courseId || 'N/A'}`);
+                                        // You might want a more sophisticated way to display this
+                                    } catch (e) {
+                                        console.error("Error parsing user notification payload:", e, message.body);
+                                    }
+                                });
+                                console.log(`[WebSocket] Subscribed to user-specific notifications: ${userNotificationTopic}`);
+                            } else {
+                                console.warn("[WebSocket] Username (sub) not found in token payload for user-specific subscription.");
+                            }
+                        } catch (e) {
+                            console.error("[WebSocket] Error parsing token for user-specific subscription:", e);
+                        }
+                    } else {
+                        console.log("[WebSocket] No token found, skipping user-specific notification subscription.");
+                    }
 
                     window.stompClient = stompClient;
                     sessionStorage.setItem('wsConnected', 'true');
@@ -905,227 +882,73 @@
 
                 if (sortedLessons.length === 0) {
                     const emptyLessonLi = document.createElement("li");
-                    emptyLessonLi.innerHTML = `
-				repliesList.appendChild(replyItem);
-			}
-		}
+                    emptyLessonLi.innerHTML = '<div class="lesson"><em>Chưa có bài học nào.</em></div>';
+                    lessonsUl.appendChild(emptyLessonLi);
+                    return;
+                }
 
-		function reconnectWebSocket() {
-			if (window.stompClient && window.stompClient.connected) {
-				console.log("WebSocket đã được kết nối");
-				return window.stompClient;
-			}
-
-			const socket = new WebSocket("ws://localhost:8080/lms/ws");
-			const stompClient = Stomp.over(socket);
-
-			return new Promise((resolve, reject) => {
-				stompClient.connect({}, function (frame) {
-					console.log("Kết nối lại WebSocket thành công:", frame);
-
-					// Subscribe để nhận comment mới
-					stompClient.subscribe("/topic/comments", function (message) {
-						const content = JSON.parse(message.body);
-						updateCommentInUI(content);
-					});
-
-					// Subscribe để nhận reply mới
-					stompClient.subscribe("/topic/comment-replies", function (message) {
-						const reply = JSON.parse(message.body);
-						updateReplyInUI(reply);
-					});
-
-					window.stompClient = stompClient;
-					sessionStorage.setItem('wsConnected', 'true');
-					resolve(stompClient);
-				}, function (error) {
-					console.error("Lỗi kết nối WebSocket:", error);
-					reject(error);
-				});
-			});
-		}
-
-		document.addEventListener('DOMContentLoaded', async function () {
-			try {
-				// Kiểm tra xem đã từng kết nối chưa
-				if (sessionStorage.getItem('wsConnected') === 'true') {
-					// Thử kết nối lại
-					await reconnectWebSocket();
-				}
-
-				loadCourses();
-			} catch (error) {
-				console.error("Lỗi khởi tạo WebSocket:", error);
-			}
-		});
-
-		async function sendComment(lessonId, chapterId, courseId) {
-			const commentInput = document.getElementById(`comment-${chapterId}`);
-			const comment = commentInput.value.trim();
-			const spinner = document.getElementById(`spinner-${chapterId}`);
-			const sendButton = document.getElementById(`send-button-${chapterId}`);
-
-			if (!comment) return;
-
-			const token = localStorage.getItem("token");
-			if (!token) {
-				alert("Vui lòng đăng nhập để bình luận.");
-				return;
-			}
-
-			const payload = JSON.parse(atob(token.split('.')[1]));
-			const username = payload.sub;
-
-			try {
-				spinner.style.display = 'block';
-				sendButton.disabled = true;
-
-				// Kiểm tra và kết nối lại nếu cần
-				let client = window.stompClient;
-				if (!client || !client.connected) {
-					client = await reconnectWebSocket();
-				}
-
-				client.send("/app/comment", {}, JSON.stringify({
-					detail: comment,
-					lessonId: lessonId,
-					chapterId: chapterId,
-					courseId: courseId,
-					accountId: username
-				}));
-
-				commentInput.value = '';
-			} catch (error) {
-				alert("Lỗi kết nối WebSocket! Vui lòng tải lại trang.");
-			} finally {
-				spinner.style.display = 'none';
-				sendButton.disabled = false;
-			}
-		}
-
-		async function loadCourses() {
-			const token = localStorage.getItem("token");
-			if (!token) {
-				alert("Chưa có token! Hãy đăng nhập trước.");
-				return;
-			}
-
-			try {
-				const res = await fetch("http://localhost:8080/lms/course", {
-					method: "GET",
-					headers: {
-						"Authorization": "Bearer " + token
-					}
-				});
-
-				const data = await res.json();
-				const courseList = document.getElementById("courseList");
-				courseList.innerHTML = "";
-
-				data.result.forEach(course => {
-					const li = document.createElement("li");
-					li.innerHTML = `
-                    <div class="course">
-                            <strong>${course.name}</strong> - ${course.description || 'Không có mô tả'}<br/>
-                            <em>Giảng viên:</em> ${course.teacher ? `${course.teacher.fullName} (${course.teacher.email})` : 'Chưa có giảng viên'}<br/>
-                            <em>Ngành:</em> ${course.major || 'Chưa có ngành'}<br/>
-                        <em>Thời gian học:</em> ${new Date(course.startDate).toLocaleDateString()} - ${new Date(course.endDate).toLocaleDateString()}<br/>
-                            <button onclick="loadCourseDetail('${course.id}')">Xem bài học</button>
-                        <ul id="lessons-${course.id}" style="display:none;"></ul>
-                    </div>`;
-					courseList.appendChild(li);
-				});
-			} catch (error) {
-				console.error('Error loading courses:', error);
-				alert('Có lỗi xảy ra khi tải khóa học. Vui lòng thử lại sau.');
-			}
-		}
-
-		async function loadCourseDetail(courseId) {
-			const token = localStorage.getItem("token");
-			if (!token) {
-				alert("Chưa có token! Hãy đăng nhập trước.");
-				return;
-			}
-
-			try {
-				const res = await fetch(`http://localhost:8080/lms/course/${courseId}`, {
-					method: "GET",
-					headers: {
-						"Authorization": "Bearer " + token
-					}
-				});
-
-				const data = await res.json();
-				const course = data.result;
-				const lessonsUl = document.getElementById(`lessons-${courseId}`);
-
-				lessonsUl.style.display = lessonsUl.style.display === "none" ? "block" : "none";
-
-				if (lessonsUl.style.display === "none") {
-					return;
-				}
-
-				lessonsUl.innerHTML = "";
-
-				const lessons = Array.isArray(course.lesson) ? course.lesson : [];
-				const sortedLessons = lessons.sort((a, b) => (a.order || 0) - (b.order || 0));
-
-				if (sortedLessons.length === 0) {
-					const emptyLessonLi = document.createElement("li");
-					emptyLessonLi.innerHTML = `
-                        <div class="lesson">
-                            <em>Chưa có bài học nào.</em>
-                        </div>`;
-					lessonsUl.appendChild(emptyLessonLi);
-					return;
-				}
-
-				sortedLessons.forEach(lesson => {
-					const lessonLi = document.createElement("li");
-					lessonLi.innerHTML = `
+                sortedLessons.forEach(lesson => {
+                    const lessonLi = document.createElement("li");
+                    lessonLi.innerHTML = `
                         <div class="lesson">
                             <strong>Bài ${lesson.order || '?'}:</strong> ${lesson.description || 'Không có mô tả'}<br/>
                             <div class="material">
                                 <em>Tài liệu:</em>
                                 ${Array.isArray(lesson.lessonMaterial) && lesson.lessonMaterial.length > 0
-							? lesson.lessonMaterial.map(m => `<a href="${m.path}" target="_blank">Xem</a>`).join(', ')
-							: 'Không có'}
+                            ? lesson.lessonMaterial.map(m => `<a href="${m.path}" target="_blank">Xem</a>`).join(', ')
+                            : 'Không có'}
                             </div>
                             <div class="quiz">
                                 <em>Quiz:</em><br/>
                                 ${Array.isArray(lesson.lessonQuiz) && lesson.lessonQuiz.length > 0
-							? lesson.lessonQuiz.map(q =>
-								`Câu hỏi: ${q.question || ''}<br/>
+                            ? lesson.lessonQuiz.map(q =>
+                                `Câu hỏi: ${q.question || ''}<br/>
                                          Tùy chọn: ${q.option || ''}<br/>
                                          Đáp án: ${q.answer || ''}<br/>`).join('')
-							: 'Không có'}
+                            : 'Không có'}
                             </div>
                             <button onclick="toggleChapters('${lesson.id}')">Xem chương</button>
                             <ul id="chapters-${lesson.id}" style="display:none;"></ul>
                         </div>`;
-					lessonsUl.appendChild(lessonLi);
+                    lessonsUl.appendChild(lessonLi);
 
-					const chapterUl = lessonLi.querySelector(`#chapters-${lesson.id}`);
-					const chapters = Array.isArray(lesson.chapter) ? lesson.chapter : [];
+                    const chapterUl = lessonLi.querySelector(`#chapters-${lesson.id}`);
+                    const chapters = Array.isArray(lesson.chapter) ? lesson.chapter : [];
 
-					if (chapters.length === 0) {
-						const emptyChapterLi = document.createElement("li");
-						emptyChapterLi.innerHTML = `<div class="chapter"><em>Không có chương.</em></div>`;
-						chapterUl.appendChild(emptyChapterLi);
-						return;
-					}
+                    if (chapters.length === 0) {
+                        const emptyChapterLi = document.createElement("li");
+                        emptyChapterLi.innerHTML = `<div class="chapter"><em>Không có chương.</em></div>`;
+                        chapterUl.appendChild(emptyChapterLi);
+                        return;
+                    }
 
-					const sortedChapters = chapters.sort((a, b) => (a.order || 0) - (b.order || 0));
+                    const sortedChapters = chapters.sort((a, b) => (a.order || 0) - (b.order || 0));
 
-					sortedChapters.forEach((chapter) => {
-						const chapterLi = document.createElement("li");
-						chapterLi.innerHTML = `
+                    sortedChapters.forEach((chapter) => {
+                        const chapterLi = document.createElement("li");
+                        chapterLi.innerHTML = `
                                 <div class="chapter">
                                 <strong>Chương ${chapter.order || '?'}:</strong> ${chapter.name || "Không có tên chương"}<br/>
                                 ${chapter.type ? `<em>Loại:</em> ${chapter.type}<br/>` : ''}
                                     <em>Đường dẫn:</em> ${chapter.path ? `<a href="${chapter.path}" target="_blank">${chapter.path}</a>` : "Không có"}<br/>
-                                <div id="comments-container-${chapter.id}"></div>
+                                
+                                <div class="comment-section" id="comment-section-${chapter.id}">
+                                    <div class="comment-header">
+                                        <h4>Bình luận <span class="comment-count" id="comment-count-${chapter.id}">0</span></h4>
+                                    </div>
+                                    <div class="comment-form">
+                                        <div class="comment-input-wrapper">
+                                            <input type="text" class="comment-input" id="comment-${chapter.id}" placeholder="Viết bình luận của bạn...">
+                                            <div class="loading-spinner" id="spinner-${chapter.id}"></div>
+                                        </div>
+                                        <button class="send-button" id="send-button-${chapter.id}" onclick="sendComment('${lesson.id}', '${chapter.id}', '${courseId}')">
+                                            <i class="fas fa-paper-plane"></i> Gửi
+                                        </button>
+                                    </div>
+                                    <div id="comments-list-target-${chapter.id}" class="comments-list-container">
+                                        <!-- Existing comments will be rendered here -->
+                                    </div>
+                                </div>
                             </div>
                         `;
 
@@ -1143,13 +966,20 @@
                             .then(commentsData => {
                                 if (commentsData && commentsData.result && commentsData.result.content) {
                                     const comments = commentsData.result.content || [];
-                                    const commentsContainer = chapterLi.querySelector(`#comments-container-${chapter.id}`);
-                                    const commentsHtml = displayComments({
+
+                                    const commentCountElement = chapterLi.querySelector(`#comment-count-${chapter.id}`);
+                                    if (commentCountElement) {
+                                        commentCountElement.textContent = comments.length;
+                                    }
+
+                                    const commentsListTarget = chapterLi.querySelector(`#comments-list-target-${chapter.id}`);
+                                    const chapterContext = {
                                         id: chapter.id,
                                         lessonId: lesson.id,
                                         courseId: courseId
-                                    }, comments);
-                                    commentsContainer.innerHTML = commentsHtml;
+                                    };
+                                    const commentsHtml = displayComments(chapterContext, comments);
+                                    commentsListTarget.innerHTML = commentsHtml;
 
                                     // Gọi API lấy reply cho từng comment
                                     comments.forEach(comment => {
@@ -1165,7 +995,7 @@
                                             .then(response => response.json())
                                             .then(replyData => {
                                                 if (replyData && replyData.result && replyData.result.content) {
-                                                    const repliesList = commentsContainer.querySelector(`#replies-${comment.commentId}`);
+                                                    const repliesList = commentsListTarget.querySelector(`#replies-${comment.commentId}`);
                                                     if (repliesList) {
                                                         repliesList.innerHTML = replyData.result.content.map(reply => `
                                                         <div class="reply-item">
@@ -1184,13 +1014,14 @@
                             })
                             .catch(error => {
                                 console.error('Error loading comments for chapter:', chapter.id, error);
-                                const commentsContainer = chapterLi.querySelector(`#comments-container-${chapter.id}`);
-                                const commentsHtml = displayComments({
+                                const commentsListTarget = chapterLi.querySelector(`#comments-list-target-${chapter.id}`);
+                                const chapterContext = {
                                     id: chapter.id,
                                     lessonId: lesson.id,
                                     courseId: courseId
-                                }, []);
-                                commentsContainer.innerHTML = commentsHtml;
+                                };
+                                const commentsHtml = displayComments(chapterContext, []); // Show empty list with form
+                                commentsListTarget.innerHTML = commentsHtml;
                             });
 
                         chapterUl.appendChild(chapterLi);
@@ -1207,50 +1038,6 @@
             ul.style.display = ul.style.display === "none" ? "block" : "none";
         }
     </script>
-						// Gọi API để lấy comments cũ
-						fetch(`http://localhost:8080/lms/comments/chapter/${chapter.id}`, {
-							method: "GET",
-							headers: {
-								"Authorization": "Bearer " + token
-							}
-						})
-							.then(response => response.json())
-							.then(commentsData => {
-								if (commentsData) {
-									const commentsContainer = chapterLi.querySelector(`#comments-container-${chapter.id}`);
-									const commentsHtml = displayComments({
-										id: chapter.id,
-										lessonId: lesson.id,
-										courseId: courseId
-									}, commentsData);
-									commentsContainer.innerHTML = commentsHtml;
-								}
-							})
-							.catch(error => {
-								console.error('Error loading comments for chapter:', chapter.id, error);
-								const commentsContainer = chapterLi.querySelector(`#comments-container-${chapter.id}`);
-								const commentsHtml = displayComments({
-									id: chapter.id,
-									lessonId: lesson.id,
-									courseId: courseId
-								}, []);
-								commentsContainer.innerHTML = commentsHtml;
-							});
-
-						chapterUl.appendChild(chapterLi);
-					});
-				});
-			} catch (error) {
-				console.error('Error loading course detail:', error);
-				alert('Có lỗi xảy ra khi tải chi tiết khóa học.');
-			}
-		}
-
-		function toggleChapters(lessonId) {
-			const ul = document.getElementById(`chapters-${lessonId}`);
-			ul.style.display = ul.style.display === "none" ? "block" : "none";
-		}
-	</script>
 </body>
 
 </html>
