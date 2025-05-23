@@ -8,15 +8,14 @@ import org.springframework.stereotype.Repository;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Teacher;
 
-
 @Repository
 public interface GroupRepository extends JpaRepository<Group, String> {
 
 	Group findByIdAndTeacher(String id, Teacher teacher);
-	
+
 	Page<Group> findByTeacher(Teacher teacher, Pageable pageable);
-	
+
 	Page<Group> findByTeacherAndNameContainingIgnoreCase(Teacher teacher, String keyword, Pageable pageable);
 
-	
+	Group findByPostId(String postId);
 }
