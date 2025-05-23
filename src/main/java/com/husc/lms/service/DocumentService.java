@@ -195,8 +195,14 @@ public class DocumentService {
 	    });
 	}
 	
-	public Page<DocumentResponse> findDocumentByMajor(String majorId, int page, int size) {
-		Pageable pageable = PageRequest.of(page, size);
+	public Page<DocumentResponse> findDocumentByMajor(String majorId, int page, int size, String sortBy) {
+		Pageable pageable;
+	    switch (sortBy) {
+	        case "NEWEST" -> pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+	        case "OLDEST" -> pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
+	        default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
+	    }
+		
 		
 		Major major = majorRepository.findById(majorId).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
 		
@@ -212,8 +218,13 @@ public class DocumentService {
 	}
 
 	
-	public Page<DocumentResponse> getAllMyDocument(int page, int size, String keyword) {
-	    Pageable pageable = PageRequest.of(page, size);
+	public Page<DocumentResponse> getAllMyDocument(int page, int size, String keyword, String sortBy) {
+		Pageable pageable;
+	    switch (sortBy) {
+	        case "NEWEST" -> pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+	        case "OLDEST" -> pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "createdAt"));
+	        default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
+	    }
 	    var context = SecurityContextHolder.getContext();
 	    String name = context.getAuthentication().getName();
 	    Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow();

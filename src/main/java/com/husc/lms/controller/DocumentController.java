@@ -81,18 +81,20 @@ public class DocumentController {
 	@GetMapping("/getbymajor")
 	public APIResponse<Page<DocumentResponse>> findDocumentByMajor(@RequestParam("majorId") String majorId ,
 			@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
-			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+			@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize,
+			@RequestParam(value = "sortBy", required = false, defaultValue = "NEWEST") String sortBy){
 		return APIResponse.<Page<DocumentResponse>>builder()
-				.result(documentService.findDocumentByMajor(majorId, pageNumber, pageSize))
+				.result(documentService.findDocumentByMajor(majorId, pageNumber, pageSize, sortBy))
 				.build();
 	}
 	
 	@GetMapping("/mydocument")
 	public APIResponse<Page<DocumentResponse>> getAllMyDocument(@RequestParam(required = false) String keyword,
 																@RequestParam(value = "pageNumber", required = false, defaultValue = "0") int pageNumber,
-																@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize){
+																@RequestParam(value = "pageSize", required = false, defaultValue = "20") int pageSize,
+																@RequestParam(value = "sortBy", required = false, defaultValue = "NEWEST") String sortBy){
 		return APIResponse.<Page<DocumentResponse>>builder()
-				.result(documentService.getAllMyDocument(pageNumber, pageSize,keyword))
+				.result(documentService.getAllMyDocument(pageNumber, pageSize,keyword, sortBy))
 				.build();
 	}
 	
