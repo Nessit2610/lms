@@ -343,13 +343,16 @@ public class CommentService {
                                                                         .isRead(false)
                                                                         .build());
 
+                                                        String notificationMessage = "Có bình luận mới trong bài viết: "
+                                                                        + savedComment.getDetail();
+
                                                         // Tạo notification cho sinh viên
                                                         Notification studentNotification = Notification.builder()
                                                                         .account(student.getAccount())
                                                                         .comment(savedComment)
                                                                         .post(post)
                                                                         .type(NotificationType.POST_COMMENT.name())
-                                                                        .description(savedComment.getDetail())
+                                                                        .description(notificationMessage)
                                                                         .isRead(false)
                                                                         .createdAt(OffsetDateTime.now())
                                                                         .build();
@@ -357,9 +360,7 @@ public class CommentService {
 
                                                         // Gửi WebSocket notification
                                                         Map<String, Object> payload = new HashMap<>();
-                                                        payload.put("message",
-                                                                        "Có bình luận mới trong bài viết: "
-                                                                                        + savedComment.getDetail());
+                                                        payload.put("message", notificationMessage);
                                                         payload.put("type", NotificationType.POST_COMMENT.name());
                                                         payload.put("postId", post.getId());
                                                         payload.put("commentId", savedComment.getId());
@@ -372,7 +373,7 @@ public class CommentService {
                                 }
                         }
                 } else {
-                        // Xử lý cho chapter comment (giữ nguyên logic cũ)
+                        // Xử lý cho chapter comment
                         Lesson lesson = savedComment.getChapter().getLesson();
                         if (lesson == null) {
                                 throw new IllegalArgumentException("Chapter không thuộc lesson nào.");
@@ -390,21 +391,22 @@ public class CommentService {
                                                 .build());
 
                                 if (!isTeacherTheCommenter) {
+                                        String notificationMessage = "Có bình luận mới từ khóa học "
+                                                        + savedComment.getCourse().getName() + ": "
+                                                        + savedComment.getDetail();
+
                                         Notification teacherNotification = Notification.builder()
                                                         .account(teacherAccount)
                                                         .comment(savedComment)
                                                         .type(NotificationType.COMMENT.name())
-                                                        .description(savedComment.getDetail())
+                                                        .description(notificationMessage)
                                                         .isRead(false)
                                                         .createdAt(OffsetDateTime.now())
                                                         .build();
                                         notificationRepository.save(teacherNotification);
 
                                         Map<String, Object> teacherPayload = new HashMap<>();
-                                        teacherPayload.put("message",
-                                                        "Có bình luận mới từ khóa học "
-                                                                        + savedComment.getCourse().getName() + ": "
-                                                                        + savedComment.getDetail());
+                                        teacherPayload.put("message", notificationMessage);
                                         teacherPayload.put("type", NotificationType.COMMENT.name());
                                         teacherPayload.put("courseId", savedComment.getCourse().getId());
                                         teacherPayload.put("lessonId", lesson.getId());
