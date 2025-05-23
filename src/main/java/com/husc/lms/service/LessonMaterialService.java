@@ -198,7 +198,7 @@ public class LessonMaterialService {
 	private void validateFileExtension(String type, String extension) {
 	    Set<String> imageExtensions = Set.of(".jpg", ".jpeg", ".png", ".gif");
 	    Set<String> videoExtensions = Set.of(".mp4", ".avi", ".mov");
-	    Set<String> fileExtensions = Set.of(".pdf", ".doc", ".docx", ".txt");
+	    Set<String> fileExtensions = Set.of(".pdf", ".doc", ".docx", ".txt", ".pptx");
 
 	    switch (type.toLowerCase()) {
 	        case "image" -> {

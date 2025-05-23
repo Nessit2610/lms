@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
 
@@ -21,8 +22,11 @@ import com.husc.lms.dto.request.RefreshRequest;
 import com.husc.lms.dto.response.AuthenticationResponse;
 import com.husc.lms.dto.response.IntrospectResponse;
 import com.husc.lms.entity.InvalidatedToken;
+import com.husc.lms.entity.Role;
 import com.husc.lms.entity.Account;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.Roles;
+import com.husc.lms.enums.StatusCourse;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.repository.InvalidatedTokenRepository;
 import com.husc.lms.repository.AccountRepository;
@@ -110,16 +114,25 @@ public class AuthenticationService {
 		PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(request.getUsername())
 				.orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
-		
+		String role = switch (request.getRolerequest()) {
+        case "TEACHER" -> Roles.TEACHER.name();
+        case "STUDENT" -> Roles.STUDENT.name();
+        case "ADMIN" -> Roles.ADMIN.name();
+        default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
+		};
 		boolean auth =  passwordEncoder.matches(request.getPassword(), account.getPassword());
 		if(!auth) {
 			throw new AppException(ErrorCode.USER_UNAUTHENTICATED);
 		}
 		else {
+			if(!hasRole(account.getRoles(), role)) {
+				throw new AppException(ErrorCode.USER_UNAUTHENTICATED);
+			}
 			if(account.isActive() == false) {
 				throw new AppException(ErrorCode.ACCOUNT_LOCKED);
 			}
 		}
+		// 
 		var token = generateToken(account);
 		
 		return AuthenticationResponse.builder()
@@ -128,6 +141,11 @@ public class AuthenticationService {
 				.build();
 	}
 	
+	public boolean hasRole(Set<Role> roles,String roleName) {
+	    return roles.stream()
+	                .anyMatch(role -> roleName.equalsIgnoreCase(role.getName()));
+	}
+
 	
 	private String buildScope(Account user) {
 		StringJoiner stringJoiner = new StringJoiner(" ");

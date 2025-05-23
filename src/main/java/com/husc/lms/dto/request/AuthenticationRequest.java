@@ -17,4 +17,7 @@ public class AuthenticationRequest {
 	
 	@NotNull(message = "NOT_NULL")
 	private String password;
+	
+	@NotNull(message = "NOT_NULL")
+	private String rolerequest;
 }
