@@ -339,7 +339,7 @@ public class CommentService {
                                                         commentReadStatusRepository.save(CommentReadStatus.builder()
                                                                         .account(student.getAccount())
                                                                         .comment(savedComment)
-                                                                        .commentType(CommentType.COMMENT_POST)
+                                                                        .commentType(CommentType.COMMENT_POST.name())
                                                                         .isRead(false)
                                                                         .build());
 
@@ -348,7 +348,7 @@ public class CommentService {
                                                                         .account(student.getAccount())
                                                                         .comment(savedComment)
                                                                         .post(post)
-                                                                        .type(NotificationType.POST_COMMENT)
+                                                                        .type(NotificationType.POST_COMMENT.name())
                                                                         .description(savedComment.getDetail())
                                                                         .isRead(false)
                                                                         .createdAt(OffsetDateTime.now())
@@ -385,7 +385,7 @@ public class CommentService {
                                 commentReadStatusRepository.save(CommentReadStatus.builder()
                                                 .account(teacherAccount)
                                                 .comment(savedComment)
-                                                .commentType(CommentType.COMMENT)
+                                                .commentType(CommentType.COMMENT.name())
                                                 .isRead(isTeacherTheCommenter)
                                                 .build());
 
@@ -393,7 +393,7 @@ public class CommentService {
                                         Notification teacherNotification = Notification.builder()
                                                         .account(teacherAccount)
                                                         .comment(savedComment)
-                                                        .type(NotificationType.COMMENT)
+                                                        .type(NotificationType.COMMENT.name())
                                                         .description(savedComment.getDetail())
                                                         .isRead(false)
                                                         .createdAt(OffsetDateTime.now())

@@ -68,8 +68,6 @@ public class ChatWebSocketServiceImpl implements ChatWebSocketService {
                 String currentAccountUsername = request.getCurrentAccountUsername();
                 Account currentAccount;
 
-                // Nếu currentAccountUsername rỗng hoặc null thì dùng username từ
-                // SecurityContext
                 if (currentAccountUsername == null || currentAccountUsername.isEmpty()) {
                         currentAccount = accountRepo.findByUsernameAndDeletedDateIsNull(username)
                                         .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,

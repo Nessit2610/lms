@@ -146,7 +146,7 @@ public class PostService {
 					.account(student.getAccount())
 					.description(
 							"Giảng viên " + teacher.getFullName() + " vừa đăng bài mới trong nhóm " + group.getName())
-					.type(NotificationType.JOIN_CLASS_PENDING)
+					.type(NotificationType.JOIN_CLASS_PENDING.name())
 					.createdAt(OffsetDateTime.now())
 					.build();
 			notificationRepository.save(notification);

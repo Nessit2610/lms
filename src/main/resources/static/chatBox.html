@@ -128,6 +128,63 @@
             color: white;
             font-size: 18px;
             border-bottom: 1px solid #0056b3;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-header-title {
+            flex-grow: 1;
+        }
+
+        .chat-header-actions {
+            display: flex;
+            align-items: center;
+        }
+
+        .add-member-ui button,
+        .chat-header button#showAddMemberInputButton,
+        .chat-header button#viewChatMembersButton {
+            background-color: transparent;
+            border: none;
+            color: white;
+            font-size: 1.2em;
+            cursor: pointer;
+            padding: 5px 8px;
+            margin-left: 10px;
+        }
+
+        .add-member-ui button:hover,
+        .chat-header button#showAddMemberInputButton:hover,
+        .chat-header button#viewChatMembersButton:hover {
+            opacity: 0.8;
+        }
+
+        #addMemberInputContainer {
+            display: flex;
+            align-items: center;
+        }
+
+        #addMemberInputContainer input {
+            padding: 5px 8px;
+            border-radius: 3px;
+            border: 1px solid #ccc;
+            margin-right: 5px;
+            font-size: 0.9em;
+        }
+
+        #addMemberInputContainer button {
+            padding: 5px 10px;
+            background-color: #fff;
+            color: #007bff;
+            border: 1px solid #007bff;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        #addMemberInputContainer button:hover {
+            background-color: #f0f0f0;
         }
 
         .messages-container {
@@ -292,6 +349,84 @@
             color: #333;
             word-break: break-all;
         }
+
+        /* Styles for Members Display Panel */
+        #membersDisplayPanel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 350px;
+            max-height: 400px;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            z-index: 1000;
+            padding: 20px;
+            display: none;
+            /* Hidden by default */
+            flex-direction: column;
+        }
+
+        #membersDisplayPanel h4 {
+            margin-top: 0;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        #membersListUl {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            overflow-y: auto;
+            flex-grow: 1;
+        }
+
+        #membersListUl li {
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #membersListUl li:last-child {
+            border-bottom: none;
+        }
+
+        #membersListUl .member-info {
+            font-size: 0.9em;
+        }
+
+        #membersListUl .remove-member-btn {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        #membersListUl .remove-member-btn:hover {
+            background-color: #cc0000;
+        }
+
+        #closeMembersPanelBtn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+            align-self: flex-end;
+        }
+
+        #closeMembersPanelBtn:hover {
+            background-color: #0056b3;
+        }
     </style>
 </head>
 
@@ -311,7 +446,18 @@
 
     <div class="chat-area">
         <div class="chat-header" id="chatHeader">
-            Chọn một cuộc trò chuyện
+            <span id="chatHeaderTitle">Chọn một cuộc trò chuyện</span>
+            <div class="chat-header-actions">
+                <button id="viewChatMembersButton" title="View Members" disabled><i class="fas fa-users"></i></button>
+                <div class="add-member-ui">
+                    <button id="showAddMemberInputButton" title="Add Member" disabled><i
+                            class="fas fa-user-plus"></i></button>
+                    <div id="addMemberInputContainer" style="display: none;">
+                        <input type="text" id="addMemberUsernameInput" placeholder="Username">
+                        <button id="confirmAddMemberButton">Thêm</button>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="messages-container" id="messagesContainer">
             <!-- Messages will be populated here -->
@@ -324,6 +470,15 @@
             </button>
             <button id="sendMessageButton" disabled>Gửi</button>
         </div>
+    </div>
+
+    <!-- Members Display Panel -->
+    <div id="membersDisplayPanel">
+        <h4>Thành viên Nhóm</h4>
+        <ul id="membersListUl">
+            <!-- Member items will be populated here -->
+        </ul>
+        <button id="closeMembersPanelBtn">Đóng</button>
     </div>
 
     <script>
@@ -410,6 +565,8 @@
                         reader.onload = function (e) {
                             filePreview = `<img src="${e.target.result}" class="file-preview" alt="Preview">`;
                             document.getElementById('messageInput').value = `[File: ${selectedFile.name}]`;
+                            const existingFilePreview = document.querySelector('.file-preview');
+                            if (existingFilePreview) existingFilePreview.remove();
                             document.getElementById('messageInput').insertAdjacentHTML('afterend', filePreview);
                         };
                         reader.readAsDataURL(selectedFile);
@@ -417,6 +574,17 @@
                         document.getElementById('messageInput').value = `[File: ${selectedFile.name}]`;
                     }
                 }
+            });
+
+            document.getElementById('showAddMemberInputButton').addEventListener('click', toggleAddMemberInput);
+            document.getElementById('confirmAddMemberButton').addEventListener('click', processAddMember);
+            document.getElementById('viewChatMembersButton').addEventListener('click', () => {
+                if (currentChatBoxId) {
+                    fetchAndDisplayChatMembers(currentChatBoxId);
+                }
+            });
+            document.getElementById('closeMembersPanelBtn').addEventListener('click', () => {
+                document.getElementById('membersDisplayPanel').style.display = 'none';
             });
         });
 
@@ -429,27 +597,36 @@
             stompClient = Stomp.over(socket);
             stompClient.debug = null;
 
-            stompClient.connect({}, function (frame) {
-                console.log("Kết nối WebSocket thành công:", frame);
+            const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
 
-                stompClient.subscribe(`/user/${currentUser.username}/queue/notifications`, function (message) {
-                    const notification = JSON.parse(message.body);
-                    console.log("Nhận thông báo chatbox mới/cập nhật từ /queue/notifications:", notification);
-                    if (notification.chatBoxId && notification.listMemmber) {
-                        addOrUpdateChatBoxToList(notification, true);
-                    }
-                });
+            function connect() {
+                stompClient.connect(headers,
+                    function (frame) {
+                        console.log("Kết nối WebSocket thành công:", frame);
 
-                stompClient.subscribe(`/topic/chatbox/${currentChatBoxId}/created`, function (message) {
-                    const response = JSON.parse(message.body);
-                    console.log("Nhận phản hồi tạo chatbox:", response);
-                    if (response.chatBoxId) {
-                        openChatBox(response.chatBoxId, response.nameOfChatBox, response.listMemmber);
+                        // Gửi token khi subscribe
+                        const subscribeHeaders = token ? { 'Authorization': 'Bearer ' + token } : {};
+
+                        stompClient.subscribe(`/user/${currentUser.username}/queue/notifications`, function (message) {
+                            const notification = JSON.parse(message.body);
+                            console.log("Nhận thông báo chatbox mới/cập nhật từ /queue/notifications:", notification);
+                            if (notification.chatBoxId && notification.listMemmber) {
+                                addOrUpdateChatBoxToList(notification, true);
+                            }
+                        }, subscribeHeaders);
+                    },
+                    function (error) {
+                        console.error("Lỗi kết nối WebSocket:", error);
+                        // Tự động reconnect sau 5 giây
+                        setTimeout(function () {
+                            console.log("Đang thử kết nối lại...");
+                            connect();
+                        }, 5000);
                     }
-                });
-            }, function (error) {
-                console.error("Lỗi kết nối WebSocket:", error);
-            });
+                );
+            }
+
+            connect();
         }
 
         function loadChatBoxes(token) {
@@ -558,19 +735,31 @@
         }
 
         let currentChatSubscription = null;
+        let currentAddMemberSubscription = null;
 
         function openChatBox(chatBoxId, chatName, members) {
             if (currentChatSubscription) {
                 currentChatSubscription.unsubscribe();
-                console.log("Unsubscribed from previous chat:", currentChatBoxId);
+                console.log("Unsubscribed from previous chat messages:", currentChatBoxId);
+            }
+            if (currentAddMemberSubscription) {
+                currentAddMemberSubscription.unsubscribe();
+                console.log("Unsubscribed from previous add member topic:", currentChatBoxId);
+            }
+            if (currentUser && currentUser.username && stompClient && stompClient.connected) {
+                const userCreatedTopic = `/topic/chatbox/${currentUser.username}/created`;
             }
 
             currentChatBoxId = chatBoxId;
-            document.getElementById('chatHeader').textContent = chatName || `Chat ID: ${chatBoxId}`;
+            document.getElementById('chatHeaderTitle').textContent = chatName || `Chat ID: ${chatBoxId}`;
             document.getElementById('messagesContainer').innerHTML = '';
             document.getElementById('messageInput').disabled = false;
             document.getElementById('sendMessageButton').disabled = false;
             document.getElementById('fileUploadButton').disabled = false;
+            document.getElementById('showAddMemberInputButton').disabled = false;
+            document.getElementById('viewChatMembersButton').disabled = false;
+            document.getElementById('addMemberInputContainer').style.display = 'none';
+            document.getElementById('addMemberUsernameInput').value = '';
 
             const existingPreview = document.querySelector('.file-preview');
             if (existingPreview) {
@@ -587,12 +776,58 @@
             loadMessagesForChatBox(chatBoxId);
 
             if (stompClient && stompClient.connected) {
+                const token = localStorage.getItem("token");
+                const subscribeHeaders = token ? { 'Authorization': 'Bearer ' + token } : {};
+
                 currentChatSubscription = stompClient.subscribe(`/topic/chatbox/${chatBoxId}`, function (message) {
                     const chatMessage = JSON.parse(message.body);
-                    console.log("Nhận tin nhắn mới:", chatMessage);
+                    console.log("Nhận tin nhắn mới từ /topic/chatbox/" + chatBoxId + ":", chatMessage);
                     displayMessage(chatMessage);
-                });
+                }, subscribeHeaders);
                 console.log("Subscribed to /topic/chatbox/" + chatBoxId);
+
+                currentAddMemberSubscription = stompClient.subscribe(`/topic/chatbox/${chatBoxId}/membersAdded`, function (message) {
+                    const response = JSON.parse(message.body);
+                    console.log("Received members added/updated response for " + chatBoxId + ":", response);
+                    alert(`Thành viên đã được cập nhật cho cuộc trò chuyện: ${response.chatboxName || chatName || `Chat ID: ${chatBoxId}`}.`);
+                    document.getElementById('chatHeaderTitle').textContent = response.chatboxName || chatName || `Chat ID: ${chatBoxId}`;
+                    const chatListItem = document.getElementById(`chatbox-${response.chatboxId}`);
+                    if (chatListItem && response.chatboxName) {
+                        chatListItem.querySelector('.chat-name').textContent = response.chatboxName;
+                        chatListItem.setAttribute('data-chatbox-name', response.chatboxName);
+                    }
+                }, subscribeHeaders);
+                console.log("Subscribed to /topic/chatbox/" + chatBoxId + "/membersAdded");
+
+                // TẠM THỜI COMMENT OUT SUBSCRIPTION GÂY RỐI ĐỂ TEST
+                /*
+                const userCreatedTopicPath = `/topic/chatbox/${currentUser.username}/created`;
+                stompClient.subscribe(userCreatedTopicPath, function (message) {
+                    const response = JSON.parse(message.body);
+                    console.log("Callback for " + userCreatedTopicPath + ":", response);
+
+                    if (response.chatBoxId) {
+                        if (response.chatBoxId === currentChatBoxId) {
+                            console.log("Notification on " + userCreatedTopicPath + " is for the current chat. Updating info if necessary.");
+                            const newChatName = response.nameOfChatBox || response.name;
+                            if (newChatName && document.getElementById('chatHeaderTitle').textContent !== newChatName) {
+                                document.getElementById('chatHeaderTitle').textContent = newChatName;
+                            }
+                            const chatListItem = document.getElementById(`chatbox-${response.chatBoxId}`);
+                            if (chatListItem && newChatName && chatListItem.querySelector('.chat-name').textContent !== newChatName) {
+                                chatListItem.querySelector('.chat-name').textContent = newChatName;
+                                chatListItem.setAttribute('data-chatbox-name', newChatName);
+                            }
+                        } else {
+                            console.log("Notification on " + userCreatedTopicPath + " is for a NEW or DIFFERENT chat. Adding to list and opening: " + response.chatBoxId);
+                            addOrUpdateChatBoxToList(response, true);
+                            openChatBox(response.chatBoxId, response.nameOfChatBox || response.name, response.listMemmber);
+                        }
+                    } else {
+                        console.log("Notification on " + userCreatedTopicPath + " lacks chatBoxId or is not relevant for opening.", response);
+                    }
+                }, subscribeHeaders);
+                */
             } else {
                 console.error("WebSocket chưa kết nối để subscribe vào topic chat.");
             }
@@ -766,7 +1001,11 @@
 
         function sendMessage() {
             const messageContent = document.getElementById('messageInput').value.trim();
-            if ((!messageContent && !selectedFile) || !currentChatBoxId) {
+            if (!messageContent && !selectedFile) {
+                return;
+            }
+            if (!currentChatBoxId) {
+                alert("Vui lòng chọn một cuộc trò chuyện trước.");
                 return;
             }
 
@@ -775,52 +1014,184 @@
                 return;
             }
 
-            if (selectedFile) {
-                // Gửi file qua REST API
-                const formData = new FormData();
-                formData.append('chatBoxId', currentChatBoxId);
-                formData.append('senderAccount', currentUser.username);
-                formData.append('content', messageContent);
-                formData.append('file', selectedFile);
-                formData.append('fileType', selectedFile.type.split('/')[0]);
-
-                fetch(`${API_BASE_URL}/chat/sendMessage`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + localStorage.getItem('token')
-                    },
-                    body: formData
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.result) {
-                            document.getElementById('messageInput').value = '';
-                            document.getElementById('fileInput').value = '';
-                            selectedFile = null;
-                            // Remove file preview if exists
-                            const existingPreview = document.querySelector('.file-preview');
-                            if (existingPreview) {
-                                existingPreview.remove();
-                            }
-                        } else {
-                            console.error('Error sending message:', data);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    });
-            } else if (stompClient && stompClient.connected) {
-                // Gửi text qua WebSocket
+            if (stompClient && stompClient.connected) {
                 const messageRequest = {
                     chatBoxId: currentChatBoxId,
                     senderAccount: currentUser.username,
                     content: messageContent
                 };
-                stompClient.send("/app/chat/sendMessage", {}, JSON.stringify(messageRequest));
+
+                const token = localStorage.getItem("token");
+                const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+
+                console.log("Sending message via WebSocket:", JSON.stringify(messageRequest));
+                stompClient.send("/app/chat/sendMessage", headers, JSON.stringify(messageRequest));
+
                 document.getElementById('messageInput').value = '';
+                document.getElementById('fileInput').value = '';
+                selectedFile = null;
+
+                const existingPreview = document.querySelector('.file-preview');
+                if (existingPreview) {
+                    existingPreview.remove();
+                }
             } else {
                 alert("Chưa kết nối WebSocket. Không thể gửi tin nhắn.");
             }
+        }
+
+        function toggleAddMemberInput() {
+            const container = document.getElementById('addMemberInputContainer');
+            container.style.display = container.style.display === 'none' ? 'flex' : 'none';
+            if (container.style.display === 'flex') {
+                document.getElementById('addMemberUsernameInput').focus();
+            }
+        }
+
+        function processAddMember() {
+            const usernameToAdd = document.getElementById('addMemberUsernameInput').value.trim();
+            if (!usernameToAdd) {
+                alert("Vui lòng nhập username của thành viên muốn thêm.");
+                return;
+            }
+
+            if (!currentChatBoxId) {
+                alert("Vui lòng chọn một cuộc trò chuyện trước khi thêm thành viên.");
+                return;
+            }
+
+            if (!currentUser || !currentUser.username) {
+                alert("Lỗi: Không thể xác định người yêu cầu. Vui lòng tải lại trang.");
+                return;
+            }
+
+            if (usernameToAdd === currentUser.username) {
+                alert("Bạn không thể tự thêm chính mình vào cuộc trò chuyện một lần nữa.");
+                return;
+            }
+
+            if (stompClient && stompClient.connected) {
+                const addMemberRequest = {
+                    chatboxId: currentChatBoxId,
+                    usernameOfRequestor: currentUser.username,
+                    chatMemberRequests: [
+                        { memberAccount: usernameToAdd }
+                    ]
+                };
+
+                console.log("Sending /chat/addMembers payload:", JSON.stringify(addMemberRequest));
+                stompClient.send("/app/chat/addMembers", {}, JSON.stringify(addMemberRequest));
+
+                document.getElementById('addMemberUsernameInput').value = '';
+                document.getElementById('addMemberInputContainer').style.display = 'none';
+            } else {
+                alert("Chưa kết nối WebSocket. Không thể thêm thành viên.");
+            }
+        }
+
+        function fetchAndDisplayChatMembers(chatBoxIdToFetch) {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Lỗi xác thực. Vui lòng đăng nhập lại.");
+                return;
+            }
+
+            console.log(`Fetching members for chatBoxId: ${chatBoxIdToFetch}`);
+            fetch(`${API_BASE_URL}/chatBox/${chatBoxIdToFetch}/members`, {
+                method: "GET",
+                headers: {
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/json"
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Lỗi ${response.status}: ${text || response.statusText}`);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(apiResponse => {
+                    if (apiResponse && apiResponse.result && Array.isArray(apiResponse.result)) {
+                        const members = apiResponse.result;
+                        displayChatMembers(members);
+                    } else {
+                        console.error("API response for members is not in expected format:", apiResponse);
+                        alert("Không thể lấy danh sách thành viên hoặc danh sách trống.");
+                        document.getElementById('membersDisplayPanel').style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error(`Lỗi khi tải danh sách thành viên cho chat box ${chatBoxIdToFetch}:`, error);
+                    alert(`Không thể tải danh sách thành viên: ${error.message}`);
+                    document.getElementById('membersDisplayPanel').style.display = 'none';
+                });
+        }
+
+        function displayChatMembers(members) {
+            const membersListUl = document.getElementById('membersListUl');
+            membersListUl.innerHTML = '';
+
+            if (members.length === 0) {
+                membersListUl.innerHTML = '<li>Không có thành viên nào (hoặc chỉ có bạn).</li>';
+                document.getElementById('membersDisplayPanel').style.display = 'flex';
+                return;
+            }
+
+            members.forEach(member => {
+                const listItem = document.createElement('li');
+                let memberHtml = `<span class="member-info">${member.accountUsername} (Tham gia: ${formatTimestamp(member.joinedAt) || 'N/A'})</span>`;
+
+                if (currentUser && member.accountUsername !== currentUser.username) {
+                    memberHtml += ` <button class="remove-member-btn" data-username="${member.accountUsername}">Xoá</button>`;
+                }
+                listItem.innerHTML = memberHtml;
+                membersListUl.appendChild(listItem);
+            });
+
+            document.querySelectorAll('#membersListUl .remove-member-btn').forEach(button => {
+                button.addEventListener('click', function () {
+                    const usernameToRemove = this.dataset.username;
+                    if (confirm(`Bạn có chắc muốn xoá thành viên ${usernameToRemove} khỏi nhóm không?`)) {
+                        processRemoveMember(currentChatBoxId, usernameToRemove);
+                    }
+                });
+            });
+
+            document.getElementById('membersDisplayPanel').style.display = 'flex';
+        }
+
+        function processRemoveMember(chatBoxId, memberUsernameToRemove) {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                alert("Lỗi xác thực. Vui lòng đăng nhập lại.");
+                return;
+            }
+
+            console.log(`Attempting to remove member ${memberUsernameToRemove} from chatBoxId: ${chatBoxId}`);
+            fetch(`${API_BASE_URL}/chatBox/${chatBoxId}/members/${memberUsernameToRemove}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error(`Lỗi ${response.status}: ${text || 'Không thể xoá thành viên.'}`);
+                        });
+                    }
+                    return response.text();
+                })
+                .then(data => {
+                    alert(`Đã xoá thành viên ${memberUsernameToRemove} thành công!`);
+                    fetchAndDisplayChatMembers(chatBoxId);
+                })
+                .catch(error => {
+                    console.error(`Lỗi khi xoá thành viên ${memberUsernameToRemove}:`, error);
+                    alert(`Lỗi khi xoá thành viên: ${error.message}`);
+                });
         }
 
     </script>

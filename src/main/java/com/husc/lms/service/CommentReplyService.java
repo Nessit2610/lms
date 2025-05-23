@@ -106,17 +106,19 @@ public class CommentReplyService {
                                 commentReadStatusRepository.save(CommentReadStatus.builder()
                                                 .account(postOwner)
                                                 .commentReply(savedReply)
-                                                .commentType(CommentType.COMMENT_REPLY_POST)
+                                                .commentType(CommentType.COMMENT_REPLY_POST.name())
                                                 .isRead(false)
                                                 .build());
 
                                 // Tạo notification cho chủ post
+                                String notificationMessage = "Có trả lời mới trong bài viết của bạn: "
+                                                + savedReply.getDetail();
                                 Notification postNotification = Notification.builder()
                                                 .account(postOwner)
                                                 .commentReply(savedReply)
                                                 .post(post)
-                                                .type(NotificationType.POST_COMMENT_REPLY)
-                                                .description(savedReply.getDetail())
+                                                .type(NotificationType.POST_COMMENT_REPLY.name())
+                                                .description(notificationMessage)
                                                 .isRead(false)
                                                 .createdAt(OffsetDateTime.now())
                                                 .build();
@@ -124,8 +126,7 @@ public class CommentReplyService {
 
                                 // Gửi WebSocket notification
                                 Map<String, Object> payload = new HashMap<>();
-                                payload.put("message",
-                                                "Có trả lời mới trong bài viết của bạn: " + savedReply.getDetail());
+                                payload.put("message", notificationMessage);
                                 payload.put("type", NotificationType.POST_COMMENT_REPLY.name());
                                 payload.put("postId", post.getId());
                                 payload.put("commentId", parentComment.getId());
@@ -147,22 +148,23 @@ public class CommentReplyService {
                                 commentReadStatusRepository.save(CommentReadStatus.builder()
                                                 .account(teacherAccount)
                                                 .commentReply(savedReply)
-                                                .commentType(CommentType.REPLY)
+                                                .commentType(CommentType.REPLY.name())
                                                 .isRead(false)
                                                 .build());
 
+                                String teacherNotificationMessage = "Có trả lời mới cho bình luận trong khóa học "
+                                                + parentComment.getCourse().getName() + ": " + savedReply.getDetail();
                                 notificationRepository.save(Notification.builder()
                                                 .account(teacherAccount)
                                                 .commentReply(savedReply)
-                                                .description(savedReply.getDetail())
+                                                .description(teacherNotificationMessage)
                                                 .createdAt(OffsetDateTime.now())
-                                                .type(NotificationType.COMMENT_REPLY)
+                                                .type(NotificationType.COMMENT_REPLY.name())
                                                 .isRead(false)
                                                 .build());
 
                                 Map<String, Object> teacherPayload = new HashMap<>();
-                                teacherPayload.put("message", "Có trả lời mới cho bình luận trong khóa học "
-                                                + parentComment.getCourse().getName() + ": " + savedReply.getDetail());
+                                teacherPayload.put("message", teacherNotificationMessage);
                                 teacherPayload.put("type", NotificationType.COMMENT_REPLY.name());
                                 teacherPayload.put("courseId", parentComment.getCourse().getId());
                                 teacherPayload.put("lessonId", lesson.getId());
@@ -181,39 +183,56 @@ public class CommentReplyService {
                         for (Student student : eligibleStudents) {
                                 Account studentAccount = student.getAccount();
                                 if (studentAccount != null && !studentAccount.getId().equals(replyAccount.getId())) {
+                                        String studentNotificationMessage = "Có trả lời mới cho bình luận trong khóa học "
+                                                        + parentComment.getCourse().getName() + ": "
+                                                        + savedReply.getDetail();
                                         notificationRepository.save(Notification.builder()
                                                         .account(studentAccount)
                                                         .commentReply(savedReply)
-                                                        .type(NotificationType.COMMENT_REPLY)
-                                                        .description(message.getDetail())
+                                                        .type(NotificationType.COMMENT_REPLY.name())
+                                                        .description(studentNotificationMessage)
                                                         .isRead(false)
                                                         .createdAt(OffsetDateTime.now())
                                                         .build());
 
-                                        notificationService.sendConstructedCommentReplyNotification(
-                                                        studentAccount.getUsername(), ownerAccount, savedReply,
-                                                        parentComment.getChapter(), parentComment.getCourse(),
-                                                        parentComment);
+                                        Map<String, Object> studentPayload = new HashMap<>();
+                                        studentPayload.put("message", studentNotificationMessage);
+                                        studentPayload.put("type", NotificationType.COMMENT_REPLY.name());
+                                        studentPayload.put("courseId", parentComment.getCourse().getId());
+                                        studentPayload.put("lessonId", lesson.getId());
+                                        studentPayload.put("chapterId", parentComment.getChapter().getId());
+                                        studentPayload.put("parentCommentId", parentComment.getId());
+                                        studentPayload.put("commentReplyId", savedReply.getId());
+                                        studentPayload.put("createdDate", new Date());
+
+                                        notificationService.sendCustomWebSocketNotificationToUser(
+                                                        studentAccount.getUsername(),
+                                                        studentPayload);
                                 }
                         }
                 }
 
                 // Gửi notification cho người được reply (nếu khác người reply)
                 if (!replyAccount.getId().equals(ownerAccount.getId())) {
+                        String replyNotificationMessage = isPostComment
+                                        ? "Có người trả lời bình luận của bạn: " + savedReply.getDetail()
+                                        : "Có người trả lời bình luận của bạn trong khóa học "
+                                                        + parentComment.getCourse().getName() + ": "
+                                                        + savedReply.getDetail();
+
                         notificationRepository.save(Notification.builder()
                                         .account(replyAccount)
                                         .commentReply(savedReply)
-                                        .type(isPostComment ? NotificationType.POST_COMMENT_REPLY
-                                                        : NotificationType.COMMENT_REPLY)
-                                        .description(message.getDetail())
+                                        .type(isPostComment ? NotificationType.POST_COMMENT_REPLY.name()
+                                                        : NotificationType.COMMENT_REPLY.name())
+                                        .description(replyNotificationMessage)
                                         .isRead(false)
                                         .createdAt(OffsetDateTime.now())
                                         .build());
 
                         if (isPostComment) {
                                 Map<String, Object> replyPayload = new HashMap<>();
-                                replyPayload.put("message",
-                                                "Có người trả lời bình luận của bạn: " + savedReply.getDetail());
+                                replyPayload.put("message", replyNotificationMessage);
                                 replyPayload.put("type", NotificationType.POST_COMMENT_REPLY.name());
                                 replyPayload.put("postId", parentComment.getPost().getId());
                                 replyPayload.put("commentId", parentComment.getId());
@@ -283,12 +302,14 @@ public class CommentReplyService {
                                 .fullnameReply(changeCommentReply.getReplyAccount().getStudent() != null
                                                 ? changeCommentReply.getReplyAccount().getStudent().getFullName()
                                                 : changeCommentReply.getReplyAccount().getTeacher() != null
-                                                                ? changeCommentReply.getReplyAccount().getTeacher().getFullName()
+                                                                ? changeCommentReply.getReplyAccount().getTeacher()
+                                                                                .getFullName()
                                                                 : null)
                                 .avatarReply(changeCommentReply.getReplyAccount().getStudent() != null
                                                 ? changeCommentReply.getReplyAccount().getStudent().getAvatar()
                                                 : changeCommentReply.getReplyAccount().getTeacher() != null
-                                                                ? changeCommentReply.getReplyAccount().getTeacher().getAvatar()
+                                                                ? changeCommentReply.getReplyAccount().getTeacher()
+                                                                                .getAvatar()
                                                                 : null)
                                 .newDetail(changeCommentReply.getDetail())
                                 .updateDate(changeCommentReply.getUpdateDateAt())

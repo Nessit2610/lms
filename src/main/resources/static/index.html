@@ -250,7 +250,7 @@
         <div class="notification-panel" id="notificationPanel">
             <div class="notification-header">
                 <h3>Thông báo</h3>
-                <span class="mark-all-read" onclick="markAllAsRead(event)">Đánh dấu đã đọc</span>
+                <span class="mark-all-read" onclick="markDisplayedNotificationsAsRead(event)">Đánh dấu đã đọc</span>
             </div>
             <ul class="notification-list">
                 <li class="notification-item">
@@ -264,46 +264,66 @@
 
     <script>
         let stompClient = null;
+        let currentPage = 0;
+        const pageSize = 10;
+        let allNotifications = []; // Stores NotificationDetail objects
 
         function connectWebSocket() {
             if (stompClient && stompClient.connected) {
-                console.log("WebSocket đã được kết nối");
+                console.log("WebSocket đã được kết nối (index.html)");
                 return;
             }
 
             const socket = new SockJS('http://localhost:8080/lms/ws');
             stompClient = Stomp.over(socket);
-            stompClient.connect({}, function (frame) {
-                console.log("Kết nối WebSocket thành công:", frame);
 
-                // Subscribe để nhận thông báo mới
-                stompClient.subscribe("/topic/notifications", function (message) {
-                    const notification = JSON.parse(message.body);
-                    console.log("Nhận thông báo mới:", notification);
-                    addNewNotification(notification);
-                    updateNotificationBadge();
-                });
+            const token = localStorage.getItem("token");
+            const headers = {};
+            if (token) {
+                headers['Authorization'] = 'Bearer ' + token;
+            } else {
+                console.warn("No token found in localStorage for WebSocket connection in index.html. Proceeding without token.");
+            }
 
-                // Subscribe để nhận comment mới
-                stompClient.subscribe("/topic/comments", function (message) {
-                    const content = JSON.parse(message.body);
-                    console.log("Nhận comment mới:", content);
-                    loadUnreadNotifications();
-                });
+            function connect() {
+                stompClient.connect(headers,
+                    function (frame) {
+                        console.log("Kết nối WebSocket thành công (index.html):", frame);
 
-                window.stompClient = stompClient;
-                sessionStorage.setItem('wsConnected', 'true');
-            }, function (error) {
-                console.error("Lỗi kết nối WebSocket:", error);
-                setTimeout(connectWebSocket, 5000);
-            });
+                        // Get token for subscription headers
+                        const token = localStorage.getItem("token");
+                        const subscribeHeaders = token ? { 'Authorization': 'Bearer ' + token } : {};
+
+                        stompClient.subscribe("/topic/notifications", function (message) {
+                            const notification = JSON.parse(message.body);
+                            console.log("Nhận thông báo mới:", notification);
+                            addNewNotificationToUI(notification.result);
+                            updateNotificationBadge();
+                        }, subscribeHeaders);
+
+                        window.stompClient = stompClient;
+                        sessionStorage.setItem('wsConnected', 'true');
+                        loadAllNotifications(currentPage, pageSize);
+                    },
+                    function (error) {
+                        console.error("Lỗi kết nối WebSocket (index.html):", error);
+                        // Tự động reconnect sau 5 giây
+                        setTimeout(function () {
+                            console.log("Đang thử kết nối lại...");
+                            connect();
+                        }, 5000);
+                    }
+                );
+            }
+
+            connect();
         }
 
-        function loadUnreadNotifications() {
+        function loadAllNotifications(page = 0, size = 10) {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            fetch("http://localhost:8080/lms/notifications/comments/unread", {
+            fetch(`http://localhost:8080/lms/notifications?pageNumber=${page}&pageSize=${size}`, {
                 method: "GET",
                 headers: {
                     "Authorization": "Bearer " + token
@@ -311,45 +331,152 @@
             })
                 .then(response => response.json())
                 .then(data => {
-                    if (data && data.notifications) {
-                        displayNotifications(data.notifications);
-                        updateNotificationBadge(data.unreadCount);
+                    if (data && data.result) { // data.result is the new NotificationResponse DTO
+                        allNotifications = data.result.notificationDetails || []; // Get list from notificationDetails
+                        const unreadCountFromServer = data.result.countUnreadNotification || 0;
+
+                        displayNotifications(allNotifications);
+                        updateNotificationBadge(unreadCountFromServer); // Update badge with count from server
+                    } else {
+                        console.error("Lỗi hoặc không có dữ liệu thông báo:", data);
+                        displayNotifications([]);
+                        updateNotificationBadge(0);
                     }
                 })
-                .catch(error => console.error("Lỗi khi tải thông báo:", error));
+                .catch(error => {
+                    console.error("Lỗi khi tải tất cả thông báo:", error);
+                    displayNotifications([]);
+                    updateNotificationBadge(0);
+                });
         }
 
         function displayNotifications(notifications) {
             const notificationList = document.querySelector('.notification-list');
-            notificationList.innerHTML = '';
+            notificationList.innerHTML = ''; // Clear current list
 
             if (!notifications || notifications.length === 0) {
-                notificationList.innerHTML = '<li class="notification-item">Chưa có thông báo mới</li>';
+                notificationList.innerHTML = '<li class="notification-item"><div class="notification-content">Chưa có thông báo nào.</div></li>';
                 return;
             }
 
             notifications.forEach(notification => {
                 const li = document.createElement('li');
-                li.className = `notification-item ${notification.read ? '' : 'unread'}`;
-                li.innerHTML = `
-     
-            @keyframes shake {
-                0% { transform: rotate(0); }
-                15% { transform: rotate(5deg); }
-                30% { transform: rotate(-5deg); }
-                45% { transform: rotate(4deg); }
-                60% { transform: rotate(-4deg); }
-                75% { transform: rotate(2deg); }
-                85% { transform: rotate(-2deg); }
-                92% { transform: rotate(1deg); }
-                100% { transform: rotate(0); }
+                li.className = `notification-item ${notification.isRead ? '' : 'unread'}`;
+                li.setAttribute('data-id', notification.notificationId);
+                // Add click event to mark as read and potentially navigate
+                li.onclick = function () { /* markSingleNotificationAsRead(notification.notificationId); */ };
+
+                let contentHTML = `<div class="notification-content">${notification.description || 'Nội dung không xác định'}</div>`;
+                contentHTML += `<div class="notification-type" style="font-size:0.8em; color: #555;">Loại: ${notification.notificationType || 'N/A'}</div>`;
+                contentHTML += `<div class="notification-time">${formatTimeAgo(notification.createdAt)}</div>`;
+
+                li.innerHTML = contentHTML;
+                notificationList.appendChild(li);
+            });
+        }
+
+        function addNewNotificationToUI(notification) {
+            if (!notification) return;
+            allNotifications.unshift(notification); // Add to the beginning of the stored list
+            displayNotifications(allNotifications); // Re-render the list
+        }
+
+        function updateNotificationBadge(count) { // Accepts count directly
+            const badge = document.querySelector('.notification-badge');
+            if (typeof count === 'number') {
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'flex' : 'none';
+            } else {
+                // Fallback if count is not passed, calculate locally (less accurate for global count)
+                const unreadCountLocal = allNotifications.filter(n => !n.isRead).length;
+                badge.textContent = unreadCountLocal;
+                badge.style.display = unreadCountLocal > 0 ? 'flex' : 'none';
             }
-            .notification-icon.shake {
-                animation: shake 0.5s ease-in-out;
+        }
+
+        function formatTimeAgo(dateString) {
+            if (!dateString) return 'Không rõ thời gian';
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.floor((now - date) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + " năm trước";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " tháng trước";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " ngày trước";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " giờ trước";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " phút trước";
+            return Math.floor(seconds) + " giây trước";
+        }
+
+        function toggleNotifications() {
+            const panel = document.getElementById('notificationPanel');
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
+            } else {
+                loadAllNotifications(currentPage, pageSize); // Reload notifications when opening
+                panel.style.display = 'block';
             }
-        ;
-		document.head.appendChild(style);
-	</script>
+        }
+
+        function markDisplayedNotificationsAsRead(event) {
+            if (event) event.stopPropagation(); // Prevent panel from closing
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            const unreadNotificationIds = allNotifications
+                .filter(n => !n.isRead)
+                .map(n => n.notificationId);
+
+            if (unreadNotificationIds.length === 0) {
+                alert("Không có thông báo chưa đọc để đánh dấu.");
+                return;
+            }
+
+            // Prepare request for backend
+            const notificationRequests = unreadNotificationIds.map(id => ({ id: id }));
+
+            fetch('http://localhost:8080/lms/notifications/readAll', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token
+                },
+                body: JSON.stringify(notificationRequests)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // Update UI: mark all as read locally or reload
+                        allNotifications.forEach(n => {
+                            if (unreadNotificationIds.includes(n.notificationId)) {
+                                n.isRead = true;
+                            }
+                        });
+                        displayNotifications(allNotifications);
+                        updateNotificationBadge();
+                        alert("Đã đánh dấu tất cả thông báo hiển thị là đã đọc.");
+                    } else {
+                        response.text().then(text => alert("Lỗi khi đánh dấu đã đọc: " + text));
+                    }
+                })
+                .catch(error => console.error("Lỗi khi đánh dấu tất cả đã đọc:", error));
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            connectWebSocket();
+            // Removed initial loadUnreadNotifications, connectWebSocket will call loadAllNotifications
+
+            // Change the onclick for the mark all read button
+            const markAllReadButton = document.querySelector('.mark-all-read');
+            if (markAllReadButton) {
+                markAllReadButton.onclick = markDisplayedNotificationsAsRead;
+            }
+        });
+
+    </script>
 </body>
 
 </html>

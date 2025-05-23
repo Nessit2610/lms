@@ -111,7 +111,7 @@ public class ChapterService {
 					.account(student.getAccount())
 					.description(
 							"Giảng viên " + course.getTeacher().getFullName() + " vừa đăng 1 bài học mới trong chương " + lesson.getDescription())
-					.type(NotificationType.JOIN_CLASS_PENDING)
+					.type(NotificationType.JOIN_CLASS_PENDING.name())
 					.createdAt(OffsetDateTime.now())
 					.build();
 			notificationRepository.save(notification);

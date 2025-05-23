@@ -200,15 +200,34 @@
                 const socket = new SockJS('http://localhost:8080/lms/ws');
                 const stompClient = Stomp.over(socket);
 
-                stompClient.connect({}, function (frame) {
-                    console.log('Connected to WebSocket');
-                    window.stompClient = stompClient;
-                    sessionStorage.setItem('wsConnected', 'true');
-                    resolve(stompClient);
-                }, function (error) {
-                    console.error('WebSocket connection error:', error);
-                    reject(error);
-                });
+                const token = localStorage.getItem("token");
+                const headers = {};
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                } else {
+                    console.warn("No token found in localStorage for WebSocket connection in loginn.html.");
+                }
+
+                function connect() {
+                    stompClient.connect(headers,
+                        function (frame) {
+                            console.log('Connected to WebSocket from loginn.html (with token if available)');
+                            window.stompClient = stompClient;
+                            sessionStorage.setItem('wsConnected', 'true');
+                            resolve(stompClient);
+                        },
+                        function (error) {
+                            console.error('WebSocket connection error from loginn.html:', error);
+                            // Tự động reconnect sau 5 giây
+                            setTimeout(function () {
+                                console.log("Đang thử kết nối lại...");
+                                connect();
+                            }, 5000);
+                        }
+                    );
+                }
+
+                connect();
             });
         }
     </script>

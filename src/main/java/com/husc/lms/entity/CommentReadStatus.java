@@ -43,8 +43,8 @@ public class CommentReadStatus {
     private CommentReply commentReply;
 
     @Column(name = "commentType")
-    @Enumerated(EnumType.STRING)
-    private CommentType commentType;
+//    @Enumerated(EnumType.STRING)
+    private String commentType;
 
     @JoinColumn(name = "accountId")
     @ManyToOne(fetch = FetchType.EAGER)
