@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CommentChapterResponse;
+import com.husc.lms.dto.response.CommentInChapterOfAccountResponse;
 import com.husc.lms.dto.response.CommentOfCourseResponse;
 import com.husc.lms.dto.response.CommentPostResponse;
 import com.husc.lms.dto.response.CommentReplyResponse;
@@ -118,7 +119,7 @@ public class CommentRestController {
 					.build();
 		}
 	}
-	
+
 	@GetMapping("/getCommentByPost/details")
 	public APIResponse<Page<CommentPostResponse>> getCommentsByPost(
 			@RequestHeader("postId") String postId,
@@ -131,6 +132,20 @@ public class CommentRestController {
 
 		// Trả về kết quả dưới dạng APIResponse
 		return APIResponse.<Page<CommentPostResponse>>builder()
+				.result(response)
+				.build();
+	}
+
+	@GetMapping("/myComments")
+	public APIResponse<Page<CommentChapterResponse>> getMyCommentsByChapterId(
+			@RequestParam String chapterId,
+			@RequestParam(name = "pageNumber", defaultValue = "0") int pageNumber,
+			@RequestParam(name = "pageSize", defaultValue = "10") int pageSize) {
+
+		Page<CommentChapterResponse> response = commentService.getCommentInChapterOfAccount(
+				chapterId, pageNumber, pageSize);
+
+		return APIResponse.<Page<CommentChapterResponse>>builder()
 				.result(response)
 				.build();
 	}

@@ -10,6 +10,7 @@ import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.CommentMessageResponse;
 import com.husc.lms.dto.response.CommentUpdateMessageResponse;
 import com.husc.lms.service.CommentService;
+import com.husc.lms.service.CommentWebSocketService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,13 +18,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CommentWebSocketController {
 	private final CommentService commentService;
+	private final CommentWebSocketService webSocketService;
 
 	@MessageMapping("/comment")
 	@SendTo("/topic/comments")
 	public APIResponse<CommentMessageResponse> handleComment(CommentMessage message) {
 		try {
+			CommentMessageResponse response = commentService.saveCommentWithReadStatusAndNotification(message);
+			webSocketService.sendCommentToTopics(response);
 			return APIResponse.<CommentMessageResponse>builder()
-					.result(commentService.saveCommentWithReadStatusAndNotification(message))
+					.result(response)
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -35,8 +39,10 @@ public class CommentWebSocketController {
 	@SendTo("/topic/comments")
 	public APIResponse<CommentUpdateMessageResponse> updateComment(CommentUpdateMessage message) {
 		try {
+			CommentUpdateMessageResponse response = commentService.updateComment(message);
+			webSocketService.sendCommentUpdateToTopics(response);
 			return APIResponse.<CommentUpdateMessageResponse>builder()
-					.result(commentService.updateComment(message))
+					.result(response)
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -48,8 +54,10 @@ public class CommentWebSocketController {
 	@SendTo("/topic/comments")
 	public APIResponse<Boolean> deleteComment(CommentUpdateMessage message) {
 		try {
+			Boolean response = commentService.deleteComment(message);
+			webSocketService.sendCommentDeleteToTopics(response);
 			return APIResponse.<Boolean>builder()
-					.result(commentService.deleteComment(message))
+					.result(response)
 					.build();
 		} catch (Exception e) {
 			e.printStackTrace();
