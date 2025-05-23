@@ -17,6 +17,8 @@ public interface LessonRepository extends JpaRepository<Lesson, String> {
 
 	List<Lesson> findByCourseAndDeletedDateIsNull(Course course);
 
+	List<Lesson> findByCourseAndDeletedDateIsNullOrderByOrderAsc(Course course);
+	
 	Optional<Lesson> findByCourseAndOrderAndDeletedDateIsNull(Course course, Integer order);
 	
 	Lesson findByIdAndDeletedDateIsNull(String id);

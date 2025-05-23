@@ -126,6 +126,13 @@ public class LessonService {
 			if(slpList != null && !slpList.isEmpty()) {
 				slpService.deleteLessonProgress(slpList);
 			}
+			List<Lesson> remainingLessons = lessonRepository
+				    .findByCourseAndDeletedDateIsNullOrderByOrderAsc(lesson.getCourse());
+				int newOrder = 1;
+				for (Lesson l : remainingLessons) {
+				    l.setOrder(newOrder++);
+				}
+				lessonRepository.saveAll(remainingLessons);
 			
 			return true;
 		}

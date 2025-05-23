@@ -176,6 +176,13 @@ public class ChapterService {
             if(slcpList != null && !slcpList.isEmpty()) {
             	slcpService.deleteChapterProgress(slcpList);
             }
+            List<Chapter> remainingChapters = chapterRepository
+                .findByLessonAndDeletedDateIsNullOrderByOrderAsc(chapter.getLesson());
+            int newOrder = 1;
+            for (Chapter c : remainingChapters) {
+                c.setOrder(newOrder++);
+            }
+            chapterRepository.saveAll(remainingChapters);
             return true;
         }
         return false;
