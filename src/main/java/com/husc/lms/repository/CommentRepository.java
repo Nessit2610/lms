@@ -51,4 +51,8 @@ public interface CommentRepository extends JpaRepository<Comment, String> {
 
     @Query("SELECT c FROM Comment c WHERE c.post.id = :postId AND c.deletedDate IS NULL")
     Page<Comment> findByPostId(String postId, Pageable pageable);
+
+    @Query("SELECT c FROM Comment c WHERE c.chapter.id = :chapterId AND c.account.username = :username AND c.deletedDate IS NULL ORDER BY c.createdDate DESC")
+    Page<Comment> findByChapterIdAndUsernameOrderByCreatedDateDesc(@Param("chapterId") String chapterId,
+            @Param("username") String username, Pageable pageable);
 }

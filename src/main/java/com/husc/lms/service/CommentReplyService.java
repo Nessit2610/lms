@@ -95,7 +95,6 @@ public class CommentReplyService {
                 CommentReply savedReply = commentReplyRepository.save(commentReply);
                 int newReplyCountAfterSave = commentReplyRepository.countByComment(parentComment);
 
-                // Xử lý notification và read status
                 if (isPostComment) {
                         // Xử lý cho post comment reply
                         Post post = parentComment.getPost();

@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import com.husc.lms.dto.request.CommentMessage;
 import com.husc.lms.dto.request.CommentUpdateMessage;
 import com.husc.lms.dto.response.CommentChapterResponse;
+import com.husc.lms.dto.response.CommentInChapterOfAccountResponse;
 import com.husc.lms.dto.response.CommentMessageResponse;
 import com.husc.lms.dto.response.CommentOfCourseResponse;
 import com.husc.lms.dto.response.CommentPostResponse;
@@ -558,6 +559,66 @@ public class CommentService {
                                         .createdDate(comment.getCreatedDate())
                                         .updateDate(comment.getUpdateDateAt())
                                         .countOfReply(commentReplyRepository.countByComment(comment))
+                                        .build();
+                });
+        }
+
+        public Page<CommentChapterResponse> getCommentInChapterOfAccount(String chapterId, int pageNumber,
+                        int pageSize) {
+                String username = SecurityContextHolder.getContext().getAuthentication().getName();
+                Account currentAccount = accountRepository.findByUsernameAndDeletedDateIsNull(username)
+                                .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+                if (pageSize < 1) {
+                        throw new IllegalArgumentException("pageSize must be 1 or greater.");
+                }
+
+                int actualOffset = pageNumber;
+                int actualLimit = pageSize + 1;
+                Sort sort = Sort.by(Sort.Direction.DESC, "createdDate");
+
+                Pageable fetchPageable = new OffsetLimitPageRequest(actualOffset, actualLimit, sort);
+
+                Page<Comment> fetchedCommentsPage = commentRepository.findByChapterIdAndUsernameOrderByCreatedDateDesc(
+                                chapterId,
+                                username,
+                                fetchPageable);
+
+                List<Comment> comments = fetchedCommentsPage.getContent();
+                boolean hasNext = comments.size() > pageSize;
+
+                List<Comment> commentsToReturn = hasNext ? comments.subList(0, pageSize) : comments;
+
+                Pageable returnPageable = PageRequest.of(pageNumber / pageSize, pageSize, sort);
+
+                Page<Comment> finalCommentPage = new PageImpl<>(commentsToReturn, returnPageable,
+                                fetchedCommentsPage.getTotalElements());
+
+                return finalCommentPage.map(comment -> {
+                        Account commentAccount = comment.getAccount();
+                        String usernameOwner = commentAccount.getUsername();
+                        String commentAvatar = "";
+                        String fullnameOwner = "";
+
+                        if (commentAccount.getStudent() != null) {
+                                commentAvatar = Optional.ofNullable(commentAccount.getStudent().getAvatar()).orElse("");
+                                fullnameOwner = commentAccount.getStudent().getFullName();
+                        } else if (commentAccount.getTeacher() != null) {
+                                commentAvatar = Optional.ofNullable(commentAccount.getTeacher().getAvatar()).orElse("");
+                                fullnameOwner = commentAccount.getTeacher().getFullName();
+                        }
+
+                        int countOfReply = commentReplyRepository.countByComment(comment);
+
+                        return CommentChapterResponse.builder()
+                                        .commentId(comment.getId())
+                                        .username(usernameOwner)
+                                        .fullname(fullnameOwner)
+                                        .avatar(commentAvatar)
+                                        .detail(comment.getDetail())
+                                        .createdDate(comment.getCreatedDate())
+                                        .updateDate(comment.getUpdateDateAt())
+                                        .countOfReply(countOfReply)
                                         .build();
                 });
         }
