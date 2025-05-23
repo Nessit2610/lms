@@ -55,8 +55,8 @@ public class Notification {
     private String chatMessageId;
     
     @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private NotificationType type;
+//    @Enumerated(EnumType.STRING)
+    private String type;
 
     private boolean isRead;
 

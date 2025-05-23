@@ -252,15 +252,15 @@ public class ChatBoxMemberServiceImpl implements ChatBoxMemberService {
                 }
                 String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-                List<String> excludedUsernames;
+                List<String> excludedUsernames = new ArrayList<>();
+                excludedUsernames.add(username); // Always exclude current user
+
                 if (chatBoxId != null) {
                         List<ChatBoxMember> membersInChatBox = chatBoxMemberRepository.findByChatBoxId(chatBoxId);
-                        excludedUsernames = membersInChatBox.stream()
+                        List<String> chatBoxMembers = membersInChatBox.stream()
                                         .map(ChatBoxMember::getAccountUsername)
                                         .collect(Collectors.toList());
-                } else {
-                        excludedUsernames = new ArrayList<>();
-                        excludedUsernames.add(username);
+                        excludedUsernames.addAll(chatBoxMembers);
                 }
 
                 int actualOffset = pageNumber;

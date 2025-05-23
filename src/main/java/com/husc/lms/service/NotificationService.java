@@ -160,7 +160,7 @@ public class NotificationService {
                                                         .chapterId(chapterId)
                                                         .chatBoxId(chatBoxId)
                                                         .postId(postId)
-                                                        .notificationType(notification.getType().name())
+                                                        .notificationType(notification.getType())
                                                         .isRead(notification.isRead())
                                                         .description(notification.getDescription())
                                                         .createdAt(notification.getCreatedAt())
@@ -263,7 +263,7 @@ public class NotificationService {
                                 continue;
                         Notification notification = Notification.builder()
                                         .account(receiver)
-                                        .type(NotificationType.CHAT_MESSAGE)
+                                        .type(NotificationType.CHAT_MESSAGE.name())
                                         .chatMessageId(chatMessage.getId())
                                         .isRead(false)
                                         .description("Người dùng " + senderFullname + " vừa nhắn: " +
