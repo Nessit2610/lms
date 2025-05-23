@@ -27,6 +27,7 @@ public class NotificationResponse {
 		private String courseId;
 		private String lessonId;
 		private String chapterId;
+		private String groupId;
 		private String postId;
 		private String chatBoxId;
 		private String notificationType;
