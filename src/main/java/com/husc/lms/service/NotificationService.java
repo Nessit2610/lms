@@ -256,22 +256,50 @@ public class NotificationService {
 
     public void createChatMessageNotificationForChatBoxMembers(ChatMessage chatMessage,
             List<String> memberUsernames) {
-        if (chatMessage == null || memberUsernames == null || memberUsernames.isEmpty())
+        if (chatMessage == null || memberUsernames == null || memberUsernames.isEmpty()) {
+            System.out.println(
+                    "[NotificationService] createChatMessageNotificationForChatBoxMembers: Invalid input parameters");
             return;
+        }
         String sender = chatMessage.getSenderAccount();
+        System.out.println("[NotificationService] Processing notification for chat message from sender: " + sender);
+
         // Get sender's account to get their full name
         Account senderAccount = accountRepository.findByUsernameAndDeletedDateIsNull(sender).orElse(null);
-        if (senderAccount == null)
+        if (senderAccount == null) {
+            System.out.println("[NotificationService] Sender account not found: " + sender);
             return;
+        }
         String senderFullname = senderAccount.getStudent() != null ? senderAccount.getStudent().getFullName()
                 : senderAccount.getTeacher() != null ? senderAccount.getTeacher().getFullName()
                         : "";
+        System.out.println("[NotificationService] Sender fullname: " + senderFullname);
+
+        // Kiểm tra người nhận có đang online trong chatbox không
+        String destination = "/topic/chatbox/" + chatMessage.getChatBoxId();
+        Set<String> activeSubscribers = getActiveSubscribers(destination);
+        System.out.println("[NotificationService] Active subscribers in chatbox " + chatMessage.getChatBoxId() + ": "
+                + activeSubscribers);
+
         for (String username : memberUsernames) {
-            if (username.equals(sender))
+            System.out.println("[NotificationService] Processing member: " + username);
+
+            if (username.equals(sender)) {
+                System.out.println("[NotificationService] Skipping notification for sender: " + username);
                 continue; // Không gửi cho người gửi
+            }
+            if (activeSubscribers.contains(username)) {
+                System.out.println("[NotificationService] Skipping notification for active subscriber: " + username);
+                continue; // Không gửi cho người đang online trong chatbox
+            }
+
             Account receiver = accountRepository.findByUsernameAndDeletedDateIsNull(username).orElse(null);
-            if (receiver == null)
+            if (receiver == null) {
+                System.out.println("[NotificationService] Receiver account not found: " + username);
                 continue;
+            }
+            System.out.println("[NotificationService] Creating notification for receiver: " + username);
+
             Notification notification = Notification.builder()
                     .account(receiver)
                     .type(NotificationType.CHAT_MESSAGE.name())
@@ -283,6 +311,8 @@ public class NotificationService {
                     .createdAt(OffsetDateTime.now())
                     .build();
             notificationRepository.save(notification);
+            System.out.println("[NotificationService] Saved notification with ID: " + notification.getId());
+
             // Gửi realtime notification
             Map<String, Object> payload = new HashMap<>();
             payload.put("type", NotificationType.CHAT_MESSAGE.name());
@@ -291,6 +321,7 @@ public class NotificationService {
             payload.put("createdAt", notification.getCreatedAt());
             payload.put("isRead", notification.isRead());
             this.sendCustomWebSocketNotificationToUser(username, payload);
+            System.out.println("[NotificationService] Sent WebSocket notification to: " + username);
         }
     }
 
