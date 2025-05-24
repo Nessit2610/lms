@@ -25,9 +25,9 @@ public interface ChatBoxService {
     List<ChatBoxMember> getChatBoxMembers(String chatBoxId);
 
     ChatBox renameChatBox(String chatBoxId, String newName);
-    
+
     Page<ChatBoxResponse> searchByNameOfChatBox(String nameRegex, int pageNumber, int pageSize);
-    
+
     String uploadAvatarChatBox(String chatBoxId, MultipartFile file);
 
 }

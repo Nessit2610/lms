@@ -191,12 +191,18 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                 }
                 statusRepo.saveAll(statuses);
 
-                // Gửi notification cho các thành viên (trừ người gửi)
-                List<String> memberUsernames = members.stream().map(ChatBoxMember::getAccountUsername).toList();
-                for (String username : memberUsernames) {
-                        if (username.equals(senderAccount))
-                                continue;
-                        notificationService.createChatMessageNotificationForChatBoxMembers(message, List.of(username));
+                // Lấy danh sách người đang subscribe vào kênh WebSocket của chatbox
+                Set<String> activeSubscribers = notificationService.getActiveSubscribers("/topic/chatbox/" + chatBoxId);
+
+                // Gửi notification cho các thành viên (trừ người gửi và người đang subscribe)
+                List<String> memberUsernames = members.stream()
+                                .map(ChatBoxMember::getAccountUsername)
+                                .filter(username -> !username.equals(senderAccount)
+                                                && !activeSubscribers.contains(username))
+                                .toList();
+
+                if (!memberUsernames.isEmpty()) {
+                        notificationService.createChatMessageNotificationForChatBoxMembers(message, memberUsernames);
                 }
                 return message;
         }
