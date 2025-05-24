@@ -166,6 +166,10 @@ public class CourseService {
 		var context = SecurityContextHolder.getContext();
 		String name = context.getAuthentication().getName();
 		
+		Account account = accountRepository.findByUsernameAndDeletedDateIsNull(name).orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND));
+		Teacher teacher = teacherRepository.findByAccountAndDeletedDateIsNull(account);
+	
+		
 		Major major = majorRepository.findById(request.getMajorId()).orElseThrow(() -> new AppException(ErrorCode.MAJOR_NOT_FOUND));
 		
 		String status = switch (request.getStatus()) {
@@ -187,7 +191,10 @@ public class CourseService {
 		default -> throw new AppException(ErrorCode.NOT_ALLOWED_TYPE);
 		};
 		
-		Course course = courseRepository.findById(request.getIdCourse()).orElseThrow(() -> new AppException(ErrorCode.CODE_ERROR));
+		Course course = courseRepository.findByIdAndTeacherAndDeletedDateIsNull(request.getIdCourse(), teacher);
+		if(course == null) {
+			throw new AppException(ErrorCode.COURSE_NOT_FOUND);
+		}
 		course.setName(request.getName());
 		course.setDescription(request.getDescription());
 		course.setMajor(major.getName());

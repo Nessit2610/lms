@@ -22,6 +22,7 @@ public interface CourseRepository extends JpaRepository<Course,String> {
 	Page<Course> findByTeacherAndDeletedDateIsNull(Teacher teacher, Pageable pageable);
 	
 	Course findByIdAndDeletedDateIsNull(String id);
+	
 	Course findByIdAndTeacherAndDeletedDateIsNull(String id, Teacher teacher);
 	
 	@Query("SELECT c FROM Course c " +
