@@ -100,7 +100,6 @@ public class SecurityConfig {
 		    "/joinclass/courserequest",
 		    "/paypal/success",
 		    "/paypal/cancel",
-		    "/course/search",
 		    "/studentcourse/mycourse",
 		    "/studentgroup/getgroup",
 		    "/studentgroup/searchgroupofstudent",
