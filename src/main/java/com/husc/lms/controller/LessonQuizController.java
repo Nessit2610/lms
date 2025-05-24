@@ -22,12 +22,13 @@ public class LessonQuizController {
 	@Autowired
 	private LessonQuizService lessonQuizService;
 	
-	@PostMapping("{idLesson}/create")
+	@PostMapping("/{idLesson}/create")
 	public APIResponse<List<LessonQuizResponse>> createLessonQuiz(@PathVariable("idLesson") String idLesson, @RequestBody List<LessonQuizRequest> request){
 		return APIResponse.<List<LessonQuizResponse>>builder()
 				.result(lessonQuizService.createLessonQuiz(idLesson,request))
 				.build();
 	}
+
 	@DeleteMapping("/{lessonQuizId}")
 	public APIResponse<Boolean> deleteChapter(@PathVariable("lessonQuizId") String id){
 		return APIResponse.<Boolean>builder()
