@@ -106,13 +106,6 @@ public class DocumentController {
 				.build();
 		
 	}
-	@GetMapping("/videos/{filename}")
-	public ResponseEntity<Resource> streamVideo(
-            @PathVariable String filename,
-            @RequestHeader(value = "Range", required = false) String rangeHeader) throws IOException {
-        return documentService.streamVideo(filename, rangeHeader);
-    }
-
 	@GetMapping("/files/{filename}")
 	public ResponseEntity<byte[]> getFile(@PathVariable String filename) throws IOException {
 	    return documentService.getFile(filename);
