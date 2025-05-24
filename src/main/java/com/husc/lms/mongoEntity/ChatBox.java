@@ -28,7 +28,7 @@ public class ChatBox {
     private String createdBy; // accountId người tạo (group chat)
 
     private String name; // optional: tên hiển thị phòng
-    
+
     private String avatar;
 
     private List<String> memberAccountUsernames;

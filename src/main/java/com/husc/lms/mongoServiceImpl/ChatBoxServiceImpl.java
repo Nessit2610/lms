@@ -191,7 +191,7 @@ public class ChatBoxServiceImpl implements ChatBoxService {
                                                     ? account.getTeacher().getAvatar()
                                                     : "")
                                     .build();
-                        }).collect(Collectors.toList());	
+                        }).collect(Collectors.toList());
             }
             return ChatBoxResponse.builder()
                     .id(chatBox.getId())
@@ -314,30 +314,34 @@ public class ChatBoxServiceImpl implements ChatBoxService {
         return new PageImpl<>(chatBoxResponses, returnPageable, totalElements);
     }
 
-	@Override
-	public String uploadAvatarChatBox(String chatBoxId, MultipartFile file) {
-		ChatBox chatBox = chatBoxRepo.findById(chatBoxId).orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND));
-		String photoUrl = photoFunction.apply(chatBoxId, file);
-		chatBox.setAvatar(photoUrl);
-		chatBoxRepo.save(chatBox);
-		return photoUrl;
-	}
-	
-	private final Function<String, String> fileExtension = filename -> Optional.of(filename).filter(name -> name.contains("."))
+    @Override
+    public String uploadAvatarChatBox(String chatBoxId, MultipartFile file) {
+        ChatBox chatBox = chatBoxRepo.findById(chatBoxId)
+                .orElseThrow(() -> new AppException(ErrorCode.CHATBOX_NOT_FOUND));
+        String photoUrl = photoFunction.apply(chatBoxId, file);
+        chatBox.setAvatar(photoUrl);
+        chatBoxRepo.save(chatBox);
+        return photoUrl;
+    }
+
+    private final Function<String, String> fileExtension = filename -> Optional.of(filename)
+            .filter(name -> name.contains("."))
             .map(name -> "." + name.substring(filename.lastIndexOf(".") + 1)).orElse(".png");
-	
-	private final BiFunction<String, MultipartFile, String> photoFunction = (id,image)->{
-		String filename  =  id + fileExtension.apply(image.getOriginalFilename());
-		try {
-			Path fileStorageLocation = Paths.get(Constant.PHOTO_DIRECTORY).toAbsolutePath().normalize();
-			if(!Files.exists(fileStorageLocation)) {
-				Files.createDirectories(fileStorageLocation);
-			}
-			Files.copy(image.getInputStream(), fileStorageLocation.resolve(id + fileExtension.apply(image.getOriginalFilename())),StandardCopyOption.REPLACE_EXISTING);
-			return "/lms/course/image/" + filename;
-		} catch (Exception e) {
-			throw new RuntimeException("Unable to save image");
-		}
-	};
-	
+
+    private final BiFunction<String, MultipartFile, String> photoFunction = (id, image) -> {
+        String filename = id + fileExtension.apply(image.getOriginalFilename());
+        try {
+            Path fileStorageLocation = Paths.get(Constant.PHOTO_DIRECTORY).toAbsolutePath().normalize();
+            if (!Files.exists(fileStorageLocation)) {
+                Files.createDirectories(fileStorageLocation);
+            }
+            Files.copy(image.getInputStream(),
+                    fileStorageLocation.resolve(id + fileExtension.apply(image.getOriginalFilename())),
+                    StandardCopyOption.REPLACE_EXISTING);
+            return "/lms/course/image/" + filename;
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to save image");
+        }
+    };
+
 }
