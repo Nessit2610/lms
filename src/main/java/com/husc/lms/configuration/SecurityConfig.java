@@ -126,7 +126,6 @@ public class SecurityConfig {
 		    "/account",
 		    "/account/{accountId}",
 		    "/account/details/{accountId}",
-		    "/course/search",
 		    "/permission",
 		    "/roles",
 //		    "/student/search",
