@@ -54,7 +54,6 @@ public class SecurityConfig {
 		    "/student/searchnotingroup",
 		    "/studentcourse/searchstudent",
 		    "/studentcourse/searchstudentnotin",
-		    "/studentgroup/getstudent",
 		    "/studentgroup/searchstudent",
 		    "/teststudentresult/gettestresult",
 		    "/teststudentresult/getallresult"
