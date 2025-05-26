@@ -1,6 +1,7 @@
 package com.husc.lms.controller;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.husc.lms.dto.request.PasswordRequest;
 import com.husc.lms.dto.response.APIResponse;
 import com.husc.lms.dto.response.AccountResponse;
+import com.husc.lms.entity.Account;
 import com.husc.lms.service.AccountService;
 
 import jakarta.validation.Valid;
@@ -69,5 +71,12 @@ public class AccountController {
 				.result(accountService.setActiveAccount(accountId, active))
 				.build();
 	}
+	@PutMapping("/{id}/roles")
+    public APIResponse<Account> updateRoles(@PathVariable String id,@RequestBody Set<String> roleIds) {
+		return APIResponse.<Account>builder()
+				.result(accountService.updateAccountRoles(id, roleIds))
+				.build();
+       
+    }
 	
 }

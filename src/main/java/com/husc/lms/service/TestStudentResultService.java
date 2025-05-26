@@ -123,23 +123,29 @@ public class TestStudentResultService {
 
 	    int correctCount = 0;
 	    int totalScore = 0;
-
 	    for (AnswerRequest request : submitTestRequets.getAnswerRequests()) {
 	        
-	        TestQuestion testQuestion = testQuestionRepository.findById(request.getQuestionId()).orElseThrow(()-> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+	        TestQuestion testQuestion = testQuestionRepository.findById(request.getQuestionId())
+	            .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 	        
-	        boolean isCorrect = normalizeAnswer(request.getAnswer()).equals(normalizeAnswer(testQuestion.getCorrectAnswers()));
+	        String studentAnswer = request.getAnswer();
+	        boolean isCorrect = false;
 
-	        if (isCorrect) {
-	            correctCount++;
-	            totalScore += testQuestion.getPoint();
+	        if (studentAnswer != null) {
+	            isCorrect = normalizeAnswer(studentAnswer)
+	                .equals(normalizeAnswer(testQuestion.getCorrectAnswers()));
+	            
+	            if (isCorrect) {
+	                correctCount++;
+	                totalScore += testQuestion.getPoint();
+	            }
 	        }
-	        
+
 	        TestStudentAnswer testStudentAnswer = TestStudentAnswer.builder()
-	            .answer(request.getAnswer())
+	            .answer(studentAnswer) 
 	            .testStudentResult(testStudentResult)
 	            .testQuestion(testQuestion)
-	            .correct(isCorrect)
+	            .correct(isCorrect) 
 	            .build();
 	        
 	        testStudentAnswerRepository.save(testStudentAnswer);

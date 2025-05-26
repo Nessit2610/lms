@@ -3,6 +3,8 @@ package com.husc.lms.service;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,6 +33,9 @@ import com.husc.lms.mapper.TeacherMapper;
 import com.husc.lms.repository.RoleRepository;
 import com.husc.lms.repository.StudentRepository;
 import com.husc.lms.repository.TeacherRepository;
+
+import jakarta.transaction.Transactional;
+
 import com.husc.lms.repository.AccountRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -157,5 +162,20 @@ public class AccountService {
 		accountRepository.save(account);
 		return true;
 	}
+	
+	@Transactional
+    public Account updateAccountRoles(String accountId, Set<String> roleIds) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new RuntimeException("Account not found"));
+
+        Set<Role> roles = roleIds.stream()
+                .map(id -> roleRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Role not found: " + id)))
+                .collect(Collectors.toSet());
+
+        account.setRoles(roles);
+
+        return accountRepository.save(account);
+    }
 	
 }

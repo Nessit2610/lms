@@ -127,17 +127,18 @@ public class SecurityConfig {
 		    "/account/details/{accountId}",
 		    "/permission",
 		    "/roles",
-//		    "/student/search",
 		    "/teacher"
 		};
 		private final String[] ADMIN_PUT_API = {
 		    "/account/changeactive",
-		    "/roles/update"
+		    "/roles/update",
+		    "/account/{id}/roles"
 		};
 		private final String[] ADMIN_DELETE_API = {
 		    "/major/delete",
 		    "/permission/delete",
 		    "/roles/delete"
+		    
 		};
 
 	@Autowired
