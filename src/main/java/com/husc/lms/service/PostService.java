@@ -31,6 +31,8 @@ import com.husc.lms.dto.request.PostRequest;
 import com.husc.lms.dto.response.PostResponse;
 import com.husc.lms.dto.update.PostUpdateRequest;
 import com.husc.lms.entity.Account;
+import com.husc.lms.entity.Comment;
+import com.husc.lms.entity.CommentReply;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.Notification;
 import com.husc.lms.entity.Post;
@@ -42,6 +44,8 @@ import com.husc.lms.enums.NotificationType;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.PostMapper;
 import com.husc.lms.repository.AccountRepository;
+import com.husc.lms.repository.CommentReplyRepository;
+import com.husc.lms.repository.CommentRepository;
 import com.husc.lms.repository.GroupRepository;
 import com.husc.lms.repository.NotificationRepository;
 import com.husc.lms.repository.PostFileRepository;
@@ -77,6 +81,12 @@ public class PostService {
 
 	@Autowired
 	private PostMapper postMapper;
+
+	@Autowired
+	private CommentRepository commentRepository;
+
+	@Autowired
+	private CommentReplyRepository commentReplyRepository;
 
 	public PostResponse createPost(PostRequest request) {
 
@@ -256,6 +266,27 @@ public class PostService {
 					deletePhysicalFile(p.getFileUrl());
 				}
 			}
+
+			List<Comment> comments = post.getComments();
+			if (comments != null) {
+				for (Comment comment : comments) {
+					if (comment.getNotifications() != null) {
+						notificationRepository.deleteAll(comment.getNotifications());
+					}
+
+					if (comment.getCommentReplies() != null) {
+						for (CommentReply reply : comment.getCommentReplies()) {
+							if (reply.getNotifications() != null) {
+								notificationRepository.deleteAll(reply.getNotifications());
+							}
+							commentReplyRepository.delete(reply);
+						}
+					}
+
+					commentRepository.delete(comment);
+				}
+			}
+
 			postRepository.deleteById(postId);
 			return true;
 		}
