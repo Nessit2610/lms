@@ -51,6 +51,7 @@ import com.husc.lms.repository.NotificationRepository;
 import com.husc.lms.repository.PostFileRepository;
 import com.husc.lms.repository.PostRepository;
 import com.husc.lms.repository.TeacherRepository;
+import com.husc.lms.repository.CommentReadStatusRepository;
 
 @Service
 public class PostService {
@@ -87,6 +88,9 @@ public class PostService {
 
 	@Autowired
 	private CommentReplyRepository commentReplyRepository;
+
+	@Autowired
+	private CommentReadStatusRepository commentReadStatusRepository;
 
 	public PostResponse createPost(PostRequest request) {
 
@@ -259,6 +263,7 @@ public class PostService {
 	public Boolean deletePost(String postId) {
 		Post post = postRepository.findById(postId).orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
 		if (post != null) {
+			// Xử lý xóa file đính kèm
 			List<PostFile> postFiles = postFileRepository.findByPost(post);
 			if (postFiles != null) {
 				for (PostFile p : postFiles) {
@@ -267,22 +272,29 @@ public class PostService {
 				}
 			}
 
+			// Xử lý xóa comment và các thành phần liên quan
 			List<Comment> comments = post.getComments();
 			if (comments != null) {
 				for (Comment comment : comments) {
+					// Xử lý xóa notification liên quan đến comment
 					if (comment.getNotifications() != null) {
 						notificationRepository.deleteAll(comment.getNotifications());
 					}
 
+					// Xử lý xóa comment reply và notification của reply
 					if (comment.getCommentReplies() != null) {
 						for (CommentReply reply : comment.getCommentReplies()) {
 							if (reply.getNotifications() != null) {
 								notificationRepository.deleteAll(reply.getNotifications());
 							}
+							// Xóa CommentReadStatus của reply
+							commentReadStatusRepository.deleteByCommentReply(reply);
 							commentReplyRepository.delete(reply);
 						}
 					}
 
+					// Xóa CommentReadStatus của comment
+					commentReadStatusRepository.deleteByComment(comment);
 					commentRepository.delete(comment);
 				}
 			}
