@@ -202,7 +202,28 @@ public class ChatMessageServiceImpl implements ChatMessageService {
                                 .toList();
 
                 if (!memberUsernames.isEmpty()) {
-                        notificationService.createChatMessageNotificationForChatBoxMembers(message, memberUsernames);
+                        // Lấy thông tin người gửi để hiển thị tên
+                        Account sender = accountRepo.findByUsernameAndDeletedDateIsNull(senderAccount)
+                                        .orElseThrow(() -> new AppException(ErrorCode.ACCOUNT_NOT_FOUND,
+                                                        "Sender account not found: " + senderAccount));
+                        String senderFullname = sender.getStudent() != null ? sender.getStudent().getFullName()
+                        						: sender.getTeacher() != null ? sender.getTeacher().getFullName()
+                        						: "";
+                        // Tạo nội dung thông báo dựa vào loại chatbox
+                        String notificationContent;
+                        if (!chatBox.isGroup()) {
+                                // Chat 1-1: "Nguyễn Văn A đã nhắn: Nội dung tin nhắn"
+                                notificationContent = senderFullname + " đã nhắn: " + 
+                                        (content != null ? content : 
+                                        "[" + (fileType != null ? fileType : "File") + ": " + originalFilename + "]");
+                        } else {
+                                // Chat nhóm: "Nguyễn Văn A đã nhắn đến nhóm Tên Nhóm: Nội dung tin nhắn"
+                                notificationContent = senderFullname + " đã nhắn đến nhóm " + chatBox.getName() + ": " +
+                                        (content != null ? content : 
+                                        "[" + (fileType != null ? fileType : "File") + ": " + originalFilename + "]");
+                        }
+                        
+                        notificationService.createChatMessageNotificationForChatBoxMembers(message, memberUsernames, notificationContent);
                 }
                 return message;
         }
