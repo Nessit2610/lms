@@ -21,6 +21,7 @@ import com.husc.lms.entity.Notification;
 import com.husc.lms.entity.Student;
 import com.husc.lms.entity.StudentCourse;
 import com.husc.lms.enums.ErrorCode;
+import com.husc.lms.enums.FeeStatus;
 import com.husc.lms.enums.JoinClassStatus;
 import com.husc.lms.enums.NotificationType;
 import com.husc.lms.enums.StatusCourse;
@@ -139,14 +140,19 @@ public class JoinClassRequestService {
 				return true;
 			}
 			else {
-				JoinClassRequest joinClassRequest = JoinClassRequest.builder()
-						.student(student)
-						.course(course)
-						.status(JoinClassStatus.PENDING.name())
-						.createdAt(new Date())
-						.build();
-				joinClassRequestRepository.save(joinClassRequest);
-				return true;
+				if(course.getFeeType().equals(FeeStatus.CHARGEABLE.name())) {
+					throw new AppException(ErrorCode.CHARGEABLE_COURSE);
+				}
+				else {
+					JoinClassRequest joinClassRequest = JoinClassRequest.builder()
+							.student(student)
+							.course(course)
+							.status(JoinClassStatus.PENDING.name())
+							.createdAt(new Date())
+							.build();
+					joinClassRequestRepository.save(joinClassRequest);
+					return true;
+				}
 			}
 		}
 		return false;

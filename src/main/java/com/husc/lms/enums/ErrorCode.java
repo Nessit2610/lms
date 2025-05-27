@@ -69,7 +69,8 @@ public enum ErrorCode {
 	ACCOUNT_LOCKED(1049, "Tài khoản đã bị khóa", HttpStatus.FORBIDDEN),
 	FORBIDDEN(1050,"Tài khoản này không có quyền chỉnh sửa", HttpStatus.FORBIDDEN),
 	FILE_EMPTY(1051, "Tệp tải lên bị rỗng", HttpStatus.BAD_REQUEST),
-	LESSON_ORDER_DUPLICATE(1023, "Thứ tự chương đã tồn tại", HttpStatus.BAD_REQUEST);
+	LESSON_ORDER_DUPLICATE(1023, "Thứ tự chương đã tồn tại", HttpStatus.BAD_REQUEST),
+	CHARGEABLE_COURSE(1023, "Khóa học yêu cầu thanh toán", HttpStatus.BAD_REQUEST);
 
 
 	private ErrorCode(int code, String message, HttpStatusCode statusCode) {
