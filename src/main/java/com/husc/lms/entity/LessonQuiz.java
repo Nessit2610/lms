@@ -40,6 +40,8 @@ public class LessonQuiz {
 
     private String answer;
     
+    private String note;
+    
     private String createdBy;
    
     private Date createdDate;

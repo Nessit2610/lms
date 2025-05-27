@@ -19,4 +19,6 @@ public class LessonQuizResponse {
     private String option;
 
     private String answer;
+    
+    private String note;
 }

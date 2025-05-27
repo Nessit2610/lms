@@ -21,4 +21,6 @@ public class LessonQuizRequest {
 
 	@NotNull(message = "NOT_NULL")
     private String answer;
+	
+	private String note;
 }
