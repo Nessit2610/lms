@@ -255,7 +255,7 @@ public class NotificationService {
     }
 
     public void createChatMessageNotificationForChatBoxMembers(ChatMessage chatMessage,
-            List<String> memberUsernames) {
+            List<String> memberUsernames, String notificationContent) {
         if (chatMessage == null || memberUsernames == null || memberUsernames.isEmpty()) {
             System.out.println(
                     "[NotificationService] createChatMessageNotificationForChatBoxMembers: Invalid input parameters");
@@ -270,10 +270,6 @@ public class NotificationService {
             System.out.println("[NotificationService] Sender account not found: " + sender);
             return;
         }
-        String senderFullname = senderAccount.getStudent() != null ? senderAccount.getStudent().getFullName()
-                : senderAccount.getTeacher() != null ? senderAccount.getTeacher().getFullName()
-                        : "";
-        System.out.println("[NotificationService] Sender fullname: " + senderFullname);
 
         // Kiểm tra người nhận có đang online trong chatbox không
         String destination = "/topic/chatbox/" + chatMessage.getChatBoxId();
@@ -305,9 +301,7 @@ public class NotificationService {
                     .type(NotificationType.CHAT_MESSAGE.name())
                     .chatMessageId(chatMessage.getId())
                     .isRead(false)
-                    .description("Người dùng " + senderFullname + " vừa nhắn: " +
-                            (chatMessage.getContent() != null ? chatMessage.getContent()
-                                    : "[File]"))
+                    .description(notificationContent)
                     .createdAt(OffsetDateTime.now())
                     .build();
             notificationRepository.save(notification);
@@ -317,11 +311,13 @@ public class NotificationService {
             Map<String, Object> payload = new HashMap<>();
             payload.put("type", NotificationType.CHAT_MESSAGE.name());
             payload.put("notificationId", notification.getId());
-            payload.put("description", notification.getDescription());
+            payload.put("chatMessageId", chatMessage.getId());
+            payload.put("chatBoxId", chatMessage.getChatBoxId());
+            payload.put("description", notificationContent);
             payload.put("createdAt", notification.getCreatedAt());
             payload.put("isRead", notification.isRead());
+
             this.sendCustomWebSocketNotificationToUser(username, payload);
-            System.out.println("[NotificationService] Sent WebSocket notification to: " + username);
         }
     }
 
