@@ -18,12 +18,14 @@ import com.husc.lms.dto.update.TestInGroupUpdateRequest;
 import com.husc.lms.entity.Group;
 import com.husc.lms.entity.TestInGroup;
 import com.husc.lms.entity.TestQuestion;
+import com.husc.lms.entity.TestStudentResult;
 import com.husc.lms.enums.ErrorCode;
 import com.husc.lms.exception.AppException;
 import com.husc.lms.mapper.TestInGroupMapper;
 import com.husc.lms.repository.GroupRepository;
 import com.husc.lms.repository.TestInGroupRepository;
 import com.husc.lms.repository.TestQuestionRepository;
+import com.husc.lms.repository.TestStudentResultRepository;
 
 import jakarta.transaction.Transactional;
 
@@ -41,6 +43,9 @@ public class TestInGroupService {
 	
 	@Autowired
 	private TestStudentResultService testStudentResultService;
+	
+	@Autowired
+	private TestStudentResultRepository testStudentResultRepository;
 	
 	@Autowired
 	private TestInGroupMapper testInGroupMapper;
@@ -78,15 +83,18 @@ public class TestInGroupService {
 	    testInGroup.setDescription(request.getDescription());
 	    testInGroup.setStartedAt(startedAtUtc);
 	    testInGroup.setExpiredAt(expiredAtUtc);
+	    
+	    List<TestStudentResult> listTestStudentResults = testStudentResultRepository.findByTestInGroup(testInGroup);
+	    if(listTestStudentResults == null) {
+	    	 // Tạo hoặc cập nhật danh sách câu hỏi mới
+		    List<TestQuestion> updatedQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
 
-	 // Tạo hoặc cập nhật danh sách câu hỏi mới
-	    List<TestQuestion> updatedQuestions = testQuestionService.createTestQuestion(testInGroup, request.getListQuestionRequest());
+		    // Cập nhật collection hiện tại tránh gán list mới
+		    List<TestQuestion> currentQuestions = testInGroup.getQuestions();
+		    currentQuestions.clear();
+		    currentQuestions.addAll(updatedQuestions);
 
-	    // Cập nhật collection hiện tại tránh gán list mới
-	    List<TestQuestion> currentQuestions = testInGroup.getQuestions();
-	    currentQuestions.clear();
-	    currentQuestions.addAll(updatedQuestions);
-
+	    }
 	    testInGroup = testInGroupRepository.save(testInGroup);
 
 	    return testInGroupMapper.toTestInGroupResponse(testInGroup);
