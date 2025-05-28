@@ -116,7 +116,6 @@ public class LessonMaterialService {
 	private String getFolderFromType(String type) {
 	    return switch (type.toLowerCase()) {
 	        case "photo", "image" -> "images";
-	        case "video" -> "videos";
 	        case "file", "document" -> "files";
 	        default -> throw new RuntimeException("Unsupported file type: " + type);
 	    };
@@ -129,7 +128,6 @@ public class LessonMaterialService {
     String folder = getFolderFromType(type);
     String baseDir = switch (folder) {
         case "images" -> Constant.PHOTO_DIRECTORY;
-        case "videos" -> Constant.VIDEO_DIRECTORY;
         case "files" -> Constant.FILE_DIRECTORY;
         default -> throw new RuntimeException("Invalid folder: " + folder);
     };
@@ -152,35 +150,7 @@ public class LessonMaterialService {
     	}
 	};
 
-	public ResponseEntity<Resource> streamVideo(String filename, String rangeHeader) throws IOException {
-        File videoFile = Paths.get(Constant.VIDEO_DIRECTORY + filename).toFile();
-        long fileLength = videoFile.length();
-
-        if (rangeHeader == null) {
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
-                    .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(fileLength))
-                    .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                    .body(new FileSystemResource(videoFile));
-        }
-
-        long start, end;
-        String[] ranges = rangeHeader.replace("bytes=", "").split("-");
-        start = Long.parseLong(ranges[0]);
-        end = ranges.length > 1 && !ranges[1].isEmpty() ? Long.parseLong(ranges[1]) : fileLength - 1;
-
-        long contentLength = end - start + 1;
-        InputStream inputStream = new FileInputStream(videoFile);
-        inputStream.skip(start);
-        InputStreamResource inputStreamResource = new InputStreamResource(new LimitedInputStream(inputStream, contentLength));
-
-        return ResponseEntity.status(HttpStatus.PARTIAL_CONTENT)
-                .header(HttpHeaders.CONTENT_TYPE, "video/mp4")
-                .header(HttpHeaders.CONTENT_LENGTH, String.valueOf(contentLength))
-                .header(HttpHeaders.ACCEPT_RANGES, "bytes")
-                .header(HttpHeaders.CONTENT_RANGE, "bytes " + start + "-" + end + "/" + fileLength)
-                .body(inputStreamResource);
-    }
+	
 	
 	public ResponseEntity<byte[]> getFile(String filename) throws IOException {
         Path path = Paths.get(Constant.FILE_DIRECTORY + filename);
@@ -197,18 +167,12 @@ public class LessonMaterialService {
 	
 	private void validateFileExtension(String type, String extension) {
 	    Set<String> imageExtensions = Set.of(".jpg", ".jpeg", ".png", ".gif");
-	    Set<String> videoExtensions = Set.of(".mp4", ".avi", ".mov");
 	    Set<String> fileExtensions = Set.of(".pdf", ".doc", ".docx", ".txt", ".pptx");
 
 	    switch (type.toLowerCase()) {
 	        case "image" -> {
 	            if (!imageExtensions.contains(extension)) {
 	                throw new AppException(ErrorCode.INVALID_IMAGE_TYPE);
-	            }
-	        }
-	        case "video" -> {
-	            if (!videoExtensions.contains(extension)) {
-	                throw new AppException(ErrorCode.INVALID_VIDEO_TYPE);
 	            }
 	        }
 	        case "file" -> {

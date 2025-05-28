@@ -50,13 +50,6 @@ public class LessonMaterialController {
 	// Lưu ý: Type bao gồm {photo , video , file}
 	
 	
-	@GetMapping("/videos/{filename}")
-	public ResponseEntity<Resource> streamVideo(
-            @PathVariable String filename,
-            @RequestHeader(value = "Range", required = false) String rangeHeader) throws IOException {
-        return lessonMaterialService.streamVideo(filename, rangeHeader);
-    }
-
 	@GetMapping("/files/{filename}")
 	public ResponseEntity<byte[]> getFile(@PathVariable String filename) throws IOException {
 	    return lessonMaterialService.getFile(filename);
