@@ -151,6 +151,25 @@ public class JoinClassRequestService {
 							.createdAt(new Date())
 							.build();
 					joinClassRequestRepository.save(joinClassRequest);
+					
+					Notification notificationForTeacher = Notification.builder()
+							.account(course.getTeacher().getAccount())
+							.description("Bạn có 1 sinh viên tên " + student.getFullName() + " vừa đăng ký vào khoá học " + course.getName())
+							.joinClassRequest(joinClassRequest)
+							.type(NotificationType.JOIN_CLASS_PENDING.name())
+							.createdAt(OffsetDateTime.now())
+							.build();
+					notificationRepository.save(notificationForTeacher);
+					
+					// Gửi thông báo riêng cho teacher qua WebSocket
+					Map<String, Object> teacherPayload = new HashMap<>();
+					teacherPayload.put("receivedAccount", course.getTeacher().getAccount().getUsername());
+					teacherPayload.put("message", "Bạn có 1 sinh viên tên " + student.getFullName() + " đang chờ duyệt vào khoáss " + course.getName());
+					teacherPayload.put("type", NotificationType.JOIN_CLASS_PENDING.name());
+					teacherPayload.put("joinClassRequestId", joinClassRequest.getId());
+					teacherPayload.put("createdAt", OffsetDateTime.now());
+					
+					notificationService.sendCustomWebSocketNotificationToUser(course.getTeacher().getAccount().getUsername(),teacherPayload);
 					return true;
 				}
 			}
