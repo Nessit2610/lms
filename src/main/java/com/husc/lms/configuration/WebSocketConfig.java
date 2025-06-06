@@ -72,13 +72,13 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                 }
 
                                 // Log thông tin chi tiết hơn về trạng thái xác thực
-                                logger.debug("[LoggingChannelInterceptor] Authentication state - SessionId: {}, User: {}, Command: {}, Destination: {}",
-                                                sessionId, username, commandText, destination);
-
-                                System.out.printf(
-                                                "[WS-SYS-LOGGING PRE-SEND (SECURITY ENABLED)] SessionId: %s, User: %s, Command: %s, Destination: %s, Channel: %s, Payload: %s%n",
-                                                sessionId, username, commandText, destination, channel.toString(),
-                                                shortPayload);
+//                                logger.debug("[LoggingChannelInterceptor] Authentication state - SessionId: {}, User: {}, Command: {}, Destination: {}",
+//                                                sessionId, username, commandText, destination);
+//
+//                                System.out.printf(
+//                                                "[WS-SYS-LOGGING PRE-SEND (SECURITY ENABLED)] SessionId: %s, User: %s, Command: %s, Destination: %s, Channel: %s, Payload: %s%n",
+//                                                sessionId, username, commandText, destination, channel.toString(),
+//                                                shortPayload);
                                 return message;
                         }
                 };
@@ -96,10 +96,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         @Override
         public void configureMessageBroker(MessageBrokerRegistry config) {
-                // Thêm heartbeat 10 giây
+                // Thêm heartbeat 1 ngày
                 config.enableSimpleBroker("/topic", "/queue", "/user")
                                 .setTaskScheduler(heartBeatScheduler())
-                                .setHeartbeatValue(new long[] { 10000, 10000 });
+                                .setHeartbeatValue(new long[] { 86400000, 86400000 }); // 1 ngày = 86400000ms
                 config.setApplicationDestinationPrefixes("/app");
                 config.setUserDestinationPrefix("/user");
         }
@@ -109,8 +109,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 registry.addEndpoint("/ws")
                                 .setAllowedOriginPatterns("*")
                                 .withSockJS()
-                                .setDisconnectDelay(30 * 1000) // 30 giây
-                                .setHeartbeatTime(25 * 1000) // 25 giây
+                                .setDisconnectDelay(7 * 24 * 60 * 60 * 1000) // 1 tuần = 604800000ms
+                                .setHeartbeatTime(24 * 60 * 60 * 1000) // 1 ngày = 86400000ms
                                 .setClientLibraryUrl("https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js")
                                 .setWebSocketEnabled(true)
                                 .setSessionCookieNeeded(false);
@@ -132,8 +132,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 String sessionId = headerAccessor.getSessionId();
                 if (headerAccessor.getUser() != null && headerAccessor.getUser().getName() != null) {
                         String username = headerAccessor.getUser().getName();
-                        logger.debug("[WebSocketConfig] Found authenticated user from accessor: {} for session: {}",
-                                        username, sessionId);
+//                        logger.debug("[WebSocketConfig] Found authenticated user from accessor: {} for session: {}",
+//                                        username, sessionId);
                         return username;
                 }
                 // Tra cứu từ interceptor nếu không có trong accessor
@@ -142,11 +142,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                                                 .containsKey(sessionId)) {
                         String username = com.husc.lms.configuration.CustomJwtAuthChannelInterceptor.authenticatedSessions
                                         .get(sessionId).getName();
-                        logger.debug("[WebSocketConfig] Found authenticated user from interceptor map: {} for session: {}",
-                                        username, sessionId);
+//                        logger.debug("[WebSocketConfig] Found authenticated user from interceptor map: {} for session: {}",
+//                                        username, sessionId);
                         return username;
                 }
-                logger.debug("[WebSocketConfig] No authenticated user found for session: {}", sessionId);
+//                logger.debug("[WebSocketConfig] No authenticated user found for session: {}", sessionId);
                 return null;
         }
 
@@ -160,10 +160,10 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         userPrincipalName = "ANONYMOUS_OR_PENDING_AUTH (SECURITY ENABLED)";
                 }
 
-                logger.info("[WS-EVENT] CONNECTED (SECURITY ENABLED) - SessionId: {}, User: {}", sessionId,
-                                userPrincipalName);
-                System.out.printf("[WS-SYS-EVENT] CONNECTED (SECURITY ENABLED) - SessionId: %s, User: %s%n", sessionId,
-                                userPrincipalName);
+//                logger.info("[WS-EVENT] CONNECTED (SECURITY ENABLED) - SessionId: {}, User: {}", sessionId,
+//                                userPrincipalName);
+//                System.out.printf("[WS-SYS-EVENT] CONNECTED (SECURITY ENABLED) - SessionId: %s, User: %s%n", sessionId,
+//                                userPrincipalName);
         }
 
         @EventListener
@@ -177,11 +177,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         userPrincipalName = "ANONYMOUS (SECURITY ENABLED)";
                 }
 
-                logger.info("[WS-EVENT] DISCONNECTED (SECURITY ENABLED) - SessionId: {}, User: {}, CloseStatus: {}",
-                                sessionId, userPrincipalName, closeStatus);
-                System.out.printf(
-                                "[WS-SYS-EVENT] DISCONNECTED (SECURITY ENABLED) - SessionId: %s, User: %s, CloseStatus: %s%n",
-                                sessionId, userPrincipalName, closeStatus);
+//                logger.info("[WS-EVENT] DISCONNECTED (SECURITY ENABLED) - SessionId: {}, User: {}, CloseStatus: {}",
+//                                sessionId, userPrincipalName, closeStatus);
+//                System.out.printf(
+//                                "[WS-SYS-EVENT] DISCONNECTED (SECURITY ENABLED) - SessionId: %s, User: %s, CloseStatus: %s%n",
+//                                sessionId, userPrincipalName, closeStatus);
         }
 
         @EventListener
@@ -193,18 +193,18 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
                 if (userPrincipalName == null) {
                         userPrincipalName = "ANONYMOUS_SUBSCRIBE_ATTEMPT (SECURITY ENABLED)";
-                        logger.warn("[WebSocketConfig] Anonymous subscribe attempt for session: {}, destination: {}",
-                                        sessionId, destination);
+//                        logger.warn("[WebSocketConfig] Anonymous subscribe attempt for session: {}, destination: {}",
+//                                        sessionId, destination);
                 } else {
-                        logger.info("[WebSocketConfig] Authenticated subscribe for user: {}, session: {}, destination: {}",
-                                        userPrincipalName, sessionId, destination);
+//                        logger.info("[WebSocketConfig] Authenticated subscribe for user: {}, session: {}, destination: {}",
+//                                        userPrincipalName, sessionId, destination);
                 }
 
-                logger.info("[WS-EVENT] SUBSCRIBED (SECURITY ENABLED) - SessionId: {}, User: {}, Destination: {}",
-                                sessionId, userPrincipalName, destination);
-                System.out.printf(
-                                "[WS-SYS-EVENT] SUBSCRIBED (SECURITY ENABLED) - SessionId: %s, User: %s, Destination: %s%n",
-                                sessionId, userPrincipalName, destination);
+//                logger.info("[WS-EVENT] SUBSCRIBED (SECURITY ENABLED) - SessionId: {}, User: {}, Destination: {}",
+//                                sessionId, userPrincipalName, destination);
+//                System.out.printf(
+//                                "[WS-SYS-EVENT] SUBSCRIBED (SECURITY ENABLED) - SessionId: %s, User: %s, Destination: %s%n",
+//                                sessionId, userPrincipalName, destination);
         }
 
         @EventListener
@@ -218,11 +218,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                         userPrincipalName = "ANONYMOUS (SECURITY ENABLED)";
                 }
 
-                logger.info("[WS-EVENT] UNSUBSCRIBED (SECURITY ENABLED) - SessionId: {}, User: {}, SubscriptionId: {}",
-                                sessionId, userPrincipalName, subscriptionId);
-                System.out.printf(
-                                "[WS-SYS-EVENT] UNSUBSCRIBED (SECURITY ENABLED) - SessionId: %s, User: %s, SubscriptionId: %s%n",
-                                sessionId, userPrincipalName, subscriptionId);
+//                logger.info("[WS-EVENT] UNSUBSCRIBED (SECURITY ENABLED) - SessionId: {}, User: {}, SubscriptionId: {}",
+//                                sessionId, userPrincipalName, subscriptionId);
+//                System.out.printf(
+//                                "[WS-SYS-EVENT] UNSUBSCRIBED (SECURITY ENABLED) - SessionId: %s, User: %s, SubscriptionId: %s%n",
+//                                sessionId, userPrincipalName, subscriptionId);
         }
 
         @Bean
